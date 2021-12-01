@@ -22,9 +22,7 @@ done
 
 CONTAINER="$1"
 
-if ! hash jq docker 2>/dev/null ; then
-  "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
-fi
+ensurecommands jq docker
 
 [ -z "$CONTAINER" ] && exit_syntax
 CONTAINERNAME="runkit-$CONTAINER"

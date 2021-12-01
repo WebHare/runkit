@@ -7,21 +7,17 @@ exit_syntax()
   exit 1
 }
 
-onexit()
-{
-  [ -n "$SSH_AGENT_PID" ] && kill $SSH_AGENT_PID
-}
-
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
+RESTOREOPTIONS=""
 RESTORETO=""
 SKIPRESTORE=""
 NODOCKER=""
-SSH_AGENT_PID=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
     shift
     RESTORETO="$1"
+    RESTOREOPTIONS="$RESTOREOPTIONS --restoreto $1" # FIXME escape the $1
     shift
   elif [ "$1" == "--skiprestore" ]; then #unsupported option that allows you to skip the 'borg' step
     SKIPRESTORE="1"
@@ -40,20 +36,8 @@ while true; do
 done
 
 CONTAINER="$1"
-
-# Install dependencies
-NEEDCOMMANDS="borg ssh-add"
-if [ -z "$NODOCKER" ]; then
-  NEEDCOMMANDS="$NEEDCOMMANDS docker"
-fi
-
-if ! hash $NEEDCOMMANDS 2>/dev/null ; then
-  "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
-fi
-
-trap onexit EXIT
-
 [ -z "$CONTAINER" ] && exit_syntax
+[ -z "$NODOCKER" ] && ensurecommands docker
 
 if [ -z "$RESTORETO" ]; then
   RESTORETO="/containerstorage/$CONTAINER"
@@ -63,40 +47,7 @@ mkdir -p "$RESTORETO"
 cd "$RESTORETO"
 
 if [ -z "$SKIPRESTORE" ]; then
-  BORGSETTINGSFILE="$WEBHARE_RUNKIT_ROOT/local/$CONTAINER.borg"
-  if [ ! -f "$BORGSETTINGSFILE" ]; then
-    echo Cannot locate expected settings file "$BORGSETTINGSFILE"
-    exit 1
-  fi
-
-  #TODO how risky is it to fully disable this? is there usable alternative?
-  SSHOPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-  export BORG_RSH="ssh $SSHOPTS"
-  export BORG_PRIVATEKEY=
-  export BORG_REPO=
-  export BORG_PASSPHRASE=
-
-  source $BORGSETTINGSFILE
-  [ -n "$BORG_PRIVATEKEY" ] || ( echo "BORG_PRIVATEKEY not set" && exit 1 )
-  [ -n "$BORG_REPO" ] || ( echo "BORG_REPO not set" && exit 1 )
-  [ -n "$BORG_PASSPHRASE" ] || ( echo "BORG_PASSPHRASE not set" && exit 1 )
-  eval $(ssh-agent -s)
-  ssh-add - <<< "$BORG_PRIVATEKEY"
-
-  RESTOREARCHIVE="$(borg list --short --last 1)"
-  [ -z "$RESTOREARCHIVE" ] && echo "No archive found!" && exit 1
-
-  if [ -d "$RESTORETO/whdata" ]; then
-    echo "Target directory $RESTORETO/whdata already exists!"
-    exit 1
-  fi
-
-  # remove any existing restore directory
-  [ -d incomingrestore ] && rm -rf incomingrestore
-  mkdir incomingrestore
-  cd incomingrestore
-  borg extract --progress "::$RESTOREARCHIVE"  # note: without --progress its a bit faster to start
-  cd ..
+  "$WEBHARE_RUNKIT_ROOT"/bin/restore-backup.sh $RESTOREOPTIONS "$CONTAINER"
 fi
 
 if [ ! -d whdata ]; then #whdata is deeper than expected, move it into place
@@ -115,7 +66,7 @@ echo "WebHare data downloaded to $(cd whdata; pwd)"
 if [ ! -d "$RESTORETO/whdata/dbase" ] && [ ! -d "$RESTORETO/whdata/postgresql" ]; then
   if [ -z "$NODOCKER" ]; then
     echo ".. now restoring database files from $RESTORETO/whdata/preparedbackup"
-    docker run --rm -i -v "$RESTORETO/whdata:/opt/whdata" webhare/platform:master wh restore /opt/whdata/preparedbackup
+    docker run --rm -i -v "$RESTORETO/whdata:/opt/whdata" webhare/platform:master wh restore --hardlink /opt/whdata/preparedbackup
   else
     if ! hash wh 2>/dev/null ; then
       echo "'wh' command not found, but needed for a --nodocker restore!"
