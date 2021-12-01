@@ -24,7 +24,7 @@ CONTAINER="$1"
 shift
 
 # Install dependencies
-if ! hash jq docker 2>&1 ; then
+if ! hash jq docker 2>/dev/null ; then
   "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
 fi
 

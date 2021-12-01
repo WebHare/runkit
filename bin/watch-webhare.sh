@@ -7,7 +7,7 @@ exit_syntax()
   exit 1
 }
 
-WEBHARE_RUNKIT_ROOT="${BASH_SOURCE%/*/*}"
+source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 
 while true; do
   if [ "$1" == "--help" ]; then

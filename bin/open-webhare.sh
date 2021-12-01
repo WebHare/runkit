@@ -7,7 +7,7 @@ exit_syntax()
   exit 1
 }
 
-WEBHARE_RUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}"/.. ; pwd)"
+source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 
 while true; do
   if [ "$1" == "--help" ]; then
@@ -21,6 +21,10 @@ while true; do
 done
 
 CONTAINER="$1"
+
+if ! hash jq docker 2>/dev/null ; then
+  "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
+fi
 
 [ -z "$CONTAINER" ] && exit_syntax
 CONTAINERNAME="runkit-$CONTAINER"

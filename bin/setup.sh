@@ -43,6 +43,11 @@ if ! hash docker 2>/dev/null ; then
   addpackage docker.io
 fi
 
+if ! hash jq 2>/dev/null ; then
+  echo Need to install jq
+  addpackage jq
+fi
+
 if [ -n "$INSTALLPACKAGES" ]; then
   $INSTALL $INSTALLPACKAGES
 fi

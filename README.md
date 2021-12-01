@@ -1,8 +1,21 @@
 # WebHare run kit
 Tools for running WebHare on servers and testing backup/restore procedures
 
-## Getting data from borg
-This assumes credentials are in `webhare-runkit/local/whlive-test-chatplane2`
+## Getting data out of a borg host
+If the data to restore is on a borg host (eg borgbase, rsync.net) you'll
+need to download it first. Our scripts assume you'll have a credential file
+set up for the container to restore. This credential file should have the
+following structure
+
+```bash
+BORG_PRIVATEKEY="-----BEGIN OPENSSH PRIVATE KEY-----
+....key data....
+-----END OPENSSH PRIVATE KEY-----"
+BORG_REPO="user@host.repo.borgbase.com:repo"
+BORG_PASSPHRASE="key passphrase"
+```
+
+This assumes credentials are in `webhare-runkit/local/demo`
 
 ```bash
 webhare-runkit/bin/setup.sh

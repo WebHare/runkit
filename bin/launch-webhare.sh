@@ -7,7 +7,7 @@ exit_syntax()
   exit 1
 }
 
-WEBHARE_RUNKIT_ROOT="${BASH_SOURCE%/*/*}"
+source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 RESTORETO=""
 NODOCKER=""
 
@@ -32,7 +32,7 @@ done
 CONTAINER="$1"
 
 # Install dependencies
-if [ -z "$NODOCKER" ] && ! hash docker 2>&1 ; then
+if [ -z "$NODOCKER" ] && ! hash docker 2>/dev/null ; then
   "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
 fi
 
@@ -63,9 +63,9 @@ if [ -z "$NODOCKER" ]; then
     docker network create webhare-runkit --subnet=10.15.19.0/24 --ip-range=10.15.19.128/25
   fi
 
-  echo "docker" > "$STATEDIR/$CONTAINER/launchmode"
+  echo "docker" > "$STATEDIR/launchmode"
 
-  docker run --rm \
+  docker run --rm -i \
              -v "$RESTORETO/whdata:/opt/whdata" \
              --network webhare-runkit \
              -h "$CONTAINER".docker \
