@@ -22,14 +22,13 @@ done
 
 CONTAINER="$1"
 
-ensurecommands jq docker
-
 [ -z "$CONTAINER" ] && exit_syntax
 CONTAINERNAME="runkit-$CONTAINER"
 STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
 LAUNCHMODE="$(cat $STATEDIR/launchmode)"
 
 if [ "$LAUNCHMODE" == "docker" ]; then
+  ensurecommands jq docker
   CONTAINERINFO="$(docker inspect "$CONTAINERNAME")"
   if [ "$?" != "0" ]; then
     echo "Container $CONTAINERNAME does not seem to be running"

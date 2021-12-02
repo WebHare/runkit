@@ -5,7 +5,9 @@ SSH_AGENT_PID=""
 
 onexit()
 {
+  rv=$? #Make sure we don't destroy the exit code
   [ -n "$SSH_AGENT_PID" ] && kill $SSH_AGENT_PID
+  exit $rv
 }
 
 trap onexit EXIT
@@ -14,6 +16,28 @@ function ensurecommands()
 {
   if ! hash "$@" >/dev/null 2>&1 ; then
     "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
+  fi
+}
+
+function iscontainerup()
+{
+  [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null )" == true ] && return 0 || return 1
+}
+
+function killcontainer()
+{
+  if docker inspect "$1" > /dev/null 2>&1 ; then
+    (docker stop "$1" 2>/dev/null && sleep 1) || true
+    docker kill "$1" 2>/dev/null || true
+    docker rm -f "$1"
+  fi
+}
+
+function configuredocker()
+{
+  if ! docker network inspect webhare-runkit > /dev/null 2>&1 ; then
+    echo -n "Creating webhare-runkit network: "
+    docker network create webhare-runkit --subnet=10.15.19.0/24
   fi
 }
 

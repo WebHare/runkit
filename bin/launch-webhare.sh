@@ -3,13 +3,16 @@ set -e #fail on any uncaught error
 
 exit_syntax()
 {
-  echo "Syntax: launch-webhare.sh [--restoreto dir] <containername>"
+  echo "Syntax: launch-webhare.sh [--restoreto dir] [--detach] [--production] <containername>"
   exit 1
 }
 
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
+
+DETACH=""
 RESTORETO=""
 NODOCKER=""
+PRODUCTION=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
@@ -18,6 +21,12 @@ while true; do
     shift
   elif [ "$1" == "--nodocker" ]; then #do not use docker to restore webhare
     NODOCKER="1"
+    shift
+  elif [ "$1" == "--production" ]; then #do not use docker to restore webhare
+    PRODUCTION="1"
+    shift
+  elif [ "$1" == "--detach" ]; then
+    DETACH="1"
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
@@ -52,32 +61,47 @@ STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
 mkdir -p "$STATEDIR"
 
 if [ -z "$NODOCKER" ]; then
-  if docker inspect "$CONTAINERNAME" > /dev/null 2>&1 ; then
-    docker stop "$CONTAINERNAME" || true
-    sleep 1
-    docker kill "$CONTAINERNAME" || true
-    docker rm -f "$CONTAINERNAME"
-  fi
-
-  if ! docker network inspect webhare-runkit > /dev/null 2>&1 ; then
-    docker network create webhare-runkit --subnet=10.15.19.0/24 --ip-range=10.15.19.128/25
-  fi
+  ensurecommands docker
+  killcontainer "$CONTAINERNAME"
+  configuredocker
 
   echo "docker" > "$STATEDIR/launchmode"
+  RUNIMAGE=$( cat "$WEBHARE_RUNKIT_ROOT/local/$CONTAINER.dockerimage" 2>/dev/null || true )
 
-  docker run --rm -i \
+  DOCKEROPTS=""
+
+  if [ "$DETACH" == "1" ]; then
+    DOCKEROPTS="$DOCKEROPTS --detach"
+  else
+    DOCKEROPTS="$DOCKEROPTS --rm"
+  fi
+
+  if [ "$PRODUCTION" != "1" ]; then
+    DOCKEROPTS="$DOCKEROPTS -e WEBHARE_ISRESTORED=1"
+  fi
+
+  echo -n "Creating WebHare container $CONTAINERNAME: "
+  docker run $DOCKEROPTS -i \
              -v "$RESTORETO/whdata:/opt/whdata" \
              --network webhare-runkit \
              -h "$CONTAINER".docker \
              -e TZ=Europe/Amsterdam \
              -e WEBHARE_RESCUEPORT_BINDIP=0.0.0.0 \
-             -e WEBHARE_ISRESTORED=1 \
              --expose 13688 \
              --publish-all \
-             --name "runkit-$CONTAINER" \
-             webhare/platform:master
+             --label runkittype=webhare \
+             --name "$CONTAINERNAME" \
+             "${RUNIMAGE:-webhare/platform:master}"
 else
-  export WEBHARE_ISRESTORED=1
+  if [ "$DETACH" == "1" ]; then
+    echo "Detaching not supported for --nodocker runs (as wh console doesn't support it)"
+    exit 1
+  fi
+
+  if [ "$PRODUCTION" != "1" ]; then
+    export WEBHARE_ISRESTORED=1
+  fi
+
   export WEBHARE_BASEPORT="$(( $RANDOM / 10 * 10 + 20000 ))"
   export WEBHARE_DATAROOT="$RESTORETO/whdata"
 
@@ -94,3 +118,5 @@ else
 
   wh console
 fi
+
+exit 0

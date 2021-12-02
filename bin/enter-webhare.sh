@@ -7,7 +7,7 @@ exit_syntax()
   exit 1
 }
 
-WEBHARE_RUNKIT_ROOT="${BASH_SOURCE%/*/*}"
+source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 
 while true; do
   if [ "$1" == "--help" ]; then
@@ -23,18 +23,26 @@ done
 CONTAINER="$1"
 shift
 
-# Install dependencies
-if ! hash jq docker 2>/dev/null ; then
-  "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
-fi
-
 [ -z "$CONTAINER" ] && exit_syntax
-CONTAINERNAME="runkit-$CONTAINER"
 
-CONTAINERINFO="$(docker inspect "$CONTAINERNAME")"
-if [ "$?" != "0" ]; then
-  echo "Container $CONTAINERNAME does not seem to be running"
-  exit 1
+STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
+LAUNCHMODE="$(cat $STATEDIR/launchmode)"
+
+if [ "$LAUNCHMODE" == "docker" ]; then
+  ensurecommands jq docker
+
+  CONTAINERNAME="runkit-$CONTAINER"
+  CONTAINERINFO="$(docker inspect "$CONTAINERNAME")"
+  if [ "$?" != "0" ]; then
+    echo "Container $CONTAINERNAME does not seem to be running"
+    exit 1
+  fi
+
+  exec docker exec -ti "$CONTAINERNAME" /bin/bash "$@"
+else
+  WEBHARE_BASEPORT="$(cat "$STATEDIR/baseport")"
+  WEBHARE_DATAROOT="$(cat "$STATEDIR/dataroot")"
+
+  export WEBHARE_BASEPORT WEBHARE_DATAROOT
+  wh shell
 fi
-
-exec docker exec -ti "$CONTAINERNAME" /bin/bash "$@"
