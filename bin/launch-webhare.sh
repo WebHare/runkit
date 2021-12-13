@@ -47,8 +47,10 @@ fi
 
 [ -z "$CONTAINER" ] && exit_syntax
 
+STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
 if [ -z "$RESTORETO" ]; then
-  RESTORETO="/containerstorage/$CONTAINER"
+  [ -f "$STATEDIR/restore.to" ] || ( echo "--restoreto is required if you didn't restore the backup using runkit" 1>&2 && exit 1)
+  RESTORETO="$(cat "$STATEDIR/restore.to")"
 fi
 
 if [ ! -d "$RESTORETO/whdata/dbase" ] && [ ! -d "$RESTORETO/whdata/postgresql" ]; then
@@ -57,8 +59,15 @@ if [ ! -d "$RESTORETO/whdata/dbase" ] && [ ! -d "$RESTORETO/whdata/postgresql" ]
 fi
 
 CONTAINERNAME="runkit-$CONTAINER"
-STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
 mkdir -p "$STATEDIR"
+
+if [ -n "$PRODUCTION" ]; then
+  WEBHARE_ISRESTORED=""
+elif [ -f "$STATEDIR/restore.archive" ]; then
+  WEBHARE_ISRESTORED="Restored $(cat $STATEDIR/restore.archive) from $(cat $STATEDIR/restore.borgrepo)"
+else
+  WEBHARE_ISRESTORED="1"
+fi
 
 if [ -z "$NODOCKER" ]; then
   ensurecommands docker
@@ -77,7 +86,7 @@ if [ -z "$NODOCKER" ]; then
   fi
 
   if [ "$PRODUCTION" != "1" ]; then
-    DOCKEROPTS="$DOCKEROPTS -e WEBHARE_ISRESTORED=1"
+    DOCKEROPTS="$DOCKEROPTS -e WEBHARE_ISRESTORED='$WEBHARE_ISRESTORED'"
   fi
 
   echo -n "Creating WebHare container $CONTAINERNAME: "
@@ -98,10 +107,7 @@ else
     exit 1
   fi
 
-  if [ "$PRODUCTION" != "1" ]; then
-    export WEBHARE_ISRESTORED=1
-  fi
-
+  export WEBHARE_ISRESTORED
   export WEBHARE_BASEPORT="$(( $RANDOM / 10 * 10 + 20000 ))"
   export WEBHARE_DATAROOT="$RESTORETO/whdata"
 

@@ -39,13 +39,21 @@ cd "$RESTORETO"
 
 applyborgsettings "$CONTAINER"
 
+STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
+mkdir -p $STATEDIR
+
 RESTOREARCHIVE="$(borg list --short --last 1)"
 [ -z "$RESTOREARCHIVE" ] && echo "No archive found!" && exit 1
 
+# FIXME this only applies for webhare restores, we need a more generic 'hey, you're overwriting an earlier restore!'' thing..
 if [ -d "$RESTORETO/whdata" ]; then
-echo "Target directory $RESTORETO/whdata already exists!"
-exit 1
+  echo "Target directory $RESTORETO/whdata already exists!"
+  exit 1
 fi
+
+echo "$RESTOREARCHIVE" > "$STATEDIR/restore.archive"
+echo "$BORG_REPO" > "$STATEDIR/restore.borgrepo"
+echo "$RESTORETO" > "$STATEDIR/restore.to"
 
 # remove any existing restore directory
 [ -d incomingrestore ] && rm -rf incomingrestore

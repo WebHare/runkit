@@ -52,9 +52,8 @@ function applyborgsettings()
     exit 1
   fi
 
-  #TODO how risky is it to fully disable this? is there usable alternative?
-  SSHOPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-  export BORG_RSH="ssh $SSHOPTS"
+  #TODO how risky is accept-new (in practice) ?
+  export BORG_RSH="ssh -o StrictHostKeyChecking=accept-new"
   export BORG_PRIVATEKEY=
   export BORG_REPO=
   export BORG_PASSPHRASE=
