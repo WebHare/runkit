@@ -85,12 +85,9 @@ if [ -z "$NODOCKER" ]; then
     DOCKEROPTS="$DOCKEROPTS --rm"
   fi
 
-  if [ "$PRODUCTION" != "1" ]; then
-    DOCKEROPTS="$DOCKEROPTS -e WEBHARE_ISRESTORED='$WEBHARE_ISRESTORED'"
-  fi
-
   echo -n "Creating WebHare container $CONTAINERNAME: "
   docker run $DOCKEROPTS -i \
+             -e WEBHARE_ISRESTORED="$WEBHARE_ISRESTORED" \
              -v "$RESTORETO/whdata:/opt/whdata" \
              --network webhare-runkit \
              -h "$CONTAINER".docker \
