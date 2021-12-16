@@ -3,21 +3,27 @@ set -e #fail on any uncaught error
 
 exit_syntax()
 {
-  echo "Syntax: restore-webhare-data.sh [--restoreto dir] [--nodocker] <containername>"
+  echo "Syntax: restore-webhare-data.sh [--restoreto dir] [--backupsource source] [--nodocker] <containername>"
   exit 1
 }
 
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 RESTOREOPTIONS=""
-RESTORETO=""
+RESTORETO="$WEBHARE_RUNKIT_RESTORETO"
 SKIPRESTORE=""
 NODOCKER=""
+BACKUPSOURCE=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
     shift
     RESTORETO="$1"
     RESTOREOPTIONS="$RESTOREOPTIONS --restoreto $1" # FIXME escape the $1
+    shift
+  elif [ "$1" == "--backupsource" ]; then #unsupported option that allows you to skip the 'borg' step
+    shift
+    BACKUPSOURCE="$1"
+    RESTOREOPTIONS="$RESTOREOPTIONS --backupsource $BACKUPSOURCE" # FIXME escape the $BACKUPSORUCE
     shift
   elif [ "$1" == "--skiprestore" ]; then #unsupported option that allows you to skip the 'borg' step
     SKIPRESTORE="1"

@@ -8,7 +8,7 @@ exit_syntax()
 }
 
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
-RESTORETO=""
+RESTORETO="$WEBHARE_RUNKIT_RESTORETO"
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
@@ -40,7 +40,7 @@ cd "$RESTORETO"
 applyborgsettings "$CONTAINER"
 
 STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
-mkdir -p $STATEDIR
+mkdir -p "$STATEDIR"
 
 RESTOREARCHIVE="$(borg list --short --last 1)"
 [ -z "$RESTOREARCHIVE" ] && echo "No archive found!" && exit 1

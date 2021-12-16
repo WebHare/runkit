@@ -1,12 +1,12 @@
 #!/bin/bash
 
 WEBHARE_RUNKIT_ROOT="$(cd ${BASH_SOURCE%/*}/.. ; pwd )"
-SSH_AGENT_PID=""
+WEBHARE_RUNKIT_KEYFILE=""
 
 onexit()
 {
   rv=$? #Make sure we don't destroy the exit code
-  [ -n "$SSH_AGENT_PID" ] && kill $SSH_AGENT_PID
+  [ -n "$WEBHARE_RUNKIT_KEYFILE" ] && rm "$WEBHARE_RUNKIT_KEYFILE"
   exit $rv
 }
 
@@ -46,22 +46,30 @@ function applyborgsettings()
   local SETTINGSNAME
   SETTINGSNAME="$1"
 
-  BORGSETTINGSFILE="$WEBHARE_RUNKIT_ROOT/local/$SETTINGSNAME.borg"
-  if [ ! -f "$BORGSETTINGSFILE" ]; then
-    echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
-    exit 1
-  fi
-
   #TODO how risky is accept-new (in practice) ?
-  export BORG_RSH="ssh -o StrictHostKeyChecking=accept-new"
   export BORG_PRIVATEKEY=
   export BORG_REPO=
   export BORG_PASSPHRASE=
 
-  source $BORGSETTINGSFILE
+  if [ "$(type -t runkit_getborgsettings || true)" != "function" ] || ! runkit_getborgsettings "$SETTINGSNAME" ; then
+    BORGSETTINGSFILE="$WEBHARE_RUNKIT_ROOT/local/$SETTINGSNAME.borg"
+    if [ ! -f "$BORGSETTINGSFILE" ]; then
+      echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
+      exit 1
+    fi
+    source "$BORGSETTINGSFILE"
+  fi
+
   [ -n "$BORG_PRIVATEKEY" ] || ( echo "BORG_PRIVATEKEY not set" && exit 1 )
   [ -n "$BORG_REPO" ] || ( echo "BORG_REPO not set" && exit 1 )
   [ -n "$BORG_PASSPHRASE" ] || ( echo "BORG_PASSPHRASE not set" && exit 1 )
-  eval $(ssh-agent -s)
-  ssh-add - <<< "$BORG_PRIVATEKEY"
+
+  # TODO is there a way to not persist the privatesshkey ? and avoiding ssh-agent which comes with its own persisting process problems ?
+  SAVEUMASK=$(umask)
+  WEBHARE_RUNKIT_KEYFILE="$(mktemp)"
+  umask 077
+  echo "$BORG_PRIVATEKEY" > "$WEBHARE_RUNKIT_KEYFILE"
+  umask "$SAVEUMASK"
+
+  export BORG_RSH="ssh -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes -i $WEBHARE_RUNKIT_KEYFILE"
 }
