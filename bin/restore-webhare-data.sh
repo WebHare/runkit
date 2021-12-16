@@ -9,7 +9,7 @@ exit_syntax()
 
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 RESTOREOPTIONS=""
-RESTORETO="$WEBHARE_RUNKIT_RESTORETO"
+RESTORETO=""
 SKIPRESTORE=""
 NODOCKER=""
 BACKUPSOURCE=""
@@ -46,7 +46,7 @@ CONTAINER="$1"
 [ -z "$NODOCKER" ] && ensurecommands docker
 
 if [ -z "$RESTORETO" ]; then
-  RESTORETO="/containerstorage/$CONTAINER"
+  RESTORETO="${WEBHARE_RUNKIT_RESTORETO:-/containerstorage}/$CONTAINER"
 fi
 
 mkdir -p "$RESTORETO"

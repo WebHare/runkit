@@ -8,7 +8,7 @@ exit_syntax()
 }
 
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
-RESTORETO="$WEBHARE_RUNKIT_RESTORETO"
+RESTORETO=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
@@ -31,7 +31,7 @@ CONTAINER="$1"
 ensurecommands borg ssh-add
 
 if [ -z "$RESTORETO" ]; then
-  RESTORETO="/containerstorage/$CONTAINER"
+  RESTORETO="${WEBHARE_RUNKIT_RESTORETO:-/containerstorage}/$CONTAINER"
 fi
 
 mkdir -p "$RESTORETO"
