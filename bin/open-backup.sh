@@ -20,6 +20,8 @@ while true; do
   fi
 done
 
+[ -t 0 ] || (echo "open-backup.sh requires a shell. if you use ssh, add the -t option" && exit 1)
+
 CONTAINER="$1"
 ensurecommands ssh-add borg
 applyborgsettings "$CONTAINER"
