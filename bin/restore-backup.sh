@@ -9,11 +9,16 @@ exit_syntax()
 
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 RESTORETO=""
+RESTOREARCHIVE=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
     shift
     RESTORETO="$1"
+    shift
+  elif [ "$1" == "--archive" ]; then
+    shift
+    RESTOREARCHIVE="$1"
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
@@ -42,8 +47,13 @@ applyborgsettings "$CONTAINER"
 STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
 mkdir -p "$STATEDIR"
 
-RESTOREARCHIVE="$(borg list --short --last 1)"
-[ -z "$RESTOREARCHIVE" ] && echo "No archive found!" && exit 1
+if [ -z "$RESTOREARCHIVE" ]; then
+  RESTOREARCHIVE="$(borg list --short --last 1)"
+  [ -z "$RESTOREARCHIVE" ] && echo "No archive found!" && exit 1
+else
+  # borg will print error messages to stderr (like "Archive ... does not exist")
+  borg info "::$RESTOREARCHIVE" > /dev/null || exit 1
+fi
 
 # FIXME this only applies for webhare restores, we need a more generic 'hey, you're overwriting an earlier restore!'' thing..
 if [ -d "$RESTORETO/whdata" ]; then

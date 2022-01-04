@@ -8,7 +8,7 @@ exit_syntax()
 }
 
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
-RESTOREOPTIONS=""
+RESTOREOPTIONS=()
 RESTORETO=""
 SKIPRESTORE=""
 NODOCKER=""
@@ -18,12 +18,16 @@ while true; do
   if [ "$1" == "--restoreto" ]; then
     shift
     RESTORETO="$1"
-    RESTOREOPTIONS="$RESTOREOPTIONS --restoreto $1" # FIXME escape the $1
+    RESTOREOPTIONS+=("--restoreto" "$1")
+    shift
+  elif [ "$1" == "--archive" ]; then
+    shift
+    RESTOREOPTIONS+=("--archive" "$1")
     shift
   elif [ "$1" == "--backupsource" ]; then #unsupported option that allows you to skip the 'borg' step
     shift
     BACKUPSOURCE="$1"
-    RESTOREOPTIONS="$RESTOREOPTIONS --backupsource $BACKUPSOURCE" # FIXME escape the $BACKUPSORUCE
+    RESTOREOPTIONS+=("--backupsource" "$BACKUPSOURCE")
     shift
   elif [ "$1" == "--skiprestore" ]; then #unsupported option that allows you to skip the 'borg' step
     SKIPRESTORE="1"
@@ -53,7 +57,7 @@ mkdir -p "$RESTORETO"
 cd "$RESTORETO"
 
 if [ -z "$SKIPRESTORE" ]; then
-  "$WEBHARE_RUNKIT_ROOT"/bin/restore-backup.sh $RESTOREOPTIONS "$CONTAINER"
+  "$WEBHARE_RUNKIT_ROOT"/bin/restore-backup.sh "${RESTOREOPTIONS[@]}" "$CONTAINER"
 fi
 
 if [ ! -d whdata ]; then #whdata is deeper than expected, move it into place
