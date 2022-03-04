@@ -107,6 +107,7 @@ else
   export WEBHARE_ISRESTORED
   export WEBHARE_BASEPORT="$(( $RANDOM / 10 * 10 + 20000 ))"
   export WEBHARE_DATAROOT="$RESTORETO/whdata"
+  export WEBHARE_NOINSTALLATIONINFO=1
 
   # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
   [ -f "$RESTORETO/whdata/settings.sh" ] && rm "$RESTORETO/whdata/settings.sh"
