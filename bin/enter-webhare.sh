@@ -38,11 +38,20 @@ if [ "$LAUNCHMODE" == "docker" ]; then
     exit 1
   fi
 
-  exec docker exec -ti "$CONTAINERNAME" /bin/bash "$@"
+  if [ -z "$*" ]; then
+    exec docker exec -ti "$CONTAINERNAME" /bin/bash
+  else
+    exec docker exec -ti "$CONTAINERNAME" "$@"
+  fi
 else
   WEBHARE_BASEPORT="$(cat "$STATEDIR/baseport")"
   WEBHARE_DATAROOT="$(cat "$STATEDIR/dataroot")"
+  WEBHARE_SHELL_PS1_POSTFIX=" ($CONTAINER)"
 
-  export WEBHARE_BASEPORT WEBHARE_DATAROOT
-  wh shell
+  export WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_SHELL_PS1_POSTFIX
+  if [ -z "$*" ]; then
+    wh shell
+  else
+    "$@"
+  fi
 fi
