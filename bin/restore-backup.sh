@@ -10,6 +10,7 @@ exit_syntax()
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 RESTORETO=""
 RESTOREARCHIVE=""
+BORGPATHS=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
@@ -20,6 +21,9 @@ while true; do
     shift
     RESTOREARCHIVE="$1"
     shift
+  elif [ "$1" == "--dbaseonly" ]; then
+    shift
+    BORGPATHS="sh:**/preparedbackup/"
   elif [ "$1" == "--help" ]; then
     exit_syntax
   elif [[ "$1" =~ ^-.* ]]; then
@@ -64,11 +68,12 @@ fi
 echo "$RESTOREARCHIVE" > "$STATEDIR/restore.archive"
 echo "$BORG_REPO" > "$STATEDIR/restore.borgrepo"
 echo "$RESTORETO" > "$STATEDIR/restore.to"
+echo "" > "$STATEDIR/restore.source"
 
 # remove any existing restore directory
 [ -d incomingrestore ] && rm -rf incomingrestore
 mkdir incomingrestore
 cd incomingrestore
-borg extract --progress "::$RESTOREARCHIVE"  # note: without --progress its a bit faster to start
+borg extract --progress "::$RESTOREARCHIVE" $BORGPATHS # note: without --progress its a bit faster to start
 cd ..
 exit 0

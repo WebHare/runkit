@@ -3,7 +3,7 @@ set -e #fail on any uncaught error
 
 exit_syntax()
 {
-  echo "Syntax: proxy-webhare.sh <containername>"
+  echo "Syntax: proxy-webhare.sh"
   echo "Establish our local proxy for all WebHares on this server"
   exit 1
 }

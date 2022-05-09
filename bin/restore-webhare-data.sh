@@ -3,7 +3,14 @@ set -e #fail on any uncaught error
 
 exit_syntax()
 {
-  echo "Syntax: restore-webhare-data.sh [--restoreto dir] [--backupsource source] [--nodocker] <containername>"
+  cat << HERE
+Syntax: restore-webhare-data.sh [options] <containername>
+        --restoreto dir        Restore to this directory
+        --archive arc          Archive to restore (defaults to latest)
+        --dbaseonly            Only restore the database backup
+        --nodocker             Do not use docker to do the actualy restore
+HERE
+  echo " "
   exit 1
 }
 
@@ -12,7 +19,6 @@ RESTOREOPTIONS=()
 RESTORETO=""
 SKIPRESTORE=""
 NODOCKER=""
-BACKUPSOURCE=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
@@ -24,11 +30,9 @@ while true; do
     shift
     RESTOREOPTIONS+=("--archive" "$1")
     shift
-  elif [ "$1" == "--backupsource" ]; then #unsupported option that allows you to skip the 'borg' step
+  elif [ "$1" == "--dbaseonly" ]; then
     shift
-    BACKUPSOURCE="$1"
-    RESTOREOPTIONS+=("--backupsource" "$BACKUPSOURCE")
-    shift
+    RESTOREOPTIONS+=("--dbaseonly")
   elif [ "$1" == "--skiprestore" ]; then #unsupported option that allows you to skip the 'borg' step
     SKIPRESTORE="1"
     shift

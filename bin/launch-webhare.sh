@@ -53,8 +53,15 @@ if [ -z "$RESTORETO" ]; then
   RESTORETO="$(cat "$STATEDIR/restore.to")"
 fi
 
+RESTORESOURCE="$(cat "$STATEDIR/restore.source")"
+
 if [ ! -d "$RESTORETO/whdata/dbase" ] && [ ! -d "$RESTORETO/whdata/postgresql" ]; then
   echo "$RESTORETO does not appear to contain a restored WebHare installation"
+  exit 1
+fi
+
+if [ -n "$RESTORESOURCE" ] && [ -z "$NODOCKER" ]; then
+  echo "A RESTORESOURCE requires --nodocker"
   exit 1
 fi
 
@@ -85,8 +92,13 @@ if [ -z "$NODOCKER" ]; then
     DOCKEROPTS="$DOCKEROPTS --rm"
   fi
 
+  ENVFILE="$WEBHARE_RUNKIT_ROOT/local/$CONTAINER.environment"
+  if [ -f "$ENVFILE" ]; then
+    DOCKEROPTS="$DOCKEROPTS --env-file $ENVFILE"
+  fi
+
   echo -n "Creating WebHare container $CONTAINERNAME: "
-  docker run $DOCKEROPTS -i \
+  docker run -i \
              -e WEBHARE_ISRESTORED="$WEBHARE_ISRESTORED" \
              -v "$RESTORETO/whdata:/opt/whdata" \
              --network webhare-runkit \
@@ -97,6 +109,7 @@ if [ -z "$NODOCKER" ]; then
              --publish-all \
              --label runkittype=webhare \
              --name "$CONTAINERNAME" \
+             $DOCKEROPTS \
              "${RUNIMAGE:-webhare/platform:master}"
 else
   if [ "$DETACH" == "1" ]; then
