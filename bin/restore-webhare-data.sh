@@ -19,6 +19,7 @@ RESTOREOPTIONS=()
 RESTORETO=""
 SKIPRESTORE=""
 NODOCKER=""
+DOCKERIMAGE=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
@@ -38,6 +39,10 @@ while true; do
     shift
   elif [ "$1" == "--nodocker" ]; then #do not use docker to restore webhare
     NODOCKER="1"
+    shift
+  elif [ "$1" == "--dockerimage" ]; then
+    shift
+    DOCKERIMAGE="$1"
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
@@ -71,6 +76,10 @@ if [ ! -d whdata ]; then #whdata is deeper than expected, move it into place
     exit 1
   fi
 
+  if [ -d "$WHDATAFOLDER/local" ]; then
+    mv "$WHDATAFOLDER/local" "$WHDATAFOLDER/local.bak.$(date +%Y%m%d-%H%M%S)"
+  fi
+
   mv "$WHDATAFOLDER" ./whdata
 fi
 
@@ -78,9 +87,21 @@ fi
 echo "WebHare data downloaded to $(cd whdata; pwd)"
 
 if [ ! -d "$RESTORETO/whdata/dbase" ] && [ ! -d "$RESTORETO/whdata/postgresql" ]; then
+  if [ -z "$DOCKERIMAGE" ]; then
+    DOCKERIMAGE=webhare/platform:master
+    if [ -f "$RESTORETO/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
+      DOCKERIMAGE=webhare/platform:release-4-35
+      echo "Using docker image $DOCKERIMAGE because this is a dbserver backup"
+
+      # auto-launch with 4.35
+      if [ ! -f "$WEBHARE_RUNKIT_ROOT/local/$CONTAINER.dockerimage" ]; then
+        echo "$DOCKERIMAGE" > "$WEBHARE_RUNKIT_ROOT/local/$CONTAINER.dockerimage"
+      fi
+    fi
+  fi
   if [ -z "$NODOCKER" ]; then
     echo ".. now restoring database files from $RESTORETO/whdata/preparedbackup"
-    docker run --rm -i -v "$RESTORETO/whdata:/opt/whdata" webhare/platform:master wh restore --hardlink /opt/whdata/preparedbackup
+    docker run --rm -i -v "$RESTORETO/whdata:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
   else
     if ! hash wh 2>/dev/null ; then
       echo "'wh' command not found, but needed for a --nodocker restore!"
