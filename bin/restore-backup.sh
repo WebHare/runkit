@@ -54,6 +54,7 @@ mkdir -p "$STATEDIR"
 if [ -z "$RESTOREARCHIVE" ]; then
   RESTOREARCHIVE="$(borg list --short --last 1)"
   [ -z "$RESTOREARCHIVE" ] && echo "No archive found!" && exit 1
+  echo "Restoring archive $RESTOREARCHIVE"
 else
   # borg will print error messages to stderr (like "Archive ... does not exist")
   borg info "::$RESTOREARCHIVE" > /dev/null || exit 1

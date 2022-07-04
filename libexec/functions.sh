@@ -55,6 +55,7 @@ function applyborgsettings()
     BORGSETTINGSFILE="$WEBHARE_RUNKIT_ROOT/local/$SETTINGSNAME.borg"
     if [ ! -f "$BORGSETTINGSFILE" ]; then
       echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
+      [ -n "$WEBHARE_RUNKIT_ONMISSINGSETTINGS" ] && echo "$WEBHARE_RUNKIT_ONMISSINGSETTINGS"
       exit 1
     fi
     source "$BORGSETTINGSFILE"
