@@ -1,0 +1,3 @@
+#!/bin/bash
+# we don't really have a way to determine versions yet...
+echo runkit v0.0 running in $WHRUNKIT_ROOT

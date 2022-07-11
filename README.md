@@ -1,4 +1,4 @@
-# WebHare run kit
+# WebHare runkit
 Tools for running WebHare on desktops and servers and testing backup/restore procedures
 
 Download this repository using either of
@@ -7,7 +7,7 @@ Download this repository using either of
 
 Place any `*.borg` credentials you received in `webhare-runkit/local`.
 
-To ease runkit integration, add `eval $(webhare-runkit/bin/runkit setupmyshell)` to your shell
+To ease runkit use add `eval $(webhare-runkit/bin/runkit setupmyshell)` to your shell
 
 ## Getting data out of a borg host
 If the data to restore is on a borg host (eg borgbase, rsync.net) you'll
@@ -49,7 +49,11 @@ Keep in mind that if you run all this on a mac, WebHare's database will be runni
 over a Docker volume mount and eg. index reconstruction after the restore can take
 quite some time, especially if this installation isn't using postgres yet.
 
-## Restoring a WebHare installation from 'data'
+## Managing local WebHare installations
+This guide assumes you've added `runkit` to your path or let setupmyshell set up
+an alias
+
+- `runkit ...`
 
 ## NOTES
 if you keep this webhare running, you'll need to remove 'whdata/preparedbackup'
