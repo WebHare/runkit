@@ -1,5 +1,5 @@
 # WebHare run kit
-Tools for running WebHare on servers and testing backup/restore procedures
+Tools for running WebHare on desktops and servers and testing backup/restore procedures
 
 Download this repository using either of
 - `git clone git@gitlab.com:webhare/runkit.git webhare-runkit`

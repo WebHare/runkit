@@ -1,0 +1,53 @@
+#!/bin/bash
+
+export WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." || exit 1 ; pwd )"
+if [ -z "$WHRUNKIT_ROOT" ]; then
+   echo "Unable to find our root directory" 1>&2
+   exit 1
+fi
+
+if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
+  TARGETSERVER="${1:1}"
+  shift
+
+  SERVERCONFIG="$WHRUNKIT_ROOT/local/$TARGETSERVER/"
+  CMD="$1"
+  shift
+
+  if [ ! -d "$SERVERCONFIG" ]; then
+    echo "No such server $TARGETSERVER (missing directory $SERVERCONFIG)" 1>&2
+    exit 1
+  fi
+
+  if [ ! -x "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" ]; then
+    echo "Unknown at-server command '$CMD'"
+    exit 1
+  fi
+
+  export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
+  export WEBHARE_BASEPORT="$(cat "$SERVERCONFIG/baseport")"
+  export WEBHARE_DATAROOT="$(cat "$SERVERCONFIG/dataroot")"
+  if [ "$WEBHARE_BASEPORT" != "13679" ]; then # NOT  the default
+    export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
+    export WEBHARE_MODULEPATHS=  # avoid webharecue/policy from interfering with us - but it should actually watch subinstallations but not eg. restores ?
+  fi
+
+  # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
+  [ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
+
+  # TODO only if not the default:
+  exec "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" "$@"
+  exit 255
+fi
+
+# runkit directed command
+CMD="$1"
+shift
+
+if [ ! -x "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
+  echo "Unknown at-runkit command '$CMD'"
+  exit 1
+fi
+
+exec "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" "$@"
+exit 255
