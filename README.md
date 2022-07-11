@@ -7,6 +7,8 @@ Download this repository using either of
 
 Place any `*.borg` credentials you received in `webhare-runkit/local`.
 
+To ease runkit integration, add `eval $(webhare-runkit/bin/runkit setupmyshell)` to your shell
+
 ## Getting data out of a borg host
 If the data to restore is on a borg host (eg borgbase, rsync.net) you'll
 need to download it first. Our scripts assume you'll have a credential file

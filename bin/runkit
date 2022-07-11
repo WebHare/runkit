@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export WHRUNKIT_ORIGCOMMAND="$0"
 export WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." || exit 1 ; pwd )"
 if [ -z "$WHRUNKIT_ROOT" ]; then
    echo "Unable to find our root directory" 1>&2
