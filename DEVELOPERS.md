@@ -18,7 +18,7 @@ to prevent accidental commits.
   - `<server>.borg` - credentials and locations for borg backups (MAY BE DEPRECATED for consistency)
   - `local/state/<server>/` - state for the specific server (PARTIALLY DEPRECATED, stay tuned)
   - `<server>/` - configuration and state for an server
-    - dataroot - contains path to this server's data
-    - baseport - port number
+    - `dataroot` - contains path to this server's data
+    - `baseport` - port number
     - `environment.sh` - if present and executable, this will be sourced just before executing the command. Use this to setup eg. `export WEBHARE_CI=1`
     - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT

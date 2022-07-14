@@ -32,6 +32,7 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
     export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
     export WEBHARE_MODULEPATHS=  # avoid webharecue/policy from interfering with us - but it should actually watch subinstallations but not eg. restores ?
   fi
+  [ -x "$SERVERCONFIG/startup.sh" ] && export WEBHARE_POSTSTARTSCRIPT="$SERVERCONFIG/startup.sh"
 
   # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
   [ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
