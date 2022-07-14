@@ -11,12 +11,12 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   TARGETSERVER="${1:1}"
   shift
 
-  SERVERCONFIG="$WHRUNKIT_ROOT/local/$TARGETSERVER/"
+  SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$TARGETSERVER/"
   CMD="$1"
   shift
 
-  if [ ! -d "$SERVERCONFIG" ]; then
-    echo "No such server $TARGETSERVER (missing directory $SERVERCONFIG)" 1>&2
+  if [ ! -d "$SERVERCONFIGDIR" ]; then
+    echo "No such server $TARGETSERVER (missing directory $SERVERCONFIGDIR)" 1>&2
     exit 1
   fi
 
@@ -26,18 +26,18 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   fi
 
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
-  export WEBHARE_BASEPORT="$(cat "$SERVERCONFIG/baseport")"
-  export WEBHARE_DATAROOT="$(cat "$SERVERCONFIG/dataroot")"
+  export WEBHARE_BASEPORT="$(cat "$SERVERCONFIGDIR/baseport")"
+  export WEBHARE_DATAROOT="$(cat "$SERVERCONFIGDIR/dataroot")"
   if [ "$WEBHARE_BASEPORT" != "13679" ]; then # NOT  the default
     export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
     export WEBHARE_MODULEPATHS=  # avoid webharecue/policy from interfering with us - but it should actually watch subinstallations but not eg. restores ?
   fi
-  [ -x "$SERVERCONFIG/startup.sh" ] && export WEBHARE_POSTSTARTSCRIPT="$SERVERCONFIG/startup.sh"
+  [ -x "$SERVERCONFIGDIR/startup.sh" ] && export WEBHARE_POSTSTARTSCRIPT="$SERVERCONFIGDIR/startup.sh"
 
   # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
   [ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
 
-  [ -x "$SERVERCONFIG/environment.sh" ] && source "$SERVERCONFIG/environment.sh"
+  [ -x "$SERVERCONFIGDIR/environment.sh" ] && source "$SERVERCONFIGDIR/environment.sh"
 
   # TODO only if not the default:
   exec "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" "$@"

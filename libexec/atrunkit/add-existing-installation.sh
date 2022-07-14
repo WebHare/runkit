@@ -14,8 +14,8 @@ if [ ! -d "$DATADIRECTORY/postgresql" ]; then
   exit 1
 fi
 
-SERVERCONFIG="$WHRUNKIT_ROOT/local/$TARGETSERVER/"
-if [ -d "$SERVERCONFIG" ]; then
+SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$TARGETSERVER/"
+if [ -d "$SERVERCONFIGDIR" ]; then
   echo "Installation $TARGETSERVER already exists" 2>&1
   exit 1
 fi
@@ -27,9 +27,9 @@ for SERVER in $( cd "$WHRUNKIT_ROOT/local" ; echo * ); do
   fi
 done
 
-mkdir -p "$SERVERCONFIG"
+mkdir -p "$SERVERCONFIGDIR"
 
-echo "$DATADIRECTORY" > "$SERVERCONFIG/dataroot"
+echo "$DATADIRECTORY" > "$SERVERCONFIGDIR/dataroot"
 # TODO check for conflicting port numbers, and always avoid the builtin 13679-13689 range
-echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$SERVERCONFIG/baseport"
+echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$SERVERCONFIGDIR/baseport"
 echo "Created metadata for WebHare server '$TARGETSERVER'"
