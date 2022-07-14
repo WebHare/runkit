@@ -48,8 +48,10 @@ cd "$RESTORETO"
 
 applyborgsettings "$CONTAINER"
 
+# Note: STATEDIR is legacy (When runkit was just for backups) and SERVERCONFIGDIR is for `runkit ...` commands
+SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$CONTAINER/"
 STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
-mkdir -p "$STATEDIR"
+mkdir -p "$STATEDIR" "$SERVERCONFIGDIR"
 
 if [ -z "$RESTOREARCHIVE" ]; then
   RESTOREARCHIVE="$(borg list --short --last 1)"
@@ -68,8 +70,11 @@ fi
 
 echo "$RESTOREARCHIVE" > "$STATEDIR/restore.archive"
 echo "$BORG_REPO" > "$STATEDIR/restore.borgrepo"
-echo "$RESTORETO" > "$STATEDIR/restore.to"
+  echo "$RESTORETO" > "$STATEDIR/restore.to"
 echo "" > "$STATEDIR/restore.source"
+
+echo "$RESTOREARCHIVE" > "$SERVERCONFIGDIR/restore.archive"
+echo "$BORG_REPO" > "$SERVERCONFIGDIR/restore.borgrepo"
 
 # remove any existing restore directory
 [ -d incomingrestore ] && rm -rf incomingrestore

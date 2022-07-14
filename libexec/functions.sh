@@ -1,6 +1,7 @@
 #!/bin/bash
 
 WEBHARE_RUNKIT_ROOT="$(cd ${BASH_SOURCE%/*}/.. ; pwd )"
+WHRUNKIT_ROOT="$WEBHARE_RUNKIT_ROOT"
 WEBHARE_RUNKIT_KEYFILE=""
 
 onexit()

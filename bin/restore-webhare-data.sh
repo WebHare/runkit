@@ -58,6 +58,9 @@ CONTAINER="$1"
 [ -z "$CONTAINER" ] && exit_syntax
 [ -z "$NODOCKER" ] && ensurecommands docker
 
+# Note: STATEDIR is legacy (When runkit was just for backups) and SERVERCONFIGDIR is for `runkit ...` commands
+SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$CONTAINER/"
+
 if [ -z "$RESTORETO" ]; then
   RESTORETO="${WEBHARE_RUNKIT_RESTORETO:-/containerstorage}/$CONTAINER"
 fi
@@ -85,6 +88,9 @@ fi
 
 # TODO use the last STABLE branch, not master!
 echo "WebHare data downloaded to $(cd whdata; pwd)"
+mkdir -p "$SERVERCONFIGDIR"
+echo "$PWD/whdata" > "$SERVERCONFIGDIR/dataroot"
+[ -f "$SERVERCONFIGDIR/baseport" ] || echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$SERVERCONFIGDIR/baseport"
 
 if [ ! -d "$RESTORETO/whdata/dbase" ] && [ ! -d "$RESTORETO/whdata/postgresql" ]; then
   if [ -z "$DOCKERIMAGE" ]; then

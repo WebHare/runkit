@@ -31,5 +31,5 @@ mkdir -p "$SERVERCONFIGDIR"
 
 echo "$DATADIRECTORY" > "$SERVERCONFIGDIR/dataroot"
 # TODO check for conflicting port numbers, and always avoid the builtin 13679-13689 range
-echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$SERVERCONFIGDIR/baseport"
+[ -f "$SERVERCONFIGDIR/baseport" ] || echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$SERVERCONFIGDIR/baseport"
 echo "Created metadata for WebHare server '$TARGETSERVER'"

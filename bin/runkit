@@ -37,6 +37,10 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
   [ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
 
+  if [ -f "$SERVERCONFIGDIR/restore.archive" ]; then
+    export WEBHARE_ISRESTORED="Restored $(cat $SERVERCONFIGDIR/restore.archive) from $(cat $SERVERCONFIGDIR/restore.borgrepo)"
+  fi
+
   [ -x "$SERVERCONFIGDIR/environment.sh" ] && source "$SERVERCONFIGDIR/environment.sh"
 
   # TODO only if not the default:
