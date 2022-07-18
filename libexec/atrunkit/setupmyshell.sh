@@ -8,13 +8,29 @@ fi
 
 for SERVER in $( cd "$WHRUNKIT_ROOT/local" ||exit 1; echo * ); do
   if [ -f "$WHRUNKIT_ROOT/local/$SERVER/dataroot" ]; then # it appears to be a usable insatllation...
-    echo "wh-$SERVER() { \"$WHRUNKIT_ORIGCOMMAND\" \"@$SERVER\" wh \"\$@\" ; } ;"
+    cat << HERE
+wh-$SERVER() { "$WHRUNKIT_ORIGCOMMAND" "@$SERVER" wh "\$@" ; } ;
+export -f wh-$SERVER ;
+whcd-$SERVER() {
+  local DEST;
+  DEST="\`wh-$SERVER run mod::system/scripts/internal/cli/getdir.whscr "\$@"\`";
+  [ -n "\$DEST" ] && cd "\$DEST";
+} ;
+export -f whcd-$SERVER ;
+
+complete -o filenames -o nospace -C 'wh-$SERVER __autocomplete_whcd' whcd-$SERVER ;
+complete -o default -C 'wh-$SERVER __autocomplete_wh' wh-$SERVER ;
+
+HERE
   fi
 done
 
 cat << HERE
 
 runkit() { "$WHRUNKIT_ORIGCOMMAND" "\$@"; } ;
+export -f runkit ;
+
 runkit-reload() { eval \$("$WHRUNKIT_ORIGCOMMAND" setupmyshell) ; } ;
+export -f runkit-reload ;
 
 HERE
