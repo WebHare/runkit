@@ -28,8 +28,10 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
   export WEBHARE_BASEPORT="$(cat "$SERVERCONFIGDIR/baseport")"
   export WEBHARE_DATAROOT="$(cat "$SERVERCONFIGDIR/dataroot")"
-  if [ "$WEBHARE_BASEPORT" != "13679" ]; then # NOT  the default
+  if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$SERVERCONFIGDIR/allowinstallationinfo" ]; then # NOT  the default
     export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
+  fi
+  if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$SERVERCONFIGDIR/allowpolicy" ]; then # NOT  the default
     export WEBHARE_MODULEPATHS=  # avoid webharecue/policy from interfering with us - but it should actually watch subinstallations but not eg. restores ?
   fi
   [ -x "$SERVERCONFIGDIR/startup.sh" ] && export WEBHARE_POSTSTARTSCRIPT="$SERVERCONFIGDIR/startup.sh"
