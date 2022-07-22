@@ -41,7 +41,7 @@ if [ "$LAUNCHMODE" == "docker" ]; then
   if [ -z "$*" ]; then
     exec docker exec -ti "$CONTAINERNAME" /bin/bash
   else
-    exec docker exec -ti "$CONTAINERNAME" "$@"
+    exec docker exec -i "$CONTAINERNAME" "$@"
   fi
 else
   WEBHARE_BASEPORT="$(cat "$STATEDIR/baseport")"
