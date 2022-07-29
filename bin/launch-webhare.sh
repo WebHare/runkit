@@ -104,9 +104,6 @@ if [ -z "$NODOCKER" ]; then
              --network webhare-runkit \
              -h "$CONTAINER".docker \
              -e TZ=Europe/Amsterdam \
-             -e WEBHARE_RESCUEPORT_BINDIP=0.0.0.0 \
-             --expose 13688 \
-             --publish-all \
              --label runkittype=webhare \
              --name "$CONTAINERNAME" \
              $DOCKEROPTS \
