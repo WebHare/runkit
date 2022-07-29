@@ -44,7 +44,7 @@ List backups, restore a specific one and launch WebHare:
 # Get a listing
 ~/webhare-runkit/bin/list-backups.sh $CONTAINER
 # Replace ARCHIVENAME with preferred archive, something like ``
-~/webhare-runkit/bin/restore-webhare-data.sh --archive ARCHIVENAME $CONTIANER
+~/webhare-runkit/bin/restore-webhare-data.sh --archive ARCHIVENAME $CONTAINER
 # Install a proxy and WebHare (master branch) and start it
 ~/webhare-runkit/bin/startup-proxy-and-webhare.sh $CONTAINER
 # Open a shell inside the WebHare container
