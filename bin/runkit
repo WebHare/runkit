@@ -8,21 +8,31 @@ if [ -z "$WHRUNKIT_ROOT" ]; then
 fi
 
 if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
-  TARGETSERVER="${1:1}"
+  export WHRUNKIT_TARGETSERVER="${1:1}"
   shift
 
-  SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$TARGETSERVER/"
+  SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$WHRUNKIT_TARGETSERVER/"
   CMD="$1"
   shift
 
   if [ ! -d "$SERVERCONFIGDIR" ]; then
-    echo "No such server $TARGETSERVER (missing directory $SERVERCONFIGDIR)" 1>&2
+    echo "No such server $WHRUNKIT_TARGETSERVER (missing directory $SERVERCONFIGDIR)" 1>&2
     exit 1
   fi
 
   if [ ! -x "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" ]; then
     echo "Unknown at-server command '$CMD'"
     exit 1
+  fi
+
+  export WHRUNKIT_WHCOMMAND=""
+  if [ -n "$WEBHARE_DIR" ] && [ -x "$WEBHARE_DIR/bin/wh" ]; then
+    WHRUNKIT_WHCOMMAND="$WEBHARE_DIR/bin/wh"
+  elif [ -x ~/projects/webhare/whtree/bin/wh ]; then
+    WHRUNKIT_WHCOMMAND="$HOME/projects/webhare/whtree/bin/wh"
+  else
+    echo "Don't know where to find your bin/wh" 1>&2
+    exti 1
   fi
 
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
