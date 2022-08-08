@@ -7,6 +7,14 @@ if [ -z "$WHRUNKIT_ROOT" ]; then
    exit 1
 fi
 
+# TODO build up a runkit-functions
+die()
+{
+  echo "$@"
+  exit 1
+}
+export -f die
+
 if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   export WHRUNKIT_TARGETSERVER="${1:1}"
   shift
@@ -38,6 +46,9 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
   export WEBHARE_BASEPORT="$(cat "$SERVERCONFIGDIR/baseport")"
   export WEBHARE_DATAROOT="$(cat "$SERVERCONFIGDIR/dataroot")"
+  [ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($SERVERCONFIGDIR/baseport) not set"
+  [ -n "$WEBHARE_DATAROOT" ] || die "Dataroot ($SERVERCONFIGDIR/dataroot) not set"
+
   if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$SERVERCONFIGDIR/allowinstallationinfo" ]; then # NOT  the default
     export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
   fi
