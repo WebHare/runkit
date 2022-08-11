@@ -12,6 +12,9 @@ RESTORETO=""
 RESTOREARCHIVE=""
 BORGPATHS=""
 
+# note: without --progress its a bit faster to start
+BORGOPTIONS=(--progress)
+
 while true; do
   if [ "$1" == "--restoreto" ]; then
     shift
@@ -24,6 +27,10 @@ while true; do
   elif [ "$1" == "--dbaseonly" ]; then
     shift
     BORGPATHS="sh:**/preparedbackup/"
+  elif [ "$1" == "--exclude" ]; then
+    shift
+    BORGOPTIONS+=(--exclude "$1")
+    shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
   elif [[ "$1" =~ ^-.* ]]; then
@@ -80,6 +87,6 @@ echo "$BORG_REPO" > "$SERVERCONFIGDIR/restore.borgrepo"
 [ -d incomingrestore ] && rm -rf incomingrestore
 mkdir incomingrestore
 cd incomingrestore
-borg extract --progress "::$RESTOREARCHIVE" $BORGPATHS # note: without --progress its a bit faster to start
+borg extract "${BORGOPTIONS[@]}" "::$RESTOREARCHIVE" $BORGPATHS
 cd ..
 exit 0

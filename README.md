@@ -43,7 +43,7 @@ List backups, restore a specific one and launch WebHare:
 ```bash
 # Get a listing
 ~/webhare-runkit/bin/list-backups.sh $CONTAINER
-# Replace ARCHIVENAME with preferred archive, something like ``
+# Replace ARCHIVENAME with preferred archive
 ~/webhare-runkit/bin/restore-webhare-data.sh --archive ARCHIVENAME $CONTAINER
 # Install a proxy and WebHare (master branch) and start it
 ~/webhare-runkit/bin/startup-proxy-and-webhare.sh $CONTAINER
@@ -59,6 +59,19 @@ wh dirs
 wh webserver --addbackend https://159.223.25.195/
 # Get an override token to use with the backend - keep in mind that you need to append the override token to an URL such as above
 wh cli getoverride "Verifying restored server"
+```
+
+### Restoring a backup for development (OSX)
+Eg. to locally debug an issue with a server. This assumes you have runkit and WebHare's source tree installed. In the
+example the container is still named `demo` and the `demo.borg` credentials file is present
+
+```bash
+cd ~/projects/webhare-runkit
+./bin/restore-webhare-data.sh --restoreto /tmp/restored-demo/ --nodocker demo
+./bin/launch-webhare.sh --restoreto /tmp/restored-demo/ --nodocker  demo
+./bin/watch-webhare.sh demo
+./bin/open-webhare.sh demo
+./bin/enter-webhare.sh demo
 ```
 
 ### Troubleshooting

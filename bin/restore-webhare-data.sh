@@ -9,6 +9,8 @@ Syntax: restore-webhare-data.sh [options] <containername>
         --archive arc          Archive to restore (defaults to latest)
         --dbaseonly            Only restore the database backup
         --nodocker             Do not use docker to do the actualy restore
+        --fast                 Restore only essential dta (modules and database, but eg. no output or logs)
+        --skipdownload         Do not redownload the backup, go straight to the database restore step
 HERE
   echo " "
   exit 1
@@ -17,9 +19,10 @@ HERE
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 RESTOREOPTIONS=()
 RESTORETO=""
-SKIPRESTORE=""
+SKIPDOWNLOAD=""
 NODOCKER=""
 DOCKERIMAGE=""
+FAST=""
 
 while true; do
   if [ "$1" == "--restoreto" ]; then
@@ -34,11 +37,14 @@ while true; do
   elif [ "$1" == "--dbaseonly" ]; then
     shift
     RESTOREOPTIONS+=("--dbaseonly")
-  elif [ "$1" == "--skiprestore" ]; then #unsupported option that allows you to skip the 'borg' step
-    SKIPRESTORE="1"
+  elif [ "$1" == "--skipdownload" ]; then
+    SKIPDOWNLOAD="1"
     shift
   elif [ "$1" == "--nodocker" ]; then #do not use docker to restore webhare
     NODOCKER="1"
+    shift
+  elif [ "$1" == "--fast" ]; then
+    FAST="1"
     shift
   elif [ "$1" == "--dockerimage" ]; then
     shift
@@ -58,6 +64,9 @@ CONTAINER="$1"
 [ -z "$CONTAINER" ] && exit_syntax
 [ -z "$NODOCKER" ] && ensurecommands docker
 
+if [ -n "$FAST" ]; then
+  RESTOREOPTIONS+=("--dbaseonly" --exclude "*/whdata/output/*" --exclude "*/whdata/log/*")
+fi
 # Note: STATEDIR is legacy (When runkit was just for backups) and SERVERCONFIGDIR is for `runkit ...` commands
 SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$CONTAINER/"
 
@@ -68,7 +77,7 @@ fi
 mkdir -p "$RESTORETO"
 cd "$RESTORETO"
 
-if [ -z "$SKIPRESTORE" ]; then
+if [ -z "$SKIPDOWNLOAD" ]; then
   "$WEBHARE_RUNKIT_ROOT"/bin/restore-backup.sh "${RESTOREOPTIONS[@]}" "$CONTAINER"
 fi
 
