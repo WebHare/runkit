@@ -28,7 +28,7 @@ RESTOREARCHIVE="$2"
 [ -z "$RESTOREARCHIVE" ] && echo "No archive specified, gathering a list of archives..."
 
 ensurecommands ssh-add borg
-applyborgsettings "$CONTAINER"
+applyborgsettings "$CONTAINER" #Sets WHRUNKIT_TARGETSERVER
 if [ -z "$2" ]; then
   borg list
   exit 0
@@ -37,7 +37,7 @@ fi
 STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
 
 if [ -z "$RESTORETO" ]; then
-  RESTORETO="${WEBHARE_RUNKIT_RESTORETO:-/containerstorage}/$CONTAINER"
+  RESTORETO="$WHRUNKIT_DATADIR/$CONTAINER"
 fi
 
 RESTORESOURCE="/tmp/${CONTAINER}"

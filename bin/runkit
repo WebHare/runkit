@@ -1,34 +1,23 @@
 #!/bin/bash
 
 export WHRUNKIT_ORIGCOMMAND="$0"
-export WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." || exit 1 ; pwd )"
-if [ -z "$WHRUNKIT_ROOT" ]; then
-   echo "Unable to find our root directory" 1>&2
-   exit 1
-fi
-
-# TODO build up a runkit-functions
-die()
-{
-  echo "$@"
-  exit 1
-}
-export -f die
+source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 
 if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   export WHRUNKIT_TARGETSERVER="${1:1}"
   shift
 
-  SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$WHRUNKIT_TARGETSERVER/"
+  loadtargetsettings
+
   CMD="$1"
   shift
 
-  if [ ! -d "$SERVERCONFIGDIR" ]; then
-    echo "No such server $WHRUNKIT_TARGETSERVER (missing directory $SERVERCONFIGDIR)" 1>&2
+  if [ ! -d "$WHRUNKIT_TARGETDIR" ]; then
+    echo "No such server $WHRUNKIT_TARGETSERVER (missing directory $WHRUNKIT_TARGETDIR)" 1>&2
     exit 1
   fi
 
-  if [ ! -x "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" ]; then
+  if [ ! -f "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" ]; then
     echo "Unknown at-server command '$CMD'"
     exit 1
   fi
@@ -40,34 +29,31 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
     WHRUNKIT_WHCOMMAND="$HOME/projects/webhare/whtree/bin/wh"
   else
     echo "Don't know where to find your bin/wh" 1>&2
-    exti 1
+    exit 1
   fi
 
-  export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
-  export WEBHARE_BASEPORT="$(cat "$SERVERCONFIGDIR/baseport")"
-  export WEBHARE_DATAROOT="$(cat "$SERVERCONFIGDIR/dataroot")"
-  [ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($SERVERCONFIGDIR/baseport) not set"
-  [ -n "$WEBHARE_DATAROOT" ] || die "Dataroot ($SERVERCONFIGDIR/dataroot) not set"
+  [ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($WHRUNKIT_TARGETDIR/baseport) not set"
+  [ -n "$WEBHARE_DATAROOT" ] || die "Dataroot ($WHRUNKIT_TARGETDIR/dataroot) not set and $WHRUNKIT_TARGETDIR/whdata not present"
 
-  if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$SERVERCONFIGDIR/allowinstallationinfo" ]; then # NOT  the default
+  if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$WHRUNKIT_TARGETDIR/allowinstallationinfo" ]; then # NOT  the default
     export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
   fi
-  if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$SERVERCONFIGDIR/allowpolicy" ]; then # NOT  the default
+  if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$WHRUNKIT_TARGETDIR/allowpolicy" ]; then # NOT  the default
     export WEBHARE_MODULEPATHS=  # avoid webharecue/policy from interfering with us - but it should actually watch subinstallations but not eg. restores ?
   fi
-  [ -x "$SERVERCONFIGDIR/startup.sh" ] && export WEBHARE_POSTSTARTSCRIPT="$SERVERCONFIGDIR/startup.sh"
+  [ -x "$WHRUNKIT_TARGETDIR/startup.sh" ] && export WEBHARE_POSTSTARTSCRIPT="$WHRUNKIT_TARGETDIR/startup.sh"
 
   # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
   [ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
 
-  if [ -f "$SERVERCONFIGDIR/restore.archive" ]; then
-    export WEBHARE_ISRESTORED="Restored $(cat $SERVERCONFIGDIR/restore.archive) from $(cat $SERVERCONFIGDIR/restore.borgrepo)"
+  if [ -f "$WHRUNKIT_TARGETDIR/restore.archive" ]; then
+    export WEBHARE_ISRESTORED="Restored $(cat $WHRUNKIT_TARGETDIR/restore.archive) from $(cat $WHRUNKIT_TARGETDIR/restore.borgrepo)"
   fi
 
-  [ -x "$SERVERCONFIGDIR/environment.sh" ] && source "$SERVERCONFIGDIR/environment.sh"
+  [ -x "$WHRUNKIT_TARGETDIR/environment.sh" ] && source "$WHRUNKIT_TARGETDIR/environment.sh"
 
   # TODO only if not the default:
-  exec "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" "$@"
+  source "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" "$@"
   exit 255
 fi
 
@@ -75,10 +61,10 @@ fi
 CMD="$1"
 shift
 
-if [ ! -x "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
+if [ ! -f "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
   echo "Unknown at-runkit command '$CMD'"
   exit 1
 fi
 
-exec "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" "$@"
+source "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" "$@"
 exit 255

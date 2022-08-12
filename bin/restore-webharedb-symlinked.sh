@@ -31,7 +31,10 @@ if [ -z "$RESTORETO" ]; then
   RESTORETO="$(cat "$STATEDIR/restore.to")"
 fi
 
-RESTORETO="${WEBHARE_RUNKIT_RESTORETO:-/containerstorage}/$CONTAINER"
+if [ -z "$RESTORETO" ]; then
+  RESTORETO="$WHRUNKIT_DATADIR/$CONTAINER"
+fi
+
 mkdir -p "$RESTORETO/whdata"
 echo "Will restore to: $RESTORETO"
 

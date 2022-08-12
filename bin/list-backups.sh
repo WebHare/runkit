@@ -22,6 +22,6 @@ done
 
 CONTAINER="$1"
 ensurecommands ssh-add borg
-applyborgsettings "$CONTAINER"
+applyborgsettings "$CONTAINER" #Sets WHRUNKIT_TARGETSERVER
 
 exec borg list

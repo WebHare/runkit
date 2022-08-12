@@ -1,13 +1,38 @@
 #!/bin/bash
 if [ -t 1 ]; then
+  # If you want to see the output, `runkit setupmyshell | cat`
   echo "\`runkit setupmyshell\` should be invoked as: eval \$(\"$WHRUNKIT_ORIGCOMMAND\" setupmyshell)" 1>&2
   exit 1
 fi
 
+# migrate existing non-@ (ie no restored) installations. keep this code until all are known to be migrated
+if [ -d "$WHRUNKIT_ROOT/local" ]; then
+  mkdir -p "$WHRUNKIT_DATADIR"
+  for P in $( cd "$WHRUNKIT_ROOT/local" ; echo */ ) ; do
+    P=${P%/}
+    if [ "$P" == "state" ]; then
+      continue
+    fi
+    if [[ "$P" =~ ^[-_a-z0-9]+$ ]]; then
+      mv "$WHRUNKIT_ROOT/local/$P" "$WHRUNKIT_DATADIR"
+    fi
+  done
+fi
+
+cat << HERE
+
+runkit() { "$WHRUNKIT_ORIGCOMMAND" "\$@"; } ;
+export -f runkit ;
+
+runkit-reload() { eval \$("$WHRUNKIT_ORIGCOMMAND" setupmyshell) ; } ;
+export -f runkit-reload ;
+
+HERE
+
 # TODO unregister wh- aliases for servers since removed? but this may for now be annoying for users who manually set up wh-xxx aliasses..
 
-for SERVER in $( cd "$WHRUNKIT_ROOT/local" ||exit 1; echo * ); do
-  if [ -f "$WHRUNKIT_ROOT/local/$SERVER/dataroot" ]; then # it appears to be a usable insatllation...
+for SERVER in $( cd "$WHRUNKIT_DATADIR" ||exit 1; echo * ); do
+  if [ -f "$WHRUNKIT_DATADIR/$SERVER/baseport" ]; then # it appears to be a usable insatllation...
     cat << HERE
 wh-$SERVER() { "$WHRUNKIT_ORIGCOMMAND" "@$SERVER" wh "\$@" ; } ;
 export -f wh-$SERVER ;
@@ -24,13 +49,3 @@ complete -o default -C 'wh-$SERVER __autocomplete_wh' wh-$SERVER ;
 HERE
   fi
 done
-
-cat << HERE
-
-runkit() { "$WHRUNKIT_ORIGCOMMAND" "\$@"; } ;
-export -f runkit ;
-
-runkit-reload() { eval \$("$WHRUNKIT_ORIGCOMMAND" setupmyshell) ; } ;
-export -f runkit-reload ;
-
-HERE

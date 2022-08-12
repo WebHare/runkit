@@ -1,12 +1,7 @@
 #!/bin/bash
 
-# NOTE: what more charactesr to allow? at least not '.' or '@' to prevent future ambiguity with metadata or remote server names
-
-TARGETSERVER="$1"
-if ! [[ $TARGETSERVER =~ ^[-a-z0-9]+$ ]]; then
-  echo Invalid name "$TARGETSERVER" 1>&2
-  exit 1
-fi
+WHRUNKIT_TARGETSERVER="$1"
+validate_servername "$WHRUNKIT_TARGETSERVER"
 
 DATADIRECTORY="$(cd "$2" || exit 1 ; pwd)" #'pwd' ensures this path won't end with a /
 if [ ! -d "$DATADIRECTORY/postgresql" ]; then
@@ -14,9 +9,9 @@ if [ ! -d "$DATADIRECTORY/postgresql" ]; then
   exit 1
 fi
 
-SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$TARGETSERVER/"
+SERVERCONFIGDIR="$WHRUNKIT_ROOT/local/$WHRUNKIT_TARGETSERVER/"
 if [ -d "$SERVERCONFIGDIR" ]; then
-  echo "Installation $TARGETSERVER already exists" 2>&1
+  echo "Installation $WHRUNKIT_TARGETSERVER already exists" 2>&1
   exit 1
 fi
 
@@ -32,4 +27,4 @@ mkdir -p "$SERVERCONFIGDIR"
 echo "$DATADIRECTORY" > "$SERVERCONFIGDIR/dataroot"
 # TODO check for conflicting port numbers, and always avoid the builtin 13679-13689 range
 [ -f "$SERVERCONFIGDIR/baseport" ] || echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$SERVERCONFIGDIR/baseport"
-echo "Created metadata for WebHare server '$TARGETSERVER'"
+echo "Created metadata for WebHare server '$WHRUNKIT_TARGETSERVER'"

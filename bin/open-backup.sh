@@ -31,5 +31,5 @@ echo ""
 echo "To list available backups, use: borg list"
 echo "To log out of this backup, use: exit"
 
-export PS1="[$CONTAINER] ${PS1:-\h:\W \u\$ }"
-$SHELL
+export PS1="[$WHRUNKIT_TARGETSERVER] ${PS1:-\h:\W \u\$ }"
+exec $SHELL

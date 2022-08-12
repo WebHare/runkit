@@ -5,7 +5,23 @@ Download this repository using either of
 - `git clone git@gitlab.com:webhare/runkit.git webhare-runkit`
 - `git clone https://gitlab.com/webhare/runkit.git webhare-runkit`
 
-To ease runkit use add `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your shell
+To ease runkit use add `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your shell. You can then use `runkit-reload`
+to reload the aliases without having to close your current session
+
+Runkit will store its data in `$HOME/whrunkit/` or `/opt/whrunkit/` by default. You can override this directory by setting
+the WHRUNKIT_ROOT environment varaible
+
+## General commands
+
+
+## Managing WebHare installations
+runkit offers the following subcommands:
+- `create-webhare-server <servername>` - Set up a new installation with the given name
+
+Examples:
+```bash
+runkit create-webhare-server mytest
+```
 
 ## Restoring WebHare backups
 Our scripts assume you'll have a credential file set up for the container to restore.
