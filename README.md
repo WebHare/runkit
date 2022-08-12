@@ -6,22 +6,28 @@ Download this repository using either of
 - `git clone https://gitlab.com/webhare/runkit.git webhare-runkit`
 
 To ease runkit use add `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your shell. You can then use `runkit-reload`
-to reload the aliases without having to close your current session
+to reload the aliases without having to close your current session. You can also place just `runkit` in your path or invoke
+it directly when invoking it. All examples below assume that `runkit` will invoke `bin/runkit` from this project.
 
 Runkit will store its data in `$HOME/whrunkit/` or `/opt/whrunkit/` by default. You can override this directory by setting
 the WHRUNKIT_ROOT environment varaible
 
-## General commands
-
-
 ## Managing WebHare installations
 runkit offers the following subcommands:
+- `add-existing-server <servername> <path>` - Add an already configured WebHare
 - `create-webhare-server <servername>` - Set up a new installation with the given name
 
 Examples:
 ```bash
+# Sets up a new server (will be initialized by invoking 'runkit @mytest console')
 runkit create-webhare-server mytest
+
+# Adds ~/projects/whdata/myserver as your primary installation
+runkit add-existing-server --primary myserver ~/projects/whdata/myserver
 ```
+
+The primary installation is the one with baseport '13679' and will be bound to the `wh` alias by runkit's setupmyshell.
+Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always target a server using `runkit @<server> ...`.
 
 ## Restoring WebHare backups
 Our scripts assume you'll have a credential file set up for the container to restore.

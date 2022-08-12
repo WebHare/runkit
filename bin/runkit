@@ -18,7 +18,7 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   fi
 
   if [ ! -f "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" ]; then
-    echo "Unknown at-server command '$CMD'"
+    echo "Unknown at-server command '$CMD' - try 'runkit help' ?"
     exit 1
   fi
 
@@ -62,7 +62,7 @@ CMD="$1"
 shift
 
 if [ ! -f "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
-  echo "Unknown at-runkit command '$CMD'"
+  echo "Unknown at-runkit command '$CMD' - try 'runkit help' ?"
   exit 1
 fi
 

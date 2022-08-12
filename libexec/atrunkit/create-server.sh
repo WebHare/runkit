@@ -1,4 +1,6 @@
 #!/bin/bash
+# command: create-server <servername>
+# short: Configure a new server
 
 WHRUNKIT_TARGETSERVER="$1"
 validate_servername "$WHRUNKIT_TARGETSERVER"
