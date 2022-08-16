@@ -25,7 +25,7 @@ shift
 
 [ -z "$CONTAINER" ] && exit_syntax
 
-STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
+STATEDIR="$WHRUNKIT_ROOT/local/state/$CONTAINER"
 LAUNCHMODE="$(cat $STATEDIR/launchmode)"
 
 if [ "$LAUNCHMODE" == "docker" ]; then

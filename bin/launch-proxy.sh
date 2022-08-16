@@ -39,7 +39,7 @@ killcontainer "$CONTAINERNAME"
 configuredocker
 mkdir -p "$CONTAINERSTORAGE"
 
-RUNIMAGE=$( cat "$WEBHARE_RUNKIT_ROOT/local/proxy.dockerimage" 2>/dev/null || true )
+RUNIMAGE=$( cat "$WHRUNKIT_ROOT/local/proxy.dockerimage" 2>/dev/null || true )
 
 # FIXME use last STABLE
 

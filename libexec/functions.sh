@@ -1,33 +1,11 @@
 #!/bin/bash
 
-WEBHARE_RUNKIT_ROOT="$(cd ${BASH_SOURCE%/*}/.. ; pwd )"
-WHRUNKIT_ROOT="$WEBHARE_RUNKIT_ROOT"
-
-if [ -z "$WHRUNKIT_ROOT" ]; then
-   echo "Unable to find our root directory" 1>&2
-   exit 1
-fi
-
-WEBHARE_RUNKIT_KEYFILE=""
-
-if [ -z "$WHRUNKIT_DATADIR" ]; then
-  if [ "$EUID" == "0" ]; then
-    WHRUNKIT_DATADIR="/opt/whrunkit/"
-  else
-    WHRUNKIT_DATADIR="$HOME/whrunkit/"
-  fi
-fi
-
-export WHRUNKIT_DATADIR WHRUNKIT_ROOT
-
-onexit()
+function onexit()
 {
   rv=$? #Make sure we don't destroy the exit code
   [ -n "$WEBHARE_RUNKIT_KEYFILE" ] && rm "$WEBHARE_RUNKIT_KEYFILE"
   exit $rv
 }
-
-trap onexit EXIT
 
 function die()
 {
@@ -38,7 +16,7 @@ function die()
 function ensurecommands()
 {
   if ! hash "$@" >/dev/null 2>&1 ; then
-    "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
+    "$WHRUNKIT_ROOT/bin/setup.sh"
   fi
 }
 
@@ -77,7 +55,7 @@ function applyborgsettings()
   WHRUNKIT_TARGETSERVER="$1"
 
   if [ "$(type -t runkit_getborgsettings || true)" != "function" ] || ! runkit_getborgsettings "$SETTINGSNAME" ; then
-    BORGSETTINGSFILE="$WEBHARE_RUNKIT_ROOT/local/$SETTINGSNAME.borg"
+    BORGSETTINGSFILE="$WHRUNKIT_ROOT/local/$SETTINGSNAME.borg"
     if [ ! -f "$BORGSETTINGSFILE" ]; then
       echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
       [ -n "$WHRUNKIT_ONMISSINGSETTINGS" ] && echo "$WHRUNKIT_ONMISSINGSETTINGS"
@@ -166,3 +144,25 @@ function validate_servername()
     exit 1
   fi
 }
+
+if [ -z "$WHRUNKIT_ROOT" ] ; then
+  WHRUNKIT_ROOT="$(cd ${BASH_SOURCE%/*}/.. ; pwd )"
+  if [ -z "$WHRUNKIT_ROOT" ]; then
+     echo "Unable to find our root directory" 1>&2
+     exit 1
+  fi
+fi
+
+
+if [ -z "$WHRUNKIT_DATADIR" ]; then
+  if [ "$EUID" == "0" ]; then
+    WHRUNKIT_DATADIR="/opt/whrunkit/"
+  else
+    WHRUNKIT_DATADIR="$HOME/whrunkit/"
+  fi
+fi
+
+export WHRUNKIT_DATADIR WHRUNKIT_ROOT
+
+WEBHARE_RUNKIT_KEYFILE=""
+trap onexit EXIT WEBHARE_RUNKIT_KEYFILE

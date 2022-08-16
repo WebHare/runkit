@@ -21,4 +21,4 @@ while true; do
 done
 
 CONTAINER="$1"
-exec "$WEBHARE_RUNKIT_ROOT/bin/enter-webhare.sh" "$CONTAINER" wh watchlog
+exec "$WHRUNKIT_ROOT/bin/enter-webhare.sh" "$CONTAINER" wh watchlog

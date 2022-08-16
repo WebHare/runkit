@@ -25,26 +25,26 @@ done
 
 [ -z "$1" ] && exit_syntax #need to specify one or more webhare containers
 
-"$WEBHARE_RUNKIT_ROOT"/bin/launch-proxy.sh --detach
+"$WHRUNKIT_ROOT"/bin/launch-proxy.sh --detach
 
 for CONTAINER in "$@" ; do
   WEBHAREOPTS=""
   if [ "$PRODUCTION" == "1" ]; then
     WEBHAREOPTS="$WEBHAREOPTS --production"
   fi
-  "$WEBHARE_RUNKIT_ROOT"/bin/launch-webhare.sh --detach "$CONTAINER"
+  "$WHRUNKIT_ROOT"/bin/launch-webhare.sh --detach "$CONTAINER"
 done
 
-"$WEBHARE_RUNKIT_ROOT"/bin/wait-proxy.sh
+"$WHRUNKIT_ROOT"/bin/wait-proxy.sh
 
 for CONTAINER in "$@" ; do
   # FIME 'started' should be enough but webhare doesn't announce that state, instead it pretends to be able to annouce 'poststart' but never does
   echo "Wait for WebHare '$CONTAINER' to reach 'poststartdone'"
-  "$WEBHARE_RUNKIT_ROOT"/bin/enter-webhare.sh "$CONTAINER" wh waitfor poststartdone
+  "$WHRUNKIT_ROOT"/bin/enter-webhare.sh "$CONTAINER" wh waitfor poststartdone
 done
 
 echo "Configure proxy servers"
-"$WEBHARE_RUNKIT_ROOT"/bin/proxy-webhare.sh
+"$WHRUNKIT_ROOT"/bin/proxy-webhare.sh
 
 echo ""
 echo "Servers are live!"

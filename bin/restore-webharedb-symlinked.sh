@@ -15,7 +15,7 @@ source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 CONTAINER="$1"
 [ -z "$CONTAINER" ] && exit_syntax
 
-STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
+STATEDIR="$WHRUNKIT_ROOT/local/state/$CONTAINER"
 
 MOUNTPOINT="/tmp/$CONTAINER"
 [ -d "$MOUNTPOINT" ] || ( echo "Mountpoint $MOUNTPOINT not found" && exit 1 )
@@ -43,7 +43,7 @@ if ! hash wh 2>/dev/null ; then
   exit 1
 fi
 
-STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
+STATEDIR="$WHRUNKIT_ROOT/local/state/$CONTAINER"
 mkdir -p "$STATEDIR"
 
 WEBHARE_DATAROOT="$RESTORETO/whdata" wh restore --softlink "$WHDATAFOLDER/preparedbackup"

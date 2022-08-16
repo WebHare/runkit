@@ -34,7 +34,7 @@ if [ -z "$2" ]; then
   exit 0
 fi
 
-STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
+STATEDIR="$WHRUNKIT_ROOT/local/state/$CONTAINER"
 
 if [ -z "$RESTORETO" ]; then
   RESTORETO="$WHRUNKIT_DATADIR/$CONTAINER"

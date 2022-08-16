@@ -42,12 +42,12 @@ CONTAINER="$1"
 
 # Install dependencies
 if [ -z "$NODOCKER" ] && ! hash docker 2>/dev/null ; then
-  "$WEBHARE_RUNKIT_ROOT/bin/setup.sh"
+  "$WHRUNKIT_ROOT/bin/setup.sh"
 fi
 
 [ -z "$CONTAINER" ] && exit_syntax
 
-STATEDIR="$WEBHARE_RUNKIT_ROOT/local/state/$CONTAINER"
+STATEDIR="$WHRUNKIT_ROOT/local/state/$CONTAINER"
 if [ -z "$RESTORETO" ]; then
   [ -f "$STATEDIR/restore.to" ] || ( echo "--restoreto is required if you didn't restore the backup using runkit" 1>&2 && exit 1)
   RESTORETO="$(cat "$STATEDIR/restore.to")"
@@ -82,7 +82,7 @@ if [ -z "$NODOCKER" ]; then
   configuredocker
 
   echo "docker" > "$STATEDIR/launchmode"
-  RUNIMAGE=$( cat "$WEBHARE_RUNKIT_ROOT/local/$CONTAINER.dockerimage" 2>/dev/null || true )
+  RUNIMAGE=$( cat "$WHRUNKIT_ROOT/local/$CONTAINER.dockerimage" 2>/dev/null || true )
 
   DOCKEROPTS=""
 
@@ -92,7 +92,7 @@ if [ -z "$NODOCKER" ]; then
     DOCKEROPTS="$DOCKEROPTS --rm"
   fi
 
-  ENVFILE="$WEBHARE_RUNKIT_ROOT/local/$CONTAINER.environment"
+  ENVFILE="$WHRUNKIT_ROOT/local/$CONTAINER.environment"
   if [ -f "$ENVFILE" ]; then
     DOCKEROPTS="$DOCKEROPTS --env-file $ENVFILE"
   fi
