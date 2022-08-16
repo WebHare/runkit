@@ -145,14 +145,11 @@ function validate_servername()
   fi
 }
 
-if [ -z "$WHRUNKIT_ROOT" ] ; then
-  WHRUNKIT_ROOT="$(cd ${BASH_SOURCE%/*}/.. ; pwd )"
-  if [ -z "$WHRUNKIT_ROOT" ]; then
-     echo "Unable to find our root directory" 1>&2
-     exit 1
-  fi
+WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." ; pwd )"
+if [ -z "$WHRUNKIT_ROOT" ]; then
+   echo "Unable to find our root directory" 1>&2
+   exit 1
 fi
-
 
 if [ -z "$WHRUNKIT_DATADIR" ]; then
   if [ "$EUID" == "0" ]; then
@@ -165,4 +162,4 @@ fi
 export WHRUNKIT_DATADIR WHRUNKIT_ROOT
 
 WEBHARE_RUNKIT_KEYFILE=""
-trap onexit EXIT WEBHARE_RUNKIT_KEYFILE
+trap onexit EXIT #Cleanup WEBHARE_RUNKIT_KEYFILE if it exists

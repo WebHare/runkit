@@ -5,15 +5,15 @@ if [ -t 1 ]; then
   exit 1
 fi
 
+mkdir -p "$WHRUNKIT_DATADIR"
 # migrate existing non-@ (ie no restored) installations. keep this code until all are known to be migrated
 if [ -d "$WHRUNKIT_ROOT/local" ]; then
-  mkdir -p "$WHRUNKIT_DATADIR"
-  for P in $( cd "$WHRUNKIT_ROOT/local" ; echo */ ) ; do
+  for P in $( cd "$WHRUNKIT_ROOT/local" && ls ) ; do
     P=${P%/}
     if [ "$P" == "state" ]; then
       continue
     fi
-    if [[ "$P" =~ ^[-_a-z0-9]+$ ]]; then
+    if [[ "$P" =~ ^[-_a-z0-9]+$ ]] && [ -f "$WHRUNKIT_ROOT/local/$P" ]; then
       mv "$WHRUNKIT_ROOT/local/$P" "$WHRUNKIT_DATADIR"
     fi
   done
