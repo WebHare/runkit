@@ -20,5 +20,6 @@ to prevent accidental commits.
   - `<server>/` - configuration and state for an server
     - `dataroot` - contains path to this server's data
     - `baseport` - port number
+    - `opensearch-bindhost` - IP address to set as WEBHARE_OPENSEARCH_BINDHOST
     - `environment.sh` - if present and executable, this will be sourced just before executing the command. Use this to setup eg. `export WEBHARE_CI=1`
     - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT

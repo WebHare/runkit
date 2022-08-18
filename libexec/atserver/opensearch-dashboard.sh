@@ -5,11 +5,12 @@ if [ ! -x /usr/local/opt/opensearch-dashboards/bin/opensearch-dashboards ]; then
   exit 1
 fi
 
-/usr/local/opt/opensearch-dashboards/bin/opensearch-dashboards --opensearch.hosts="http://127.0.0.1:$((WEBHARE_BASEPORT + 6))/" --port="$((WEBHARE_BASEPORT + 7))" &
+[ -n "$WEBHARE_OPENSEARCH_BINDHOST" ] || WEBHARE_OPENSEARCH_BINDHOST="127.0.0.1"
+/usr/local/opt/opensearch-dashboards/bin/opensearch-dashboards --opensearch.hosts="http://$WEBHARE_OPENSEARCH_BINDHOST:$((WEBHARE_BASEPORT + 6))/" --port="$((WEBHARE_BASEPORT + 7))" &
 
 trap "kill %1; wait %1" TERM EXIT
 
-OPENURL="http://127.0.0.1:$((WEBHARE_BASEPORT + 7))/"
+OPENURL="http://127.0.0.1:$((WEBHARE_BASEPORT + 7))/app/dev_tools#/console"
 
 while true; do
   if curl --silent --fail "$OPENURL" >/dev/null 2>&1 ; then
