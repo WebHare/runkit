@@ -89,6 +89,20 @@ function loadtargetsettings
     exit 1
   fi
 
+  if [ "$WHRUNKIT_TARGETSERVER" == "default" ]; then
+    for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
+      BASEPORT="$(cat "$WHRUNKIT_DATADIR/$SERVER/baseport" 2>/dev/null)"
+      if [ "$BASEPORT" == "13679" ]; then
+        WHRUNKIT_TARGETSERVER="$SERVER"
+        break
+      fi
+    done
+    if [ "$WHRUNKIT_TARGETSERVER" == "default" ]; then
+      echo "No server is listening on port 13679 - cannot find the default"
+      exit 1
+    fi
+  fi
+
   WHRUNKIT_TARGETDIR="$WHRUNKIT_DATADIR/$WHRUNKIT_TARGETSERVER"
 
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
@@ -141,6 +155,10 @@ function validate_servername()
   # NOTE: what more characters to allow? at least not '.' or '@' to prevent future ambiguity with metadata or remote server names
   if ! [[ $1 =~ ^[-a-z0-9]+$ ]]; then
     echo "Invalid server name '$1'" 1>&2
+    exit 1
+  fi
+  if [ "$1" == "default" ]; then
+    echo "You may not name a server 'default', it's an alias for the server hosted on port 13679"
     exit 1
   fi
 }

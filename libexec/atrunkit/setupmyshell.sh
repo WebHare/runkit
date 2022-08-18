@@ -27,12 +27,24 @@ export -f runkit ;
 runkit-reload() { eval \$("$WHRUNKIT_ORIGCOMMAND" setupmyshell) ; } ;
 export -f runkit-reload ;
 
+wh() { "$WHRUNKIT_ORIGCOMMAND" "@default" wh "\$@" ; } ;
+export -f wh ;
+whcd() {
+  local DEST;
+  DEST="\`wh run mod::system/scripts/internal/cli/getdir.whscr "\$@"\`";
+  [ -n "\$DEST" ] && cd "\$DEST";
+} ;
+export -f whcd ;
+
+complete -o filenames -o nospace -C 'wh __autocomplete_whcd' whcd ;
+complete -o default -C 'wh __autocomplete_wh' wh ;
+
 HERE
 
 # TODO unregister wh- aliases for servers since removed? but this may for now be annoying for users who manually set up wh-xxx aliasses..
 
 for SERVER in $( cd "$WHRUNKIT_DATADIR" ||exit 1; echo * ); do
-  if [ -f "$WHRUNKIT_DATADIR/$SERVER/baseport" ]; then # it appears to be a usable insatllation...
+  if [ -f "$WHRUNKIT_DATADIR/$SERVER/baseport" ]; then # it appears to be a usable installation...
     cat << HERE
 wh-$SERVER() { "$WHRUNKIT_ORIGCOMMAND" "@$SERVER" wh "\$@" ; } ;
 export -f wh-$SERVER ;

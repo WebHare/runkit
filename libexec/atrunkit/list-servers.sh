@@ -19,11 +19,11 @@ for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
     continue
   fi
 
-  PRIMARYINFO=""
+  DEFAULTINFO=""
   if [ "$BASEPORT" == "13679" ]; then
-    PRIMARYINFO="(primary)"
+    DEFAULTINFO="(default)"
   fi
-  echo "$(right_pad $SERVER) $PRIMARYINFO"
+  echo "$(right_pad $SERVER) $BASEPORT $DEFAULTINFO"
   ANY="1"
 done
 

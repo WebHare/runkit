@@ -75,5 +75,5 @@ mkdir -p "$WHRUNKIT_TARGETDIR"
 
 echo "$DATADIRECTORY" > "$WHRUNKIT_TARGETDIR/dataroot"
 # TODO check for conflicting port numbers, and always avoid the builtin 13679-13689 range
-echo "BASEPORT" > "$WHRUNKIT_TARGETDIR/baseport"
+echo "$BASEPORT" > "$WHRUNKIT_TARGETDIR/baseport"
 echo "Created metadata for WebHare server '$WHRUNKIT_TARGETSERVER'"
