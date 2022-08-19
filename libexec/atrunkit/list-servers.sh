@@ -14,7 +14,8 @@ right_pad()
 
 ANY=""
 for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
-  BASEPORT="$(cat "$WHRUNKIT_DATADIR/$SERVER/baseport" 2>/dev/null)"
+  TARGETDIR="$WHRUNKIT_DATADIR/$SERVER"
+  BASEPORT="$(cat "$TARGETDIR/baseport" 2>/dev/null)"
   if [ -z $BASEPORT ]; then
     continue
   fi
@@ -23,7 +24,16 @@ for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
   if [ "$BASEPORT" == "13679" ]; then
     DEFAULTINFO="(default)"
   fi
-  echo "$(right_pad $SERVER) $BASEPORT $DEFAULTINFO"
+
+  DATAROOT="$(cat "$TARGETDIR/dataroot" 2>/dev/null || true)"
+  [ -z "$DATAROOT" ] && DATAROOT="$TARGETDIR/whdata"
+
+  # Subst $HOME with ~
+  if [ "${DATAROOT::${#HOME}}" == "$HOME" ]; then
+    DATAROOT="~${DATAROOT:${#HOME}}"
+  fi
+
+  echo "$(right_pad $SERVER) $(right_pad "$BASEPORT $DEFAULTINFO") $DATAROOT"
   ANY="1"
 done
 
