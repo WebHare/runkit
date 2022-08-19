@@ -17,9 +17,17 @@ to prevent accidental commits.
 - `local/` - root of configuration data
   - `<server>.borg` - credentials and locations for borg backups (MAY BE DEPRECATED for consistency)
   - `local/state/<server>/` - state for the specific server (PARTIALLY DEPRECATED, stay tuned)
-  - `<server>/` - configuration and state for an server
-    - `dataroot` - contains path to this server's data
-    - `baseport` - port number
-    - `opensearch-bindhost` - IP address to set as WEBHARE_OPENSEARCH_BINDHOST
-    - `environment.sh` - if present and executable, this will be sourced just before executing the command. Use this to setup eg. `export WEBHARE_CI=1`
-    - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT
+
+V2:
+
+runkit builds up a configuration data structure in `$WHRUNKIT_DATAROOT`. every server gets a directory here, and runkit
+local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
+
+- `<server>/` - configuration and state for an server
+  - `dataroot` - contains path to this server's data
+  - `baseport` - port number
+  - `opensearch-bindhost` - IP address to set as WEBHARE_OPENSEARCH_BINDHOST
+  - `environment.sh` - if present and executable, this will be sourced just before executing the command. Use this to setup eg. `export WEBHARE_CI=1`
+  - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT
+- `_settings/`
+  - getborgsettings.sh - a script to override how borg-related scripts lookup containers

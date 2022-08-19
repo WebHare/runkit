@@ -64,7 +64,7 @@ restoring WebHare and that you have set CONTAINER to the server you're restoring
 List backups, restore a specific one and launch WebHare:
 ```bash
 # Get a listing
-~/webhare-runkit/bin/list-backups.sh $CONTAINER
+runkit list-backups $CONTAINER
 # Replace ARCHIVENAME with preferred archive
 ~/webhare-runkit/bin/restore-webhare-data.sh --archive ARCHIVENAME $CONTAINER
 # Install a proxy and WebHare (master branch) and start it

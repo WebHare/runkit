@@ -1,4 +1,7 @@
 #!/bin/bash
+# syntax: <containername>
+# short: Restore a WebHare server and create as a runkit installation
+
 set -e #fail on any uncaught error
 
 exit_syntax()
@@ -15,7 +18,6 @@ HERE
   exit 1
 }
 
-source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 SKIPDOWNLOAD=""
 NODOCKER=""
 DOCKERIMAGE=""
@@ -55,9 +57,25 @@ done
 
 CONTAINER="$1"
 [ -z "$CONTAINER" ] && exit_syntax
+
+# Figure out whether to use docker or the local runkit installation
+if [ -z "$NODOCKER" ] && [ -z "$DOCKERIMAGE" ]; then
+  if [ -n "$WHRUNKIT_WHCOMMAND" ]; then
+    echo "nodocker/dockerimage not set - restoring using $WHRUNKIT_WHCOMMAND"
+    NODOCKER=1
+  else
+    # TODO use the last STABLE branch, not master!
+    DOCKERIMAGE="webhare/platform:master"
+    echo "nodocker/dockerimage not set - using dockerimage $DOCKERIMAGE"
+  fi
+fi
+
 [ -z "$NODOCKER" ] && ensurecommands docker
 
 applyborgsettings "$CONTAINER"
+# applyborgsettings also sets WHRUNKIT_TARGETSERVER and WHRUNKIT_TARGETDIR
+
+validate_servername "$WHRUNKIT_TARGETSERVER"
 
 BORGOPTIONS=(--progress)
 if [ -n "$FAST" ]; then
@@ -82,32 +100,28 @@ if [ ! -d "$WHRUNKIT_TARGETDIR/whdata" ]; then #whdata is deeper than expected, 
   mv "$WHDATAFOLDER" "$WHRUNKIT_TARGETDIR/whdata"
 fi
 
-# TODO use the last STABLE branch, not master!
-echo "WebHare data downloaded to $WHRUNKIT_TARGETDIR/whdata"
-echo "$PWD/whdata" > "$WHRUNKIT_TARGETDIR/dataroot"
-[ -f "$WHRUNKIT_TARGETDIR/baseport" ] || echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$WHRUNKIT_TARGETDIR/baseport"
+ensure_server_baseport
+loadtargetsettings
 
-if [ ! -d "$WHRUNKIT_TARGETDIR/whdata/dbase" ] && [ ! -d "$WHRUNKIT_TARGETDIR/whdata/postgresql" ]; then
-  if [ -z "$DOCKERIMAGE" ]; then
-    DOCKERIMAGE=webhare/platform:master
-    if [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
+if [ -d "$WEBHARE_DATAROOT/dbase" ] || [ -d "$WEBHARE_DATAROOT/postgresql" ]; then
+  echo "A database already exists in $WEBHARE_DATAROOT/postgresql"
+else
+  mkdir -p "$WEBHARE_DATAROOT"
+  # download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
+  echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKIT_TARGETDIR/restore.borgrepo")" > "$WEBHARE_DATAROOT"/webhare.restoremode
+
+  if [ -n "$NODOCKER" ]; then
+    ensure_whrunkit_command
+    wh restore "$WEBHARE_DATAROOT/preparedbackup"
+    [ -f "$WHRUNKIT_TARGETDIR/dockerimage" ] && rm -f "$WHRUNKIT_TARGETDIR/dockerimage"
+  else
+    if [ "$DOCKERIMAGE" == "webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
       DOCKERIMAGE=webhare/platform:release-4-35
       echo "Using docker image $DOCKERIMAGE because this is a dbserver backup"
     fi
-  fi
-
-  if [ ! -f "$WHRUNKIT_TARGETDIR/dockerimage" ]; then
     echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/dockerimage"
-  fi
 
-  if [ -z "$NODOCKER" ]; then
-    echo ".. now restoring database files from $WHRUNKIT_TARGETDIR/whdata/preparedbackup"
-    docker run --rm -i -v "$WHRUNKIT_TARGETDIR/whdata:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
-  else
-    if ! hash wh 2>/dev/null ; then
-      echo "'wh' command not found, but needed for a --nodocker restore!"
-      exit 1
-    fi
-    WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata/" wh restore "$WHRUNKIT_TARGETDIR/whdata/preparedbackup"
+    docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
   fi
+  echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
 fi

@@ -9,7 +9,7 @@ function onexit()
 
 function die()
 {
-  echo "$@"
+  echo "$@" 1>&2
   exit 1
 }
 
@@ -54,7 +54,12 @@ function applyborgsettings()
 
   WHRUNKIT_TARGETSERVER="$1"
 
-  if [ "$(type -t runkit_getborgsettings || true)" != "function" ] || ! runkit_getborgsettings "$SETTINGSNAME" ; then
+  if [ -f "$WHRUNKIT_DATADIR/_settings/getborgsettings.sh" ]; then
+    #Note: getborgsettings is specifically allowed (encouraged?) to update WHRUNKIT_TARGETSERVER
+    source "$WHRUNKIT_DATADIR/_settings/getborgsettings.sh"
+  fi
+
+   if [ -z "$BORG_REPO" ]; then
     BORGSETTINGSFILE="$WHRUNKIT_ROOT/local/$SETTINGSNAME.borg"
     if [ ! -f "$BORGSETTINGSFILE" ]; then
       echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
@@ -64,11 +69,10 @@ function applyborgsettings()
     source "$BORGSETTINGSFILE"
   fi
 
-  #Note: runkit_borgsettings is specifically allowed (encouraged?) to update WHRUNKIT_TARGETSERVER
-
-  [ -n "$BORG_PRIVATEKEY" ] || ( echo "BORG_PRIVATEKEY not set" && exit 1 )
-  [ -n "$BORG_REPO" ] || ( echo "BORG_REPO not set" && exit 1 )
-  [ -n "$BORG_PASSPHRASE" ] || ( echo "BORG_PASSPHRASE not set" && exit 1 )
+  [ -n "$BORG_REPO" ] || die "Missing BORG_REPO"
+  [ -n "$BORG_PRIVATEKEY" ] || die "Missing BORG_PRIVATEKEY"
+  [ -n "$BORG_PASSPHRASE" ] || die "Missing BORG_PASSPHRASE"
+  validate_servername "$WHRUNKIT_TARGETSERVER"
 
   # TODO is there a way to not persist the privatesshkey ? and avoiding ssh-agent which comes with its own persisting process problems ?
   SAVEUMASK=$(umask)
@@ -106,11 +110,11 @@ function loadtargetsettings
   WHRUNKIT_TARGETDIR="$WHRUNKIT_DATADIR/$WHRUNKIT_TARGETSERVER"
 
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
-  WEBHARE_BASEPORT="$(cat "$WHRUNKIT_TARGETDIR/baseport")"
-  WEBHARE_DATAROOT="$(cat "$WHRUNKIT_TARGETDIR/dataroot" 2>/dev/null)"
+  WEBHARE_BASEPORT="$(cat "$WHRUNKIT_TARGETDIR/baseport" 2>/dev/null || true)"
+  WEBHARE_DATAROOT="$(cat "$WHRUNKIT_TARGETDIR/dataroot" 2>/dev/null || true)"
   if [ -z "$WEBHARE_DATAROOT" ] && [ -d "$WHRUNKIT_TARGETDIR/whdata" ]; then
      WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata"
-   fi
+  fi
 
   export WEBHARE_BASEPORT WEBHARE_DATAROOT
 }
@@ -123,7 +127,6 @@ function download_backup()
   if [ -z "$RESTOREARCHIVE" ]; then
     RESTOREARCHIVE="$(borg list --short --last 1)"
     [ -z "$RESTOREARCHIVE" ] && echo "No archive found!" && exit 1
-    echo "Restoring archive $RESTOREARCHIVE"
   else
     # borg will print error messages to stderr (like "Archive ... does not exist")
     borg info "::$RESTOREARCHIVE" > /dev/null || exit 1
@@ -141,12 +144,12 @@ function download_backup()
 
   # remove any existing restore directory
   RESTORETO="$WHRUNKIT_TARGETDIR/incomingrestore"
+  echo "Downloading archive $RESTOREARCHIVE to $RESTORETO"
 
   [ -d "$RESTORETO" ] && rm -rf "$RESTORETO"
   mkdir -p "$RESTORETO"
   cd "$RESTORETO"
   borg extract "${BORGOPTIONS[@]}" "::$RESTOREARCHIVE" $BORGPATHS
-  cd ..
   return 0
 }
 
@@ -163,6 +166,29 @@ function validate_servername()
   fi
 }
 
+function ensure_server_baseport()
+{
+  [ -n "$WHRUNKIT_TARGETDIR" ] || die WHRUNKIT_TARGETDIR must be set before invoking ensure_server_baseport
+  [ -f "$WHRUNKIT_TARGETDIR/baseport" ] || echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$WHRUNKIT_TARGETDIR/baseport"
+}
+
+function ensure_whrunkit_command()
+{
+  if [ -z "$WEBHARE_DIR" ]; then
+    # TODO Should we go around *ensuring* this is set everywhere? Or is this a very acceptible convention?
+    #      Or we could just request you set a config option in the datadir point to the SOURCE checkout as that's what runkit needs/manages
+    if [ -x "$HOME/projects/webhare/whtree/bin/wh" ]; then
+      WEBHARE_DIR="$HOME/projects/webhare/whtree"
+    fi
+  fi
+
+  [ -n "$WEBHARE_DIR" ] && WHRUNKIT_WHCOMMAND="$WEBHARE_DIR/bin/wh"
+  [ -n "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh"
+  [ -x "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh, tried '$WHRUNKIT_WHCOMMAND'"
+
+  export WHRUNKIT_WHCOMMAND
+}
+
 WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." ; pwd )"
 if [ -z "$WHRUNKIT_ROOT" ]; then
    echo "Unable to find our root directory" 1>&2
@@ -171,9 +197,9 @@ fi
 
 if [ -z "$WHRUNKIT_DATADIR" ]; then
   if [ "$EUID" == "0" ]; then
-    WHRUNKIT_DATADIR="/opt/whrunkit/"
+    WHRUNKIT_DATADIR="/opt/whrunkit"
   else
-    WHRUNKIT_DATADIR="$HOME/whrunkit/"
+    WHRUNKIT_DATADIR="$HOME/whrunkit"
   fi
 fi
 
