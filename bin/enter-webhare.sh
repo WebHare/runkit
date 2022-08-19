@@ -20,18 +20,18 @@ while true; do
   fi
 done
 
-CONTAINER="$1"
+WHRUNKIT_TARGETSERVER="$1"
+[ -z "$WHRUNKIT_TARGETSERVER" ] && exit_syntax
 shift
 
-[ -z "$CONTAINER" ] && exit_syntax
+loadtargetsettings
 
-STATEDIR="$WHRUNKIT_ROOT/local/state/$CONTAINER"
-LAUNCHMODE="$(cat $STATEDIR/launchmode)"
+LAUNCHMODE="$(cat "$WHRUNKIT_TARGETDIR/launchmode")"
 
 if [ "$LAUNCHMODE" == "docker" ]; then
   ensurecommands jq docker
 
-  CONTAINERNAME="runkit-$CONTAINER"
+  CONTAINERNAME="runkit-wh-$WHRUNKIT_TARGETSERVER"
   CONTAINERINFO="$(docker inspect "$CONTAINERNAME")"
   if [ "$?" != "0" ]; then
     echo "Container $CONTAINERNAME does not seem to be running"
@@ -44,13 +44,9 @@ if [ "$LAUNCHMODE" == "docker" ]; then
     exec docker exec -i "$CONTAINERNAME" "$@"
   fi
 else
-  WEBHARE_BASEPORT="$(cat "$STATEDIR/baseport")"
-  WEBHARE_DATAROOT="$(cat "$STATEDIR/dataroot")"
-  WEBHARE_SHELL_PS1_POSTFIX=" ($CONTAINER)"
-
   export WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_SHELL_PS1_POSTFIX
   if [ -z "$*" ]; then
-    wh shell
+    exec "${BASH_SOURCE%/*}/runkit" @"$WHRUNKIT_TARGETSERVER" shell
   else
     "$@"
   fi

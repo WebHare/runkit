@@ -20,14 +20,14 @@ while true; do
   fi
 done
 
-CONTAINER="$1"
+WHRUNKIT_TARGETSERVER="$1"
+[ -z "$WHRUNKIT_TARGETSERVER" ] && exit_syntax
+loadtargetsettings
 
-[ -z "$CONTAINER" ] && exit_syntax
-CONTAINERNAME="runkit-$CONTAINER"
-STATEDIR="$WHRUNKIT_ROOT/local/state/$CONTAINER"
-LAUNCHMODE="$(cat $STATEDIR/launchmode)"
+LAUNCHMODE="$(cat "$WHRUNKIT_TARGETDIR/launchmode")"
 
 if [ "$LAUNCHMODE" == "docker" ]; then
+  CONTAINERNAME="runkit-wh-$CONTAINER"
   ensurecommands jq docker
   CONTAINERINFO="$(docker inspect "$CONTAINERNAME")"
   if [ "$?" != "0" ]; then
@@ -43,7 +43,7 @@ if [ "$LAUNCHMODE" == "docker" ]; then
 
   INTERFACEURL="http://127.0.0.1:$RESCUEPORT/"
 elif [ "$LAUNCHMODE" == "native" ]; then
-  RESCUEPORT=$(( $(cat $STATEDIR/baseport) + 9 ))
+  RESCUEPORT=$((WEBHARE_BASEPORT + 9 ))
   INTERFACEURL="http://127.0.0.1:$RESCUEPORT/"
 else
   echo "Unrecognized launchmode"

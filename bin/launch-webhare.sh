@@ -3,27 +3,18 @@ set -e #fail on any uncaught error
 
 exit_syntax()
 {
-  echo "Syntax: launch-webhare.sh [--restoreto dir] [--detach] [--production] <containername>"
+  echo "Syntax: launch-webhare.sh [--detach] <containername>"
   exit 1
 }
 
 source "${BASH_SOURCE%/*}/../libexec/functions.sh"
 
 DETACH=""
-RESTORETO=""
 NODOCKER=""
-PRODUCTION=""
 
 while true; do
-  if [ "$1" == "--restoreto" ]; then
-    shift
-    RESTORETO="$1"
-    shift
-  elif [ "$1" == "--nodocker" ]; then #do not use docker to restore webhare
+  if [ "$1" == "--nodocker" ]; then #do not use docker to restore webhare
     NODOCKER="1"
-    shift
-  elif [ "$1" == "--production" ]; then #do not use docker to restore webhare
-    PRODUCTION="1"
     shift
   elif [ "$1" == "--detach" ]; then
     DETACH="1"
@@ -38,53 +29,32 @@ while true; do
   fi
 done
 
-CONTAINER="$1"
+WHRUNKIT_TARGETSERVER="$1"
+loadtargetsettings # sets WEBHARE_DATAROOT
 
 # Install dependencies
 if [ -z "$NODOCKER" ] && ! hash docker 2>/dev/null ; then
   "$WHRUNKIT_ROOT/bin/setup.sh"
 fi
 
-[ -z "$CONTAINER" ] && exit_syntax
+[ -z "$WHRUNKIT_TARGETSERVER" ] && exit_syntax
 
-STATEDIR="$WHRUNKIT_ROOT/local/state/$CONTAINER"
-if [ -z "$RESTORETO" ]; then
-  [ -f "$STATEDIR/restore.to" ] || ( echo "--restoreto is required if you didn't restore the backup using runkit" 1>&2 && exit 1)
-  RESTORETO="$(cat "$STATEDIR/restore.to")"
-fi
-
-RESTORESOURCE="$(cat "$STATEDIR/restore.source")"
-
-if [ ! -d "$RESTORETO/whdata/dbase" ] && [ ! -d "$RESTORETO/whdata/postgresql" ]; then
-  echo "$RESTORETO does not appear to contain a restored WebHare installation"
+if [ ! -d "$WEBHARE_DATAROOT/dbase" ] && [ ! -d "$WEBHARE_DATAROOT/postgresql" ]; then
+  echo "$WEBHARE_DATAROOT does not appear to contain a restored WebHare installation"
   exit 1
-fi
-
-if [ -n "$RESTORESOURCE" ] && [ -z "$NODOCKER" ]; then
-  echo "A RESTORESOURCE requires --nodocker"
-  exit 1
-fi
-
-CONTAINERNAME="runkit-$CONTAINER"
-mkdir -p "$STATEDIR"
-
-if [ -n "$PRODUCTION" ]; then
-  WEBHARE_ISRESTORED=""
-elif [ -f "$STATEDIR/restore.archive" ]; then
-  WEBHARE_ISRESTORED="Restored $(cat $STATEDIR/restore.archive) from $(cat $STATEDIR/restore.borgrepo)"
-else
-  WEBHARE_ISRESTORED="1"
 fi
 
 if [ -z "$NODOCKER" ]; then
+  CONTAINERNAME="runkit-wh-$WHRUNKIT_TARGETSERVER"
+  DOCKEROPTS=""
+
   ensurecommands docker
   killcontainer "$CONTAINERNAME"
   configuredocker
 
-  echo "docker" > "$STATEDIR/launchmode"
-  RUNIMAGE=$( cat "$WHRUNKIT_ROOT/local/$CONTAINER.dockerimage" 2>/dev/null || true )
+  echo "docker" > "$WHRUNKIT_TARGETDIR/launchmode"
+  RUNIMAGE=$( cat "$WHRUNKIT_TARGETDIR/docker.image" 2>/dev/null || true )
 
-  DOCKEROPTS=""
 
   if [ "$DETACH" == "1" ]; then
     DOCKEROPTS="$DOCKEROPTS --detach"
@@ -92,17 +62,13 @@ if [ -z "$NODOCKER" ]; then
     DOCKEROPTS="$DOCKEROPTS --rm"
   fi
 
-  ENVFILE="$WHRUNKIT_ROOT/local/$CONTAINER.environment"
-  if [ -f "$ENVFILE" ]; then
-    DOCKEROPTS="$DOCKEROPTS --env-file $ENVFILE"
-  fi
+  [ -e "$WHRUNKIT_TARGETDIR/docker.environment" ] && DOCKEROPTS="$DOCKEROPTS --env-file $WHRUNKIT_TARGETDIR/docker.environment"
 
   echo -n "Creating WebHare container $CONTAINERNAME: "
   docker run -i \
-             -e WEBHARE_ISRESTORED="$WEBHARE_ISRESTORED" \
-             -v "$RESTORETO/whdata:/opt/whdata" \
+             -v "$WEBHARE_DATAROOT:/opt/whdata" \
              --network webhare-runkit \
-             -h "$CONTAINER".docker \
+             -h "$WHRUNKIT_TARGETSERVER".docker \
              -e TZ=Europe/Amsterdam \
              --label runkittype=webhare \
              --name "$CONTAINERNAME" \
@@ -114,23 +80,9 @@ else
     exit 1
   fi
 
-  export WEBHARE_ISRESTORED
-  export WEBHARE_BASEPORT="$(( $RANDOM / 10 * 10 + 20000 ))"
-  export WEBHARE_DATAROOT="$RESTORETO/whdata"
   export WEBHARE_NOINSTALLATIONINFO=1
-
-  # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
-  [ -f "$RESTORETO/whdata/settings.sh" ] && rm "$RESTORETO/whdata/settings.sh"
-  echo "native" > "$STATEDIR/launchmode"
-  echo "$WEBHARE_DATAROOT" > "$STATEDIR/dataroot"
-  echo "$WEBHARE_BASEPORT" > "$STATEDIR/baseport"
-
-  if ! hash wh 2>/dev/null ; then
-    echo "'wh' command not found, but needed for a --nodocker launch!"
-    exit 1
-  fi
-
-  wh console
+  echo "native" > "$WHRUNKIT_TARGETDIR/launchmode"
+  exec "${BASH_SOURCE%/*}/runkit" @"$WHRUNKIT_TARGETSERVER" wh console
 fi
 
 exit 0

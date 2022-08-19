@@ -39,13 +39,6 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
   [ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
 
-  if [ -f "$WEBHARE_DATAROOT/webhare.restoremode" ]; then #FIXME WebHare should implement this itself, see https://gitlab.webhare.com/webharebv/codekloppers/-/issues/583 - and retain this a while for compatibility!
-    export WEBHARE_ISRESTORED="$(cat "$WEBHARE_DATAROOT/webhare.restoremode")"
-  elif [ -f "$WHRUNKIT_TARGETDIR/restore.archive" ]; then
-    echo WARNING: old or incorrect install, had to fallback to $WHRUNKIT_TARGETDIR/restore.archive
-    export WEBHARE_ISRESTORED="Restored $(cat $WHRUNKIT_TARGETDIR/restore.archive) from $(cat $WHRUNKIT_TARGETDIR/restore.borgrepo)"
-  fi
-
   [ -x "$WHRUNKIT_TARGETDIR/environment.sh" ] && source "$WHRUNKIT_TARGETDIR/environment.sh"
 
   # TODO only if not the default:

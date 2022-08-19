@@ -41,7 +41,7 @@ BORG_REPO="user@host.repo.borgbase.com:repo"
 BORG_PASSPHRASE="key passphrase"
 ```
 
-and should be placed in `webhare-runkit/local`
+and should be pasted in `runkit set-borg-credentials`
 
 Assuming credentials are in `webhare-runkit/local/demo.borg`, you can use
 `webhare-runkit/open-backup.sh demo` to 'open' this backup (where opening is
@@ -56,6 +56,13 @@ borg list
 
 will show you the available backups for container `demo`.
 
+### Restore mode
+`runkit restore-server` will create a file `webhare.restoremode` in the `whdata`
+directory with details about which archive was restored. The presence of this file
+will cause WebHare to launch in 'restore mode'.
+
+To exit restore mode, run `wh exit-restore-mode`. This will restart WebHare!
+
 ### Restore recipes
 These recipes assume you are logged in to the server on which you will be
 restoring WebHare and that you have set CONTAINER to the server you're restoring
@@ -66,7 +73,7 @@ List backups, restore a specific one and launch WebHare:
 # Get a listing
 runkit list-backups $CONTAINER
 # Replace ARCHIVENAME with preferred archive
-~/webhare-runkit/bin/restore-webhare-data.sh --archive ARCHIVENAME $CONTAINER
+runkit restore-server --archive ARCHIVENAME $CONTAINER
 # Install a proxy and WebHare (master branch) and start it
 ~/webhare-runkit/bin/startup-proxy-and-webhare.sh $CONTAINER
 # Open a shell inside the WebHare container
@@ -87,13 +94,18 @@ wh cli getoverride "Verifying restored server"
 Eg. to locally debug an issue with a server. This assumes you have runkit and WebHare's source tree installed. In the
 example the container is still named `demo` and the `demo.borg` credentials file is present
 
+You can add `--nodocker` to `restore-server` and `launch-webhare.sh` to use your local WebHare source tree instead
+of docker containers. This will generally be faster if you've built a compatible version of WebHare for the data you're restoring.
+
+You can add the `--fast` option to `restore-server` to skip the restoration of logs and output.
+
+You can redo database extraction (sometimes useful when testing) with `--skipdownload` if you've succesfully downloaded the backup earlier
+
 ```bash
-cd ~/projects/webhare-runkit
-./bin/restore-webhare-data.sh --restoreto /tmp/restored-demo/ --nodocker demo
-./bin/launch-webhare.sh --restoreto /tmp/restored-demo/ --nodocker  demo
-./bin/watch-webhare.sh demo
-./bin/open-webhare.sh demo
-./bin/enter-webhare.sh demo
+CONTAINER=demo
+~/webhare-runkit/bin/restore-server $CONTAINER
+runkit-reload
+wh-$CONTAINER console
 ```
 
 ### Troubleshooting
@@ -115,4 +127,4 @@ an alias
 
 
 ## NOTES
-ifIF you keep this WebHare running in production, you'll need to remove 'whdata/preparedbackup'
+- if you keep this WebHare running you'll want to remove 'whdata/preparedbackup' and `download` as they only take up space

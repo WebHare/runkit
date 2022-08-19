@@ -59,8 +59,11 @@ function applyborgsettings()
     source "$WHRUNKIT_DATADIR/_settings/getborgsettings.sh"
   fi
 
-   if [ -z "$BORG_REPO" ]; then
-    BORGSETTINGSFILE="$WHRUNKIT_ROOT/local/$SETTINGSNAME.borg"
+  validate_servername "$WHRUNKIT_TARGETSERVER"
+  loadtargetsettings
+
+  if [ -z "$BORG_REPO" ]; then
+    BORGSETTINGSFILE="$WHRUNKIT_TARGETDIR/borgsettings"
     if [ ! -f "$BORGSETTINGSFILE" ]; then
       echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
       [ -n "$WHRUNKIT_ONMISSINGSETTINGS" ] && echo "$WHRUNKIT_ONMISSINGSETTINGS"
@@ -72,7 +75,6 @@ function applyborgsettings()
   [ -n "$BORG_REPO" ] || die "Missing BORG_REPO"
   [ -n "$BORG_PRIVATEKEY" ] || die "Missing BORG_PRIVATEKEY"
   [ -n "$BORG_PASSPHRASE" ] || die "Missing BORG_PASSPHRASE"
-  validate_servername "$WHRUNKIT_TARGETSERVER"
 
   # TODO is there a way to not persist the privatesshkey ? and avoiding ssh-agent which comes with its own persisting process problems ?
   SAVEUMASK=$(umask)
@@ -82,7 +84,6 @@ function applyborgsettings()
   umask "$SAVEUMASK"
 
   export BORG_RSH="ssh -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes -i $WEBHARE_RUNKIT_KEYFILE"
-  loadtargetsettings
   mkdir -p "$WHRUNKIT_TARGETDIR"
 }
 
@@ -110,13 +111,18 @@ function loadtargetsettings
   WHRUNKIT_TARGETDIR="$WHRUNKIT_DATADIR/$WHRUNKIT_TARGETSERVER"
 
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
+  WEBHARE_ISRESTORED=""
   WEBHARE_BASEPORT="$(cat "$WHRUNKIT_TARGETDIR/baseport" 2>/dev/null || true)"
   WEBHARE_DATAROOT="$(cat "$WHRUNKIT_TARGETDIR/dataroot" 2>/dev/null || true)"
   if [ -z "$WEBHARE_DATAROOT" ] && [ -d "$WHRUNKIT_TARGETDIR/whdata" ]; then
      WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata"
   fi
 
-  export WEBHARE_BASEPORT WEBHARE_DATAROOT
+  if [ -f "$WEBHARE_DATAROOT/webhare.restoremode" ]; then #FIXME WebHare should implement this itself, see https://gitlab.webhare.com/webharebv/codekloppers/-/issues/583 - and retain this a while for compatibility!
+    WEBHARE_ISRESTORED="$(cat "$WEBHARE_DATAROOT/webhare.restoremode")"
+  fi
+
+  export WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_ISRESTORED
 }
 
 function download_backup()
@@ -143,7 +149,7 @@ function download_backup()
   echo "$BORG_REPO" > "$WHRUNKIT_TARGETDIR/restore.borgrepo"
 
   # remove any existing restore directory
-  RESTORETO="$WHRUNKIT_TARGETDIR/incomingrestore"
+  RESTORETO="$WHRUNKIT_TARGETDIR/download"
   echo "Downloading archive $RESTOREARCHIVE to $RESTORETO"
 
   [ -d "$RESTORETO" ] && rm -rf "$RESTORETO"

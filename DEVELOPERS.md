@@ -7,23 +7,15 @@ needed
   - in time, `wh up` and `wh make` might turn out to be out-of-scope?
 
 
-# repo layout
+## repo layout
 - `libexec/atinstall/<cmd>.sh` - commands that can be targeted at a server
 
-# disk layout
-runkit builds up a configuration data structure in the `local` directory of its server. this directory is `.gitignore`d
-to prevent accidental commits.
-
-- `local/` - root of configuration data
-  - `<server>.borg` - credentials and locations for borg backups (MAY BE DEPRECATED for consistency)
-  - `local/state/<server>/` - state for the specific server (PARTIALLY DEPRECATED, stay tuned)
-
-V2:
-
+## disk layout
 runkit builds up a configuration data structure in `$WHRUNKIT_DATAROOT`. every server gets a directory here, and runkit
 local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
 
 - `<server>/` - configuration and state for an server
+  - `borgsettings` - settings to access the Borg backup
   - `dataroot` - contains path to this server's data
   - `baseport` - port number
   - `opensearch-bindhost` - IP address to set as WEBHARE_OPENSEARCH_BINDHOST
@@ -31,3 +23,18 @@ local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
   - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT
 - `_settings/`
   - getborgsettings.sh - a script to override how borg-related scripts lookup containers
+
+
+# Tests
+
+## Build docker and restore
+
+This recipe builds a local WebHare docker and restore a server into it
+
+```bash
+RESTORESERVER=demo # set to your container. make sure you have the .borg settings!
+wh builddocker
+runkit list-backups $RESTORESERVER
+runkit restore-server $RESTORESERVER
+bin/startup-proxy-and-webhare.sh tp-webhare
+````

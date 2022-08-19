@@ -7,7 +7,7 @@ set -e #fail on any uncaught error
 exit_syntax()
 {
   cat << HERE
-Syntax: restore-webhare-data.sh [options] <containername>
+Syntax: runkit restore-webhare [options] <containername>
         --archive arc          Archive to restore (defaults to latest)
         --dbaseonly            Only restore the database backup
         --nodocker             Do not use docker to do the actualy restore
@@ -87,9 +87,9 @@ if [ -z "$SKIPDOWNLOAD" ]; then
 fi
 
 if [ ! -d "$WHRUNKIT_TARGETDIR/whdata" ]; then #whdata is deeper than expected, move it into place
-  WHDATAFOLDER="$(find "$WHRUNKIT_TARGETDIR/incomingrestore" -name whdata -print -quit)"
+  WHDATAFOLDER="$(find "$WHRUNKIT_TARGETDIR/download" -name whdata -print -quit)"
   if [ -z "$WHDATAFOLDER" ] || ! [ -d "$WHDATAFOLDER/preparedbackup" ]; then
-    echo "Cannot find the 'whdata' folder inside the backup $WHRUNKIT_TARGETDIR/incomingrestore, cannot continue the restore"
+    echo "Cannot find the 'whdata' folder inside the backup $WHRUNKIT_TARGETDIR/download, cannot continue the restore"
     exit 1
   fi
 
@@ -112,16 +112,18 @@ else
 
   if [ -n "$NODOCKER" ]; then
     ensure_whrunkit_command
+    [ -f "$WHRUNKIT_TARGETDIR/docker.image" ] && rm -f "$WHRUNKIT_TARGETDIR/docker.image"
+
     wh restore "$WEBHARE_DATAROOT/preparedbackup"
-    [ -f "$WHRUNKIT_TARGETDIR/dockerimage" ] && rm -f "$WHRUNKIT_TARGETDIR/dockerimage"
+    echo ""
+    echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
   else
     if [ "$DOCKERIMAGE" == "webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
       DOCKERIMAGE=webhare/platform:release-4-35
       echo "Using docker image $DOCKERIMAGE because this is a dbserver backup"
     fi
-    echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/dockerimage"
+    echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/docker.image"
 
     docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
   fi
-  echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
 fi
