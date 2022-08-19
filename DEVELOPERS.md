@@ -25,6 +25,17 @@ local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
   - getborgsettings.sh - a script to override how borg-related scripts lookup containers
 
 
+## credential files
+Credential files (borgsettings) should have the following structure:
+
+```bash
+BORG_PRIVATEKEY="-----BEGIN OPENSSH PRIVATE KEY-----
+....key data....
+-----END OPENSSH PRIVATE KEY-----"
+BORG_REPO="user@host.repo.borgbase.com:repo"
+BORG_PASSPHRASE="key passphrase"
+
+
 # Tests
 
 ## Build docker and restore

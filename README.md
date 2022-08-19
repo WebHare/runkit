@@ -30,31 +30,9 @@ The primary installation is the one with baseport '13679' and will be bound to t
 Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always target a server using `runkit @<server> ...`.
 
 ## Restoring WebHare backups
-Our scripts assume you'll have a credential file set up for the container to restore.
-This credential file should have the following structure:
-
-```bash
-BORG_PRIVATEKEY="-----BEGIN OPENSSH PRIVATE KEY-----
-....key data....
------END OPENSSH PRIVATE KEY-----"
-BORG_REPO="user@host.repo.borgbase.com:repo"
-BORG_PASSPHRASE="key passphrase"
-```
-
-and should be pasted in `runkit set-borg-credentials`
-
-Assuming credentials are in `webhare-runkit/local/demo.borg`, you can use
-`webhare-runkit/open-backup.sh demo` to 'open' this backup (where opening is
-defined as 'setting up borg to connect to this backup')
-
-eg:
-
-```bash
-~/webhare-runkit/bin/open-backup.sh demo
-borg list
-```
-
-will show you the available backups for container `demo`.
+Our scripts assume you'll have a credential file set up for the server you are restoring.
+Paste these credentials into `runkit set-borg-credentails <server>` and test the credentials
+by entering `runkit list-backups <server>`.
 
 ### Restore mode
 `runkit restore-server` will create a file `webhare.restoremode` in the `whdata`
