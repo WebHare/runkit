@@ -30,7 +30,11 @@ The primary installation is the one with baseport '13679' and will be bound to t
 Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always target a server using `runkit @<server> ...`.
 
 ## Restoring WebHare backups
-Our scripts assume you'll have a credential file set up for the server you are restoring.
+
+### Installing credentials
+We've built runkit restore around borg backup repositories. You need to supply runkit with the proper credentials to
+access these backups. Request these credentials from whoever is hosting your backups.
+
 Paste these credentials into `runkit set-borg-credentails <server>` and test the credentials
 by entering `runkit list-backups <server>`.
 
