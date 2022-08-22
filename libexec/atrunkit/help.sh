@@ -42,7 +42,7 @@ for CMD in $CMDS ; do
 done
 
 echo ""
-echo "* runkit installation commands (runkit @<server> <cmd> ...)"
+echo "* runkit server commands (runkit @<server> <cmd> ...)"
 CMDS="$(cd "$WHRUNKIT_ROOT/libexec/atserver"; ls *.sh 2>/dev/null | sort )"
 for CMD in $CMDS ; do
   SHOWCMD="$P${CMD%.sh}"

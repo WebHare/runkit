@@ -52,21 +52,21 @@ fi
 
 validate_servername "$WHRUNKIT_TARGETSERVER"
 
-DATADIRECTORY="$(cd "$2" || exit 1 ; pwd)" #'pwd' ensures this path won't end with a /
-if [ ! -d "$DATADIRECTORY/postgresql" ]; then
-  echo "$DATADIRECTORY does not appear to be a WebHare installation (no postgresql dir)" 2>&1
+DATADIRECTORY="$( (cd "$2" 2>/dev/null && pwd ) || true)" #'pwd' ensures this path won't end with a /
+if [ -z "$DATADIRECTORY" ] || [ ! -d "$DATADIRECTORY/postgresql" ]; then
+  echo "$2 does not appear to be a WebHare installation (no postgresql dir)" 2>&1
   exit 1
 fi
 
 WHRUNKIT_TARGETDIR="$WHRUNKIT_DATADIR/$WHRUNKIT_TARGETSERVER/"
-if [ -d "$WHRUNKIT_TARGETDIR" ]; then
+if [ -d "$WHRUNKIT_TARGETDIR" ] && [ -d "$WHRUNKIT_TARGETDIR/postgresql" ]; then
   echo "Installation $WHRUNKIT_TARGETSERVER already exists" 2>&1
   exit 1
 fi
 
 for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * ); do
-  if [ "$(cat "$WHRUNKIT_DATADIR/$SERVER/dataroot" 2>/dev/null)" == "$DATADIRECTORY" ]; then
-    echo "Installation $WHRUNKIT_TARGETSERVER already points to $DATADIRECTORY" 2>&1
+  if [ "$SERVER" != "$WHRUNKIT_TARGETSERVER" ] && [ "$(cat "$WHRUNKIT_DATADIR/$SERVER/dataroot" 2>/dev/null)" == "$DATADIRECTORY" ]; then
+    echo "Installation $NAME already points to $DATADIRECTORY" 2>&1
     exit 1
   fi
 done

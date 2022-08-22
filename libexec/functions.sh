@@ -104,6 +104,7 @@ function loadtargetsettings
     done
     if [ "$WHRUNKIT_TARGETSERVER" == "default" ]; then
       echo "No server is listening on port 13679 - cannot find the default"
+      echo "See also: https://gitlab.com/webhare/runkit#managing-webhare-installations"
       exit 1
     fi
   fi

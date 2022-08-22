@@ -13,8 +13,8 @@ Runkit will store its data in `$HOME/whrunkit/` or `/opt/whrunkit/` by default. 
 the WHRUNKIT_ROOT environment varaible
 
 ## Managing WebHare installations
-runkit offers the following subcommands:
-- `add-existing-server <servername> <path>` - Add an already configured WebHare
+Before you can use runkit, you need to set up a new installation or add your existing installation:
+- `add-existing-server [--primary] <servername> <path>` - Add an already configured WebHare
 - `create-webhare-server <servername>` - Set up a new installation with the given name
 
 Examples:
