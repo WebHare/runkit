@@ -17,6 +17,7 @@ local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
 - `<server>/` - configuration and state for an server
   - `borgsettings` - settings to access the Borg backup
   - `dataroot` - contains path to this server's data
+  - `sourceroot` - contains path to the server's source code
   - `baseport` - port number
   - `opensearch-bindhost` - IP address to set as WEBHARE_OPENSEARCH_BINDHOST
   - `environment.sh` - if present and executable, this will be sourced just before executing the command. Use this to setup eg. `export WEBHARE_CI=1`
@@ -34,7 +35,7 @@ BORG_PRIVATEKEY="-----BEGIN OPENSSH PRIVATE KEY-----
 -----END OPENSSH PRIVATE KEY-----"
 BORG_REPO="user@host.repo.borgbase.com:repo"
 BORG_PASSPHRASE="key passphrase"
-
+```
 
 # Tests
 
@@ -48,4 +49,4 @@ wh builddocker
 runkit list-backups $RESTORESERVER
 runkit restore-server $RESTORESERVER
 bin/startup-proxy-and-webhare.sh tp-webhare
-````
+```

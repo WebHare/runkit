@@ -13,8 +13,8 @@ if [ -d "$WEBHARE_DATAROOT" ] || [ -f "$WHRUNKIT_TARGETDIR/baseport" ]; then
 fi
 
 #TODO allow creating the PRIMARY installation
-ensure_server_baseport
 mkdir -p "$WHRUNKIT_TARGETDIR/whdata"
+ensure_server_baseport
 loadtargetsettings # reload to ensure we have loaded baseport/data settings
 
 echo "Server created. To start: 'runkit @$WHRUNKIT_TARGETSERVER wh console' and access the server on http://127.0.0.1:$(($WEBHARE_BASEPORT + 9 ))"

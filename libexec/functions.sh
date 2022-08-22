@@ -118,11 +118,16 @@ function loadtargetsettings
      WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata"
   fi
 
+  if [ -f "$WHRUNKIT_TARGETDIR/sourceroot" ]; then
+    WEBHARE_CHECKEDOUT_TO="$(cat "$WHRUNKIT_TARGETDIR/sourceroot")"
+    WEBHARE_DIR="$WEBHARE_CHECKEDOUT_TO/whtree"
+  fi
+
   if [ -f "$WEBHARE_DATAROOT/webhare.restoremode" ]; then #FIXME WebHare should implement this itself, see https://gitlab.webhare.com/webharebv/codekloppers/-/issues/583 - and retain this a while for compatibility!
     WEBHARE_ISRESTORED="$(cat "$WEBHARE_DATAROOT/webhare.restoremode")"
   fi
 
-  export WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_ISRESTORED
+  export WEBHARE_CHECKEDOUT_TO WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_ISRESTORED
 }
 
 function download_backup()
