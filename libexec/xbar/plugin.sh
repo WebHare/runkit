@@ -1,11 +1,7 @@
 #!/bin/bash
 
-# To use this
-#   - install xbar
-#   - echo "'
 # https://github.com/matryer/xbar
-# https://github.com/matryer/xbar-plugins/blob/main/CONTRIBUTING.md#metadata
-
+# https://github.com/matryer/xbar-plugins/blob/main/CONTRIBUTING.md
 
 echo "🐰 $1"
 echo ---
