@@ -1,5 +1,5 @@
 #!/bin/bash
-# syntax: <containername>
+# syntax: <servername>
 # short: Restore a WebHare server and create as a runkit installation
 
 set -e #fail on any uncaught error
@@ -7,7 +7,7 @@ set -e #fail on any uncaught error
 exit_syntax()
 {
   cat << HERE
-Syntax: runkit restore-webhare [options] <containername>
+Syntax: runkit restore-webhare [options] <servername>
         --archive arc          Archive to restore (defaults to latest)
         --dbaseonly            Only restore the database backup
         --nodocker             Do not use docker to do the actualy restore
@@ -58,9 +58,11 @@ done
 CONTAINER="$1"
 [ -z "$CONTAINER" ] && exit_syntax
 
+resolve_whrunkit_command
+
 # Figure out whether to use docker or the local runkit installation
 if [ -z "$NODOCKER" ] && [ -z "$DOCKERIMAGE" ]; then
-  if [ -n "$WHRUNKIT_WHCOMMAND" ]; then
+  if [ -x "$WHRUNKIT_WHCOMMAND" ]; then
     echo "nodocker/dockerimage not set - restoring using $WHRUNKIT_WHCOMMAND"
     NODOCKER=1
   else
@@ -79,7 +81,7 @@ validate_servername "$WHRUNKIT_TARGETSERVER"
 
 BORGOPTIONS=(--progress)
 if [ -n "$FAST" ]; then
-  BORGOPTIONS+=(--exclude "*/whdata/output/*" --exclude "*/whdata/log/*")
+  BORGOPTIONS+=(--exclude "*/whdata/output/*" --exclude "*/whdata/log/*" --exclude "*/opt-whdata/output/*" --exclude "*/opt-whdata/log/*")
 fi
 
 if [ -z "$SKIPDOWNLOAD" ]; then
@@ -88,6 +90,7 @@ fi
 
 if [ ! -d "$WHRUNKIT_TARGETDIR/whdata" ]; then #whdata is deeper than expected, move it into place
   WHDATAFOLDER="$(find "$WHRUNKIT_TARGETDIR/download" -name whdata -print -quit)"
+  [ -z "$WHDATAFOLDER" ] && WHDATAFOLDER="$(find "$WHRUNKIT_TARGETDIR/download" -name opt-whdata -print -quit)"
   if [ -z "$WHDATAFOLDER" ] || ! [ -d "$WHDATAFOLDER/preparedbackup" ]; then
     echo "Cannot find the 'whdata' folder inside the backup $WHRUNKIT_TARGETDIR/download, cannot continue the restore"
     exit 1

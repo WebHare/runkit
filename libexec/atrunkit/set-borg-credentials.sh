@@ -27,3 +27,6 @@ source $SETTINGSFILE
 [ -n "$BORG_REPO" ] || die "Invalid or incomplete settings received"
 [ -n "$BORG_PASSPHRASE" ] || die "Invalid or incomplete settings received"
 [ -n "$BORG_PRIVATEKEY" ] || die "Invalid or incomplete settings received"
+
+mkdir -p "$WHRUNKIT_TARGETDIR"
+mv "$SETTINGSFILE" "$WHRUNKIT_TARGETDIR"/borgsettings

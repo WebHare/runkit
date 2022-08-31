@@ -184,7 +184,7 @@ function ensure_server_baseport()
   [ -f "$WHRUNKIT_TARGETDIR/baseport" ] || echo "$(( RANDOM / 10 * 10 + 20000 ))" > "$WHRUNKIT_TARGETDIR/baseport"
 }
 
-function ensure_whrunkit_command()
+function resolve_whrunkit_command()
 {
   if [ -z "$WEBHARE_DIR" ]; then
     # TODO Should we go around *ensuring* this is set everywhere? Or is this a very acceptible convention?
@@ -195,10 +195,15 @@ function ensure_whrunkit_command()
   fi
 
   [ -n "$WEBHARE_DIR" ] && WHRUNKIT_WHCOMMAND="$WEBHARE_DIR/bin/wh"
-  [ -n "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh"
-  [ -x "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh, tried '$WHRUNKIT_WHCOMMAND'"
 
   export WHRUNKIT_WHCOMMAND
+}
+
+function ensure_whrunkit_command()
+{
+  [ -n "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh"
+  [ -x "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh, tried '$WHRUNKIT_WHCOMMAND'"
+  resolve_whrunkit_command
 }
 
 WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." ; pwd )"

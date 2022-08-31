@@ -21,6 +21,7 @@ MOUNTPOINT="/tmp/$CONTAINER"
 [ -d "$MOUNTPOINT" ] || ( echo "Mountpoint $MOUNTPOINT not found" && exit 1 )
 
 WHDATAFOLDER="$(find "$MOUNTPOINT" -name whdata -print -quit)"
+[ -z "$WHDATAFOLDER" ] && WHDATAFOLDER="$(find "$MOUNTPOINT" -name opt-whdata -print -quit)"
 if [ -z "$WHDATAFOLDER" ] || ! [ -d "$WHDATAFOLDER/preparedbackup" ]; then
   echo "Cannot find the 'whdata' folder inside the backup, cannot continue the restore"
   exit 1
