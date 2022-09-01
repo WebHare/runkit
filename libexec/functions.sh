@@ -201,9 +201,9 @@ function resolve_whrunkit_command()
 
 function ensure_whrunkit_command()
 {
+  resolve_whrunkit_command
   [ -n "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh"
   [ -x "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh, tried '$WHRUNKIT_WHCOMMAND'"
-  resolve_whrunkit_command
 }
 
 WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." ; pwd )"
