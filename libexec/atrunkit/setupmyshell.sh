@@ -5,6 +5,8 @@ if [ -t 1 ]; then
   exit 1
 fi
 
+mkdir -p "$WHRUNKIT_DATADIR" # Prevents errors from scripts accessing this dir
+
 cat << HERE
 
 runkit() { "$WHRUNKIT_ORIGCOMMAND" "\$@"; } ;
@@ -28,16 +30,15 @@ complete -o default -C 'wh __autocomplete_wh' wh ;
 HERE
 
 # TODO unregister wh- aliases for servers since removed? but this may for now be annoying for users who manually set up wh-xxx aliasses..
-if [ -d "$WHRUNKIT_DATADIR" ]; then
-  for SERVER in $( cd "$WHRUNKIT_DATADIR" ||exit 1; echo * ); do
-    if [ -f "$WHRUNKIT_DATADIR/$SERVER/baseport" ]; then # it appears to be a usable installation...
-      cat << HERE
+for SERVER in $( cd "$WHRUNKIT_DATADIR" ||exit 1; echo * ); do
+  if [ -f "$WHRUNKIT_DATADIR/$SERVER/baseport" ]; then # it appears to be a usable installation...
+    cat << HERE
 wh-$SERVER() { "$WHRUNKIT_ORIGCOMMAND" "@$SERVER" wh "\$@" ; } ;
 export -f wh-$SERVER ;
 whcd-$SERVER() {
-  local DEST;
-  DEST="\`wh-$SERVER run mod::system/scripts/internal/cli/getdir.whscr "\$@"\`";
-  [ -n "\$DEST" ] && cd "\$DEST";
+local DEST;
+DEST="\`wh-$SERVER run mod::system/scripts/internal/cli/getdir.whscr "\$@"\`";
+[ -n "\$DEST" ] && cd "\$DEST";
 } ;
 export -f whcd-$SERVER ;
 
@@ -45,6 +46,5 @@ complete -o filenames -o nospace -C 'wh-$SERVER __autocomplete_whcd' whcd-$SERVE
 complete -o default -C 'wh-$SERVER __autocomplete_wh' wh-$SERVER ;
 
 HERE
-    fi
-  done
-fi
+  fi
+done
