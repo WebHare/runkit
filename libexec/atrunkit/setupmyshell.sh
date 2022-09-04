@@ -28,10 +28,10 @@ complete -o default -C 'wh __autocomplete_wh' wh ;
 HERE
 
 # TODO unregister wh- aliases for servers since removed? but this may for now be annoying for users who manually set up wh-xxx aliasses..
-
-for SERVER in $( cd "$WHRUNKIT_DATADIR" ||exit 1; echo * ); do
-  if [ -f "$WHRUNKIT_DATADIR/$SERVER/baseport" ]; then # it appears to be a usable installation...
-    cat << HERE
+if [ -d "$WHRUNKIT_DATADIR" ]; then
+  for SERVER in $( cd "$WHRUNKIT_DATADIR" ||exit 1; echo * ); do
+    if [ -f "$WHRUNKIT_DATADIR/$SERVER/baseport" ]; then # it appears to be a usable installation...
+      cat << HERE
 wh-$SERVER() { "$WHRUNKIT_ORIGCOMMAND" "@$SERVER" wh "\$@" ; } ;
 export -f wh-$SERVER ;
 whcd-$SERVER() {
@@ -45,5 +45,6 @@ complete -o filenames -o nospace -C 'wh-$SERVER __autocomplete_whcd' whcd-$SERVE
 complete -o default -C 'wh-$SERVER __autocomplete_wh' wh-$SERVER ;
 
 HERE
-  fi
-done
+    fi
+  done
+fi
