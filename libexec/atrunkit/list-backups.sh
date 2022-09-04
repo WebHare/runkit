@@ -1,12 +1,12 @@
 #!/bin/bash
-# syntax: <containername>
+# syntax: <servername>
 # short: List available backups
 
 set -e #fail on any uncaught error
 
 exit_syntax()
 {
-  echo "Syntax: list-backups.sh"
+  echo "Syntax: runkit list-backups <servername>"
   exit 1
 }
 

@@ -22,6 +22,15 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
     exit 1
   fi
 
+  if [ -f $WHRUNKIT_TARGETDIR/docker.image ]; then
+    # it should be safe to assume its running inside docker
+    DOCKEROPTS="-i"
+    if [ -t 0 ] ; then
+      DOCKEROPTS="-ti"
+    fi
+    exec docker exec $DOCKEROPTS "runkit-wh-$WHRUNKIT_TARGETSERVER" wh "$@"
+  fi
+
   ensure_whrunkit_command
 
   [ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($WHRUNKIT_TARGETDIR/baseport) not set"

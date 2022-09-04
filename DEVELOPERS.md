@@ -24,7 +24,9 @@ local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
   - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT
 - `_settings/`
   - getborgsettings.sh - a script to override how borg-related scripts lookup containers
-
+  - `sourceroot` - contains default source checkout
+- `_proxy/`
+  - `docker.image` - image to use for the proxy server
 
 ## credential files
 Credential files (borgsettings) should have the following structure:

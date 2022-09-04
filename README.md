@@ -5,6 +5,8 @@ Download this repository using either of
 - `git clone git@gitlab.com:webhare/runkit.git webhare-runkit`
 - `git clone https://gitlab.com/webhare/runkit.git webhare-runkit`
 
+Or install it on your target machine by running `curl https://gitlab.com/webhare/runkit/-/raw/main/install.sh | bash` as root
+
 To ease runkit use add `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your shell. You can then use `runkit-reload`
 to reload the aliases without having to close your current session. You can also place just `runkit` in your path or invoke
 it directly when invoking it. All examples below assume that `runkit` will invoke `bin/runkit` from this project.

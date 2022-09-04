@@ -8,7 +8,6 @@ exit_syntax()
   exit 1
 }
 
-PRODUCTION=""
 while true; do
   if [ "$1" == "--help" ]; then
     exit_syntax
@@ -36,8 +35,8 @@ for CONTAINER in "$@" ; do
   "$WHRUNKIT_ROOT"/bin/enter-webhare.sh "$CONTAINER" wh waitfor poststartdone
 done
 
-echo "Configure proxy servers"
+echo "** Configure proxy servers"
 "$WHRUNKIT_ROOT"/bin/proxy-webhare.sh
 
 echo ""
-echo "Servers are live!"
+echo "** Servers are live!"

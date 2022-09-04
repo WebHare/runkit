@@ -11,6 +11,7 @@ Syntax: runkit restore-webhare [options] <servername>
         --archive arc          Archive to restore (defaults to latest)
         --dbaseonly            Only restore the database backup
         --nodocker             Do not use docker to do the actualy restore
+        --dockerimage <image>  Docker image to use for restore
         --fast                 Restore only essential dta (modules and database, but eg. no output or logs)
         --skipdownload         Do not redownload the backup, go straight to the database restore step
 HERE

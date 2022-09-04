@@ -16,3 +16,5 @@ fi
 if ! grep -q '# webhare-runkit setup' "$HOME/.bashrc" 2>/dev/null ; then
   echo "eval \$(\"${WHRUNKIT_INSTALLTO}/bin/runkit\" setupmyshell) # webhare-runkit setup" >> "$HOME/.bashrc"
 fi
+
+echo "Completed runkit installation - relogin to apply shell settings"

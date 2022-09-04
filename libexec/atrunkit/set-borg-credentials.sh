@@ -30,3 +30,4 @@ source $SETTINGSFILE
 
 mkdir -p "$WHRUNKIT_TARGETDIR"
 mv "$SETTINGSFILE" "$WHRUNKIT_TARGETDIR"/borgsettings
+exit 0

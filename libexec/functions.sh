@@ -47,6 +47,8 @@ function applyborgsettings()
   local SETTINGSNAME
   SETTINGSNAME="$1"
 
+  ensurecommands borg
+
   #TODO how risky is accept-new (in practice) ?
   export BORG_PRIVATEKEY=
   export BORG_REPO=
