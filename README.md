@@ -33,6 +33,48 @@ runkit add-existing-server --primary myserver ~/projects/whdata/myserver
 The primary installation is the one with baseport '13679' and will be bound to the `wh` alias by runkit's setupmyshell.
 Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always target a server using `runkit @<server> ...`.
 
+## Setting up a discardable WebHare for CI tests
+You can setup an installation for easily running CI tests on a 'fresh' WebHare install. There are many different ways to
+set this up, as an example (edit as necessary)
+
+```bash
+# Create a WebHare server named 'ci'
+runkit create-server ci
+runkit-reload
+
+# Setup environment and startup script to configure it
+cd "$(runkit @ci getserverconfigdir)"
+echo "export WEBHARE_CI=1" > environment.sh
+cat << HERE > startup.sh
+#!/bin/bash
+if ! wh webserver addport 8888 2>/dev/null ; then
+  echo "looks like startup script has already run"
+  exit 0
+fi
+
+echo "Setting up for tests"
+wh webserver addbackend --primary http://localhost:8888/
+wh webhare_testsuite:reset
+wh users adduser --sysop --password secret sysop@example.net
+wh registry set system.backend.layout.infotitle "CI login info"
+wh registry set system.backend.layout.infotext "Login using username sysop@example.net and password secret"
+exit 0
+HERE
+
+chmod a+x environment.sh startup.sh
+
+mkdir -p "/$(wh-ci getdatadir)/etc"
+touch "/$(wh-ci getdatadir)/etc/allow-fresh-db"
+
+# To start your database fresh:
+runkit @ci freshdbconsole
+# And then in a second terminal you can already...
+wh-ci runtest "consilio.*"
+
+# Install some modules from your primary insatllation
+ln -s "$(wh getmoduledir dev)" "$(wh-ci getdatadir)/installedmodules/"
+```
+
 ## Restoring WebHare backups
 
 ### Installing credentials
@@ -104,13 +146,6 @@ To watch the logs for a running WebHare: `~/webhare-runkit/bin/watch-webhare.sh 
 Keep in mind that if you run all this on a mac, WebHare's database will be running
 over a Docker volume mount and eg. index reconstruction after the restore can take
 quite some time, especially if this installation isn't using postgres yet.
-
-## Managing local WebHare installations
-This guide assumes you've added `runkit` to your path or let setupmyshell set up
-an alias
-
-- `runkit ...`
-
 
 ## NOTES
 - if you keep this WebHare running you'll want to remove 'whdata/preparedbackup' and `download` as they only take up space
