@@ -118,7 +118,7 @@ else
     ensure_whrunkit_command
     [ -f "$WHRUNKIT_TARGETDIR/docker.image" ] && rm -f "$WHRUNKIT_TARGETDIR/docker.image"
 
-    wh restore "$WEBHARE_DATAROOT/preparedbackup"
+    runkit "@$WHRUNKIT_TARGETSERVER" wh restore "$WEBHARE_DATAROOT/preparedbackup"
     echo ""
     echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
   else
