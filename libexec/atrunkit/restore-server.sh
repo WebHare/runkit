@@ -9,7 +9,6 @@ exit_syntax()
   cat << HERE
 Syntax: runkit restore-webhare [options] <servername>
         --archive arc          Archive to restore (defaults to latest)
-        --dbaseonly            Only restore the database backup
         --nodocker             Do not use docker to do the actualy restore
         --dockerimage <image>  Docker image to use for restore
         --fast                 Restore only essential dta (modules and database, but eg. no output or logs)
@@ -24,15 +23,13 @@ NODOCKER=""
 DOCKERIMAGE=""
 FAST=""
 RESTOREARCHIVE=""
+BORGOPTIONS=(--progress)
 
 while true; do
   if [ "$1" == "--archive" ]; then
     shift
     RESTOREARCHIVE="$1"
     shift
-  elif [ "$1" == "--dbaseonly" ]; then
-    shift
-    RESTOREOPTIONS+=("--dbaseonly")
   elif [ "$1" == "--skipdownload" ]; then
     SKIPDOWNLOAD="1"
     shift
@@ -41,6 +38,10 @@ while true; do
     shift
   elif [ "$1" == "--fast" ]; then
     FAST="1"
+    shift
+  elif [ "$1" == "--exclude" ]; then
+    shift
+    BORGOPTIONS+=(--exclude "$1")
     shift
   elif [ "$1" == "--dockerimage" ]; then
     shift
@@ -80,7 +81,6 @@ applyborgsettings "$CONTAINER"
 
 validate_servername "$WHRUNKIT_TARGETSERVER"
 
-BORGOPTIONS=(--progress)
 if [ -n "$FAST" ]; then
   BORGOPTIONS+=(--exclude "*/whdata/output/*" --exclude "*/whdata/log/*" --exclude "*/opt-whdata/output/*" --exclude "*/opt-whdata/log/*")
 fi
@@ -118,9 +118,10 @@ else
     ensure_whrunkit_command
     [ -f "$WHRUNKIT_TARGETDIR/docker.image" ] && rm -f "$WHRUNKIT_TARGETDIR/docker.image"
 
-    runkit "@$WHRUNKIT_TARGETSERVER" wh restore "$WEBHARE_DATAROOT/preparedbackup"
+    "$WHRUNKIT_WHCOMMAND" restore "$WEBHARE_DATAROOT/preparedbackup"
     echo ""
     echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
+    exit 0
   else
     if [ "$DOCKERIMAGE" == "webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
       DOCKERIMAGE=webhare/platform:release-4-35
