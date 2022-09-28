@@ -24,7 +24,7 @@ Before you can use runkit, you need to set up a new installation or add your exi
 Examples:
 ```bash
 # Sets up a new server (will be initialized by invoking 'runkit @mytest console')
-runkit create-webhare-server mytest
+runkit create-server mytest
 
 # Adds ~/projects/whdata/myserver as your primary installation
 runkit add-existing-server --primary myserver ~/projects/whdata/myserver
