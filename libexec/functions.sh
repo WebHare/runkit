@@ -170,7 +170,7 @@ function download_backup()
 function validate_servername()
 {
   # NOTE: what more characters to allow? at least not '.' or '@' to prevent future ambiguity with metadata or remote server names
-  if ! [[ $1 =~ ^[-a-z0-9]+$ ]]; then
+  if ! [[ $1 =~ ^[a-z][-a-z0-9]*$ ]]; then
     echo "Invalid server name '$1'" 1>&2
     exit 1
   fi
