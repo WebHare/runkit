@@ -85,50 +85,56 @@ if [ -n "$FAST" ]; then
   BORGOPTIONS+=(--exclude "*/whdata/output/*" --exclude "*/whdata/log/*" --exclude "*/opt-whdata/output/*" --exclude "*/opt-whdata/log/*")
 fi
 
-if [ -z "$SKIPDOWNLOAD" ]; then
-  download_backup "$RESTOREARCHIVE"
+if [ -d "$WEBHARE_DATAROOT/dbase" ] || [ -d "$WEBHARE_DATAROOT/postgresql" ]; then
+  echo "A database already exists in $WEBHARE_DATAROOT/postgresql"
+  exit 1
 fi
 
-if [ ! -d "$WHRUNKIT_TARGETDIR/whdata" ]; then #whdata is deeper than expected, move it into place
-  WHDATAFOLDER="$(find "$WHRUNKIT_TARGETDIR/download" -name whdata -print -quit)"
-  [ -z "$WHDATAFOLDER" ] && WHDATAFOLDER="$(find "$WHRUNKIT_TARGETDIR/download" -name opt-whdata -print -quit)"
+DOWNLOADTO="$WEBHARE_DATAROOT/incomingbackup"
+if [ -z "$SKIPDOWNLOAD" ]; then
+  download_backup "$RESTOREARCHIVE" "$DOWNLOADTO"
+fi
+
+#whdata is ususally deeper than expected, move it into place
+if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't already move it int oplace..
+  WHDATAFOLDER="$(find "$DOWNLOADTO" -name whdata -print -quit)"
+  [ -z "$WHDATAFOLDER" ] && WHDATAFOLDER="$(find "$DOWNLOADTO" -name opt-whdata -print -quit)"
   if [ -z "$WHDATAFOLDER" ] || ! [ -d "$WHDATAFOLDER/preparedbackup" ]; then
-    echo "Cannot find the 'whdata' folder inside the backup $WHRUNKIT_TARGETDIR/download, cannot continue the restore"
+    echo "Cannot find the 'whdata' folder inside the backup $DOWNLOADTO, cannot continue the restore"
     exit 1
   fi
 
-  if [ -d "$WHDATAFOLDER/local" ]; then #FIXME document what exactly uses this - who stores into local/ ? is it documented?
-    mv "$WHDATAFOLDER/local" "$WHDATAFOLDER/local.bak.$(date +%Y%m%d-%H%M%S)"
-  fi
+  # if [ -d "$WHDATAFOLDER/local" ]; then #FIXME document what exactly uses this - who stores into local/ ? is it documented?
+  #   mv "$WHDATAFOLDER/local" "$WHDATAFOLDER/local.bak.$(date +%Y%m%d-%H%M%S)"
+  # fi
 
-  mv "$WHDATAFOLDER" "$WHRUNKIT_TARGETDIR/whdata"
+  # NOTE this way we rely on whdata not containing dot files that need restoring!.. fix it a bt without moving .. etc
+  mv "$WHDATAFOLDER"/* "$WEBHARE_DATAROOT/"
 fi
 
 ensure_server_baseport
 loadtargetsettings
 
-if [ -d "$WEBHARE_DATAROOT/dbase" ] || [ -d "$WEBHARE_DATAROOT/postgresql" ]; then
-  echo "A database already exists in $WEBHARE_DATAROOT/postgresql"
+mkdir -p "$WEBHARE_DATAROOT"
+# download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
+echo "Restoring container $WHRUNKIT_TARGETSERVER database to $WHEBARE_DATAROOT" > "$WEBHARE_DATAROOT"/webhare.restoremode
+echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKIT_TARGETDIR/restore.borgrepo")" > "$WEBHARE_DATAROOT"/webhare.restoremode
+
+if [ -n "$NODOCKER" ]; then
+  ensure_whrunkit_command
+  [ -f "$WHRUNKIT_TARGETDIR/docker.image" ] && rm -f "$WHRUNKIT_TARGETDIR/docker.image"
+
+  "$WHRUNKIT_WHCOMMAND" restore "$WEBHARE_DATAROOT/preparedbackup"
+  echo ""
+  echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
+  exit 0
 else
-  mkdir -p "$WEBHARE_DATAROOT"
-  # download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
-  echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKIT_TARGETDIR/restore.borgrepo")" > "$WEBHARE_DATAROOT"/webhare.restoremode
-
-  if [ -n "$NODOCKER" ]; then
-    ensure_whrunkit_command
-    [ -f "$WHRUNKIT_TARGETDIR/docker.image" ] && rm -f "$WHRUNKIT_TARGETDIR/docker.image"
-
-    "$WHRUNKIT_WHCOMMAND" restore "$WEBHARE_DATAROOT/preparedbackup"
-    echo ""
-    echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
-    exit 0
-  else
-    if [ "$DOCKERIMAGE" == "webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
-      DOCKERIMAGE=webhare/platform:release-4-35
-      echo "Using docker image $DOCKERIMAGE because this is a dbserver backup"
-    fi
-    echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/docker.image"
-
-    docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+  if [ "$DOCKERIMAGE" == "webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
+    DOCKERIMAGE=webhare/platform:release-4-35
+    echo "Using docker image $DOCKERIMAGE because this is a dbserver backup"
   fi
+  echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/docker.image"
+
+  docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+  echo "Container appears succesfully restored"
 fi

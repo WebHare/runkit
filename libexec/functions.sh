@@ -137,6 +137,7 @@ function download_backup()
 {
   local RESTOREARCHIVE RESTORETO
   RESTOREARCHIVE="$1"
+  RESTORETO="$2"
 
   if [ -z "$RESTOREARCHIVE" ]; then
     RESTOREARCHIVE="$(borg list --short --last 1)"
@@ -146,18 +147,10 @@ function download_backup()
     borg info "::$RESTOREARCHIVE" > /dev/null || exit 1
   fi
 
-  # FIXME this only applies for webhare restores, we need a more generic 'hey, you're overwriting an earlier restore!'' thing..
-  if [ -d "$WHRUNKIT_TARGETSERVER/whdata" ]; then
-    echo "Target directory $RESTORETO/whdata already exists!"
-    exit 1
-  fi
-
-
   echo "$RESTOREARCHIVE" > "$WHRUNKIT_TARGETDIR/restore.archive" #FIXME also apply to webhare.restore file
   echo "$BORG_REPO" > "$WHRUNKIT_TARGETDIR/restore.borgrepo"
 
   # remove any existing restore directory
-  RESTORETO="$WHRUNKIT_TARGETDIR/download"
   echo "Downloading archive $RESTOREARCHIVE to $RESTORETO"
 
   [ -d "$RESTORETO" ] && rm -rf "$RESTORETO"

@@ -42,4 +42,4 @@ CONTAINER="$1"
 ensurecommands borg ssh-add
 
 applyborgsettings "$CONTAINER"
-download_backup "$RESTOREARCHIVE"
+download_backup "$RESTOREARCHIVE" "$WHRUNKIT_TARGETDIR/download"

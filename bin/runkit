@@ -52,7 +52,7 @@ if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
 
   # TODO only if not the default:
   source "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" "$@"
-  exit 255
+  exit 0 # ensure exitcode 0 on succesful run
 fi
 
 # runkit directed command
@@ -65,4 +65,4 @@ if [ ! -f "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
 fi
 
 source "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" "$@"
-exit 255
+exit 0 # ensure exitcode 0 on succesful run
