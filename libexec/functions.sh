@@ -117,8 +117,9 @@ function loadtargetsettings
   WEBHARE_ISRESTORED=""
   WEBHARE_BASEPORT="$(cat "$WHRUNKIT_TARGETDIR/baseport" 2>/dev/null || true)"
   WEBHARE_DATAROOT="$(cat "$WHRUNKIT_TARGETDIR/dataroot" 2>/dev/null || true)"
-  if [ -z "$WEBHARE_DATAROOT" ] && [ -d "$WHRUNKIT_TARGETDIR/whdata" ]; then
-     WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata"
+  if [ -z "$WEBHARE_DATAROOT" ]; then
+    WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata"
+    mkdir -p "$WEBHARE_DATAROOT"
   fi
 
   if [ -f "$WHRUNKIT_TARGETDIR/sourceroot" ]; then
