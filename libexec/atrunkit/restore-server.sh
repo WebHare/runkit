@@ -7,7 +7,7 @@ set -e #fail on any uncaught error
 exit_syntax()
 {
   cat << HERE
-Syntax: runkit restore-webhare [options] <servername>
+Syntax: runkit restore-server [options] <servername>
         --archive arc          Archive to restore (defaults to latest)
         --nodocker             Do not use docker to do the actualy restore
         --dockerimage <image>  Docker image to use for restore
@@ -80,6 +80,10 @@ applyborgsettings "$CONTAINER"
 # applyborgsettings also sets WHRUNKIT_TARGETSERVER and WHRUNKIT_TARGETDIR
 
 validate_servername "$WHRUNKIT_TARGETSERVER"
+ensure_server_baseport
+loadtargetsettings
+
+[ -n "$WEBHARE_DATAROOT" ] || die internal error, WEBHARE_DATAROOT not set
 
 if [ -n "$FAST" ]; then
   BORGOPTIONS+=(--exclude "*/whdata/output/*" --exclude "*/whdata/log/*" --exclude "*/opt-whdata/output/*" --exclude "*/opt-whdata/log/*")
@@ -111,9 +115,6 @@ if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't alread
   # NOTE this way we rely on whdata not containing dot files that need restoring!.. fix it a bt without moving .. etc
   mv "$WHDATAFOLDER"/* "$WEBHARE_DATAROOT/"
 fi
-
-ensure_server_baseport
-loadtargetsettings
 
 mkdir -p "$WEBHARE_DATAROOT"
 # download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
