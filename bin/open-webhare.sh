@@ -22,6 +22,10 @@ done
 
 WHRUNKIT_TARGETSERVER="$1"
 [ -z "$WHRUNKIT_TARGETSERVER" ] && exit_syntax
+
+# We are migrating away from open-webhare..
+echo "NOTE: If open-webhare fails, try runkit @$1 open"
+
 loadtargetsettings
 
 LAUNCHMODE="$(cat "$WHRUNKIT_TARGETDIR/launchmode")"
@@ -35,9 +39,12 @@ if [ "$LAUNCHMODE" == "docker" ]; then
     exit 1
   fi
 
-  RESCUEPORT="$(jq -r '.[0].NetworkSettings.Ports["13688/tcp"][0].HostPort' <<< "$CONTAINERINFO" )"
+  RESCUEPORT="$(jq -r '.[0].NetworkSettings.Ports["13679/tcp"][0].HostPort' <<< "$CONTAINERINFO" )"
+  if [ -z "$RESCUEPORT" ]; then # fall back to previous resue port (+9)
+    RESCUEPORT="$(jq -r '.[0].NetworkSettings.Ports["13688/tcp"][0].HostPort' <<< "$CONTAINERINFO" )"
+  fi
   if [ -z "$RESCUEPORT" ]; then
-    echo "Unable to find the rescue port (13688) for container $CONTAINERNAME"
+    echo "Unable to find the rescue port (13679 or 13688) for container $CONTAINERNAME"
     exit 1
   fi
 
