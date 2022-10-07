@@ -33,8 +33,6 @@ if [ ! -f "$WHRUNKIT_DATADIR/psql-passfile" ]; then
   echo "*:*:*:*:$(mktemp -u XXXXXXXXXXXXXXXXX)" > "$WHRUNKIT_DATADIR/psql-passfile"
 fi
 
-resolve_whrunkit_command
-
 if [ ! -S $WEBHARE_DATAROOT/postgresql/.s.PGSQL.5432 ]; then
   echo Could not find the UNIX socket of the database, is @$WHRUNKIT_TARGETSERVER running?
   exit 1
@@ -53,14 +51,13 @@ elif [ -n "$RESETPASSWORD" ]; then
 fi
 
 
-TEMPSERVERSJSONFILE=$(mktemp /tmp/runkit-pgadmin-servers-$WHRUNKIT_TARGETSERVER.XXXXXXXXXXX)
-PYTHON=/Applications/pgAdmin\ 4.app/Contents/Frameworks/Python.framework/Versions/Current/bin/python3
-if [ ! -x "$PYTHON" ]; then
-  echo Could not find python executable
-  exit 1
-fi
+TEMPSERVERSJSONFILE="$(mktemp /tmp/runkit-pgadmin-servers-"$WHRUNKIT_TARGETSERVER".XXXXXXXXXXX)"
+PGADMIN_APPDIR="/Applications/pgAdmin 4.app/"
+PGADMIN_PYTHON="$PGADMIN_APPDIR/Contents/Frameworks/Python.framework/Versions/Current/bin/python3"
+[ -e "$PGADMIN_PYTHON" ] || brew install --cask pgadmin4
+[ -x "$PGADMIN_PYTHON" ] || die "Could not find pgAdmin 4 and installation failed. Looking for $PGADMIN_APPDIR"
 
-if ! "$PYTHON" /Applications/pgAdmin\ 4.app/Contents/Resources/web/setup.py --dump-servers "$TEMPSERVERSJSONFILE" --sqlite-path ~/.pgadmin/pgadmin4.db; then
+if ! "$PGADMIN_PYTHON" /Applications/pgAdmin\ 4.app/Contents/Resources/web/setup.py --dump-servers "$TEMPSERVERSJSONFILE" --sqlite-path ~/.pgadmin/pgadmin4.db; then
   echo Error exporting current list of servers
   exit 1
 fi
@@ -91,7 +88,7 @@ if ! jq -e ".Servers | to_entries[]  | select( .value.Name == \"$SERVERTITLE\")"
 }
 HERE
   echo "Importing new server-definition into pgAdmin"
-  if ! "$PYTHON" /Applications/pgAdmin\ 4.app/Contents/Resources/web/setup.py --load-servers "$TEMPSERVERSJSONFILE" --sqlite-path ~/.pgadmin/pgadmin4.db; then
+  if ! "$PGADMIN_PYTHON" "$PGADMIN_APPDIR/Contents/Resources/web/setup.py" --load-servers "$TEMPSERVERSJSONFILE" --sqlite-path ~/.pgadmin/pgadmin4.db; then
     echo Error importing new server
     exit 1
   fi
@@ -108,5 +105,5 @@ if pgrep "pgAdmin 4" > /dev/null; then
   osascript -e "tell application \"pgAdmin 4\" to activate first window"
 else
   echo "Starting pgAdmin 4"
-  open /Applications/pgAdmin\ 4.app/
+  open "$PGADMIN_APPDIR"
 fi
