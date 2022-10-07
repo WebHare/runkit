@@ -33,7 +33,7 @@ if [ ! -f "$WHRUNKIT_DATADIR/psql-passfile" ]; then
   echo "*:*:*:*:$(mktemp -u XXXXXXXXXXXXXXXXX)" > "$WHRUNKIT_DATADIR/psql-passfile"
 fi
 
-if [ ! -f $WEBHARE_DATAROOT/postgresql/.s.PGSQL.5432 ]; then
+if [ ! -S $WEBHARE_DATAROOT/postgresql/.s.PGSQL.5432 ]; then
   echo Could not find the UNIX socket of the database, is @$WHRUNKIT_TARGETSERVER running?
   exit 1
 fi
