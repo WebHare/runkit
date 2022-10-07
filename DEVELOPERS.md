@@ -39,6 +39,10 @@ BORG_REPO="user@host.repo.borgbase.com:repo"
 BORG_PASSPHRASE="key passphrase"
 ```
 
+## runkit guidelines
+- Do not invoke `wh` directly on a server. Use `$WHRUNKIT_WHCOMMAND` (setup by the `runkit @...` wrapper)
+
+
 # Tests
 
 ## Build docker and restore
