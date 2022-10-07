@@ -33,6 +33,8 @@ if [ ! -f "$WHRUNKIT_DATADIR/psql-passfile" ]; then
   echo "*:*:*:*:$(mktemp -u XXXXXXXXXXXXXXXXX)" > "$WHRUNKIT_DATADIR/psql-passfile"
 fi
 
+resolve_whrunkit_command
+
 if [ ! -S $WEBHARE_DATAROOT/postgresql/.s.PGSQL.5432 ]; then
   echo Could not find the UNIX socket of the database, is @$WHRUNKIT_TARGETSERVER running?
   exit 1
@@ -42,12 +44,12 @@ USERNAME=runkit_pgadmin
 PASSWORD=$(cat "$WHRUNKIT_DATADIR/psql-passfile" | cut -d: -f5)
 SERVERTITLE="@$WHRUNKIT_TARGETSERVER"
 
-IFS=$'\t' PGADMINUSER=($(runkit @$WHRUNKIT_TARGETSERVER wh psql -q -t -A -F $'\t' -c "select * from pg_catalog.pg_user where usename='$USERNAME'"))
+IFS=$'\t' PGADMINUSER=($($WHRUNKIT_WHCOMMAND psql -q -t -A -F $'\t' -c "select * from pg_catalog.pg_user where usename='$USERNAME'"))
 if [ -z "${PGADMINUSER[0]}" ]; then
   PASSWORD=$(cat $WHRUNKIT_DATADIR/pgadmin-user-password)
-  wh psql -q -c "BEGIN TRANSACTION READ WRITE" -c "CREATE USER $USERNAME WITH PASSWORD '$PASSWORD'" -c "COMMIT"
+  $WHRUNKIT_WHCOMMAND psql -q -c "BEGIN TRANSACTION READ WRITE" -c "CREATE USER $USERNAME WITH PASSWORD '$PASSWORD'" -c "COMMIT"
 elif [ -n "$RESETPASSWORD" ]; then
-  wh psql -q -c "BEGIN TRANSACTION READ WRITE" -c "ALTER USER $USERNAME SET PASSWORD '$PASSWORD'" -c "COMMIT"
+  $WHRUNKIT_WHCOMMAND psql -q -c "BEGIN TRANSACTION READ WRITE" -c "ALTER USER $USERNAME SET PASSWORD '$PASSWORD'" -c "COMMIT"
 fi
 
 
