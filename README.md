@@ -16,6 +16,13 @@ We recommend adding `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your `
 Runkit will store its data in `$HOME/whrunkit/` or `/opt/whrunkit/` by default. You can override this directory by setting
 the WHRUNKIT_ROOT environment varaible
 
+## Building WebHare from source
+```bash
+runkit get-webhare-source
+runkit create-server --primary mywebhare
+runkit @mywebhare wh make
+```
+
 ## Managing WebHare installations
 Before you can use runkit, you need to set up a new installation or add your existing installation:
 - `add-existing-server [--primary] <servername> <path>` - Add an already configured WebHare

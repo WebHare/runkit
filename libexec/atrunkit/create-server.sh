@@ -8,6 +8,7 @@ function exit_syntax
   echo "        --primary  sets the baseport to 13679 and binds the server to the 'wh' alias"
   echo "        <server>   short name for the server, used as wh-<server> alias"
   echo "        <datadir>  where your data is currently stored (eg ~/projects/whdata/myserver/)"
+  exit 1
 }
 
 source "${BASH_SOURCE%/*}/__servercreation.sh" || die "cannot load function library"
