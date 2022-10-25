@@ -1,0 +1,17 @@
+# Pipelines: https://gitlab.webhare.com/webhare-opensource/runkit/-/pipelines
+
+image: docker:latest
+
+services:
+ - docker:dind
+
+stages:
+- test
+
+default:
+  interruptible: true
+
+runscripttests:
+  stage: test
+  script:
+    - RUNKIT_CI_SOURCEDOWNLOAD=1 ./tests/runtests.sh
