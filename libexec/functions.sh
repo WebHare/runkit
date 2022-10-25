@@ -89,7 +89,7 @@ function applyborgsettings()
   mkdir -p "$WHRUNKIT_TARGETDIR"
 }
 
-function loadtargetsettings
+function settargetdir
 {
   if [ -z "$WHRUNKIT_TARGETSERVER" ]; then
     echo "WHRUNKIT_TARGETSERVER must be set!"
@@ -112,6 +112,11 @@ function loadtargetsettings
   fi
 
   WHRUNKIT_TARGETDIR="$WHRUNKIT_DATADIR/$WHRUNKIT_TARGETSERVER"
+}
+
+function loadtargetsettings
+{
+  settargetdir
 
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
   WEBHARE_ISRESTORED=""
@@ -123,7 +128,11 @@ function loadtargetsettings
   fi
 
   if [ -f "$WHRUNKIT_TARGETDIR/sourceroot" ]; then
+    echo GOT target >&2
     WEBHARE_CHECKEDOUT_TO="$(cat "$WHRUNKIT_TARGETDIR/sourceroot")"
+    WEBHARE_DIR="$WEBHARE_CHECKEDOUT_TO/whtree"
+  elif [ -f "$WHRUNKIT_DATADIR/_settings/sourceroot" ]; then
+    WEBHARE_CHECKEDOUT_TO="$(cat "$WHRUNKIT_DATADIR/_settings/sourceroot")"
     WEBHARE_DIR="$WEBHARE_CHECKEDOUT_TO/whtree"
   fi
 
@@ -186,6 +195,10 @@ function resolve_whrunkit_command()
     # TODO Should we go around *ensuring* this is set everywhere? Or is this a very acceptible convention?
     #      Or we could just request you set a config option in the datadir point to the SOURCE checkout as that's what runkit needs/manages
     if [ -x "$HOME/projects/webhare/whtree/bin/wh" ]; then
+      echo "runkit had to fall back to hardcoded $HOME/projects/webhare/whtree path" >&2
+      echo "Please create a file with the full path to your WebHare installation in $WHRUNKIT_DATADIR/_settings/sourceroot" >&2
+      echo "\$ echo $HOME/projects/webhare > $WHRUNKIT_DATADIR/_settings/sourceroot" >&2
+      sleep 2
       WEBHARE_DIR="$HOME/projects/webhare/whtree"
     fi
   fi
@@ -217,6 +230,6 @@ if [ -z "$WHRUNKIT_DATADIR" ]; then
 fi
 
 export WHRUNKIT_DATADIR WHRUNKIT_ROOT
-
+mkdir -p "$WHRUNKIT_DATADIR"
 WEBHARE_RUNKIT_KEYFILE=""
 trap onexit EXIT #Cleanup WEBHARE_RUNKIT_KEYFILE if it exists

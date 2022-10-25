@@ -14,4 +14,4 @@ default:
 runscripttests:
   stage: test
   script:
-    - ./tests/runtests.sh
+    - RUNKIT_CI_SOURCEDOWNLOAD=1 ./tests/runtests.sh
