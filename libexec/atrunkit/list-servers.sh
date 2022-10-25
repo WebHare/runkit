@@ -37,9 +37,6 @@ for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
   ANY="1"
 done
 
-if [ -z "$ANY" ]; then
-  echo No servers appear to be installed
-  exit 1
-fi
+[ -z "$ANY" ] && die "No servers appear to be installed"
 
 exit 0
