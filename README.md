@@ -26,7 +26,7 @@ runkit @mywebhare wh make
 ## Managing WebHare installations
 Before you can use runkit, you need to set up a new installation or add your existing installation:
 - `add-existing-server [--primary] <servername> <path>` - Add an already configured WebHare
-- `create-webhare-server <servername>` - Set up a new installation with the given name
+- `create-server [--primary] <servername>` - Set up a new installation with the given name
 
 Examples:
 ```bash
