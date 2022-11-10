@@ -114,6 +114,15 @@ function settargetdir
   WHRUNKIT_TARGETDIR="$WHRUNKIT_DATADIR/$WHRUNKIT_TARGETSERVER"
 }
 
+function trysetsourcerootfromglobal
+{
+  if [ -f "$WHRUNKIT_DATADIR/_settings/sourceroot" ]; then
+    WEBHARE_CHECKEDOUT_TO="$(cat "$WHRUNKIT_DATADIR/_settings/sourceroot")"
+    WEBHARE_DIR="${WEBHARE_CHECKEDOUT_TO%/}/whtree"
+  fi
+  export WEBHARE_CHECKEDOUT_TO WEBHARE_DIR
+}
+
 function loadtargetsettings
 {
   settargetdir
@@ -128,19 +137,17 @@ function loadtargetsettings
   fi
 
   if [ -f "$WHRUNKIT_TARGETDIR/sourceroot" ]; then
-    echo GOT target >&2
     WEBHARE_CHECKEDOUT_TO="$(cat "$WHRUNKIT_TARGETDIR/sourceroot")"
-    WEBHARE_DIR="$WEBHARE_CHECKEDOUT_TO/whtree"
-  elif [ -f "$WHRUNKIT_DATADIR/_settings/sourceroot" ]; then
-    WEBHARE_CHECKEDOUT_TO="$(cat "$WHRUNKIT_DATADIR/_settings/sourceroot")"
-    WEBHARE_DIR="$WEBHARE_CHECKEDOUT_TO/whtree"
+    WEBHARE_DIR="${WEBHARE_CHECKEDOUT_TO%/}/whtree" # strip any slash
+  else
+    trysetsourcerootfromglobal
   fi
 
   if [ -f "$WEBHARE_DATAROOT/webhare.restoremode" ]; then #FIXME WebHare should implement this itself, see https://gitlab.webhare.com/webharebv/codekloppers/-/issues/583 - and retain this a while for compatibility!
     WEBHARE_ISRESTORED="$(cat "$WEBHARE_DATAROOT/webhare.restoremode")"
   fi
 
-  export WEBHARE_CHECKEDOUT_TO WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_ISRESTORED
+  export WEBHARE_CHECKEDOUT_TO WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_ISRESTORED WEBHARE_DIR
 }
 
 function download_backup()
@@ -191,6 +198,8 @@ function ensure_server_baseport()
 
 function resolve_whrunkit_command()
 {
+  [ -z "$WEBHARE_DIR" ] && trysetsourcerootfromglobal
+
   if [ -z "$WEBHARE_DIR" ]; then
     # TODO Should we go around *ensuring* this is set everywhere? Or is this a very acceptible convention?
     #      Or we could just request you set a config option in the datadir point to the SOURCE checkout as that's what runkit needs/manages
