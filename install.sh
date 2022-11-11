@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 [ -n "$WHRUNKIT_INSTALLTO" ] || WHRUNKIT_INSTALLTO="$HOME/webhare-runkit"
+[ -n "$WHRUNKIT_INSTALLBASHRC" ] || WHRUNKIT_INSTALLBASHRC="$HOME/.bashrc"
 
 if ! hash git 2>/dev/null ; then
   echo Installing git..
@@ -13,8 +14,8 @@ if [ ! -d "$WHRUNKIT_INSTALLTO" ]; then
   git clone https://gitlab.com/webhare/runkit.git "$WHRUNKIT_INSTALLTO"
 fi
 
-if ! grep -q '# webhare-runkit setup' "$HOME/.bashrc" 2>/dev/null ; then
-  echo "eval \$(\"${WHRUNKIT_INSTALLTO}/bin/runkit\" setupmyshell) # webhare-runkit setup" >> "$HOME/.bashrc"
+if ! grep -q '# webhare-runkit setup' "$WHRUNKIT_INSTALLBASHRC" 2>/dev/null ; then
+  echo "eval \$(\"${WHRUNKIT_INSTALLTO}/bin/runkit\" setupmyshell) # webhare-runkit setup" >> "$WHRUNKIT_INSTALLBASHRC"
 fi
 
 echo "Completed runkit installation - relogin to apply shell settings"
