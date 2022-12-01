@@ -5,8 +5,11 @@ set -e
 
 if ! hash git 2>/dev/null ; then
   echo Installing git..
-  apt-get update
-  apt-get install git
+  apt-get update -y
+  apt-get install -y git || true
+  if ! hash git 2>/dev/null ; then
+    echo Looks like git installation failed
+  fi
 fi
 
 if [ ! -d "$WHRUNKIT_INSTALLTO" ]; then
