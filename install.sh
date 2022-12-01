@@ -9,6 +9,7 @@ if ! hash git 2>/dev/null ; then
   apt-get install -y git || true
   if ! hash git 2>/dev/null ; then
     echo Looks like git installation failed
+    exit 1
   fi
 fi
 
