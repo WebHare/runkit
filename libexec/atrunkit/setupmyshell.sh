@@ -15,7 +15,7 @@ export -f runkit ;
 runkit-reload() { eval \$("$WHRUNKIT_ORIGCOMMAND" setupmyshell) ; } ;
 export -f runkit-reload ;
 
-wh() { "$WHRUNKIT_ORIGCOMMAND" "@default" wh "\$@" ; } ;
+wh() { WEBHARE_WHCOMMAND=wh "$WHRUNKIT_ORIGCOMMAND" "@default" wh "\$@" ; } ;
 export -f wh ;
 whcd() {
   local DEST;
@@ -33,7 +33,7 @@ HERE
 for SERVER in $( cd "$WHRUNKIT_DATADIR" ||exit 1; echo * ); do
   if [ -f "$WHRUNKIT_DATADIR/$SERVER/baseport" ]; then # it appears to be a usable installation...
     cat << HERE
-wh-$SERVER() { "$WHRUNKIT_ORIGCOMMAND" "@$SERVER" wh "\$@" ; } ;
+wh-$SERVER() { WEBHARE_WHCOMMAND="wh-$SERVER" "$WHRUNKIT_ORIGCOMMAND" "@$SERVER" wh "\$@" ; } ;
 export -f wh-$SERVER ;
 whcd-$SERVER() {
 local DEST;
