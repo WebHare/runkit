@@ -24,7 +24,7 @@ if ! [ -d "$HOME/projects/webhare-language-vscode" ]; then
   mkdir -p "$HOME/projects"
   load_forgeroot
   echo "[setup-vscode] Installing vscode"
-  git clone "${WHRUNKIT_FORGEROOT}/lsp/webhare-language-vscode.git" "$HOME/projects/webhare-language-vscode"
+  git clone "${WHRUNKIT_FORGEROOT}lsp/webhare-language-vscode.git" "$HOME/projects/webhare-language-vscode"
 fi
 
 if ! hash -r code ; then
