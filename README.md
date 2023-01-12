@@ -84,12 +84,14 @@ ln -s "$(wh getmoduledir dev)" "$(wh-ci getdatadir)/installedmodules/"
 
 ## Restoring WebHare backups
 
-### Installing credentials
 We've built runkit restore around borg backup repositories. You need to supply runkit with the proper credentials to
 access these backups. Request these credentials from whoever is hosting your backups.
 
 Paste these credentials into `runkit set-borg-credentails <server>` and test the credentials
 by entering `runkit list-backups <server>`.
+
+If you keep a restored WebHare running you'll want to remove 'whdata/preparedbackup' and `download` directories as they only
+take up space once the restore is done
 
 ### Restore mode
 `runkit restore-server` will create a file `webhare.restoremode` in the `whdata`
@@ -143,6 +145,10 @@ runkit-reload
 wh-$CONTAINER console
 ```
 
+### Project links
+If you have other git projects that you want to manage using `whcd`, `wh up`, `wh st`
+etcetera, you should add them using `runkit link-project`. Eg `runkit link-project ~/projects/webhare-language-vscode/`
+
 ### Troubleshooting
 If borg gives you such as `argument REPOSITORY_OR_ARCHIVE: Invalid location format: ""`
 you need to `open-backup.sh` on the server first. This sets some environment
@@ -154,5 +160,4 @@ Keep in mind that if you run all this on a mac, WebHare's database will be runni
 over a Docker volume mount and eg. index reconstruction after the restore can take
 quite some time, especially if this installation isn't using postgres yet.
 
-## NOTES
-- if you keep this WebHare running you'll want to remove 'whdata/preparedbackup' and `download` as they only take up space
+

@@ -6,7 +6,7 @@ To *backup* your VS Code installation completely (for testing bootstrap):
 
 ```bash
 # Ensure you've shut down Code first!
-BACKUPTO="$HOME/vscode-backup-$(date +%Y%m%d_%H%MS)"
+BACKUPTO="$HOME/vscode-backup-$(date +%Y%m%d_%H%M%S)"
 mkdir -p $BACKUPTO
 > $BACKUPTO/"This dir contains dotfiles, use ls -la" # you'll thank yourself later
 mv $HOME/.vsce $BACKUPTO/     # may not exist. extension publisher token

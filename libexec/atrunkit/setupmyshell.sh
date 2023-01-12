@@ -19,7 +19,11 @@ wh() { WEBHARE_WHCOMMAND=wh "$WHRUNKIT_ORIGCOMMAND" "@default" wh "\$@" ; } ;
 export -f wh ;
 whcd() {
   local DEST;
-  DEST="\`wh run mod::system/scripts/internal/cli/getdir.whscr "\$@"\`";
+  if [ -d "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}" ]; then
+    DEST="\$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}")/\${1#*/}";
+  else
+    DEST="\$(wh run mod::system/scripts/internal/cli/getdir.whscr "\$1")";
+  fi ;
   [ -n "\$DEST" ] && cd "\$DEST";
 } ;
 export -f whcd ;
