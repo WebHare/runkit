@@ -224,6 +224,12 @@ function ensure_whrunkit_command()
   [ -x "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh, tried '$WHRUNKIT_WHCOMMAND'"
 }
 
+function load_forgeroot()
+{
+  WHRUNKIT_FORGEROOT="$(cat "$WHRUNKIT_DATADIR"/_settings/forgeroot 2>/dev/null || true)"
+  [ -n "$WHRUNKIT_FORGEROOT" ] || WHRUNKIT_FORGEROOT="https://gitlab.com/webhare/"
+}
+
 WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." ; pwd )"
 if [ -z "$WHRUNKIT_ROOT" ]; then
    echo "Unable to find our root directory" 1>&2

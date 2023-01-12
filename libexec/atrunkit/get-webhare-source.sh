@@ -5,7 +5,9 @@
 set -e #fail on any uncaught error
 
 BRANCH="master"
-REPOSITORY="https://gitlab.com/webhare/platform.git"
+
+load_forgeroot
+REPOSITORY="${WHRUNKIT_FORGEROOT}platform.git"
 
 exit_syntax()
 {
