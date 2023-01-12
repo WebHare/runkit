@@ -1,4 +1,29 @@
+# Setting up VS Code
+Configure using: `runkit setup-vscode`
+
+## Resetting VSCode integration
+To *backup* your VS Code installation completely (for testing bootstrap):
+
+```bash
+# Ensure you've shut down Code first!
+BACKUPTO="$HOME/vscode-backup-$(date +%Y%m%d_%H%MS)"
+mkdir -p $BACKUPTO
+> $BACKUPTO/"This dir contains dotfiles, use ls -la" # you'll thank yourself later
+mv $HOME/.vsce $BACKUPTO/     # may not exist. extension publisher token
+mv $HOME/.vscode $BACKUPTO/
+mv ~/Library/Preferences/com.microsoft.VSCode.plist $BACKUPTO/
+mv ~/Library/Application\ Support/Code $BACKUPTO/
+```
+
+To fully cleanup everything installed by setup-vscode, you should also:
+```bash
+brew uninstall --cask visual-studio-code
+rm -rf ~/projects/webhare-language-vscode/
+```
+
 # runkit principles
+(TODO: this part is for 'developers of runkit' and the above is for 'developers of WebHare'. split docs?)
+
 - The WebHare-runkit and the embedded `wh` commands should avoid overlap as much as possible. `runkit` should invoke `wh` where
 needed
 - `wh` should limit itself to things that will also work inside the docker containers
@@ -25,6 +50,7 @@ local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
 - `_settings/`
   - getborgsettings.sh - a script to override how borg-related scripts lookup containers
   - `sourceroot` - contains default source checkout
+  - `forgeroot` - overrides location of WebHare open source projects
 - `_proxy/`
   - `docker.image` - image to use for the proxy server
 
