@@ -7,6 +7,10 @@ fi
 
 mkdir -p "$WHRUNKIT_DATADIR" # Prevents errors from scripts accessing this dir
 
+#
+# whcd() needs the [ "\${1%%/*}" != "\$1" ] check to make sure "whcd chatplane" works (otherwise it breaks on not seeing any slash '/')
+#
+
 cat << HERE
 
 runkit() { "$WHRUNKIT_ORIGCOMMAND" "\$@"; } ;
@@ -20,7 +24,8 @@ export -f wh ;
 whcd() {
   local DEST;
   if [ -n "\$1" ] && [ -d "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}" ]; then
-    DEST="\$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}")/\${1#*/}";
+    DEST="\$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}")/";
+    [ "\${1%%/*}" != "\$1" ] && DEST="\${DEST}/\${1#*/}" ;
   else
     DEST="\$(wh run mod::system/scripts/internal/cli/getdir.whscr "\$1")";
   fi ;
