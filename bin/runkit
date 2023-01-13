@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export WHRUNKIT_ORIGCOMMAND="$0"
-source "${BASH_SOURCE%/*}/../libexec/functions.sh"
+source "${BASH_SOURCE%/*}/../libexec/runkit-functions.sh"
 
 if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   export WHRUNKIT_TARGETSERVER="${1:1}"

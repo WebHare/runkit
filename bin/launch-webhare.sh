@@ -7,7 +7,7 @@ exit_syntax()
   exit 1
 }
 
-source "${BASH_SOURCE%/*}/../libexec/functions.sh"
+source "${BASH_SOURCE%/*}/../libexec/runkit-functions.sh"
 
 DETACH=""
 NODOCKER=""

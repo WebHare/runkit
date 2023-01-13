@@ -10,7 +10,7 @@ HERE
   exit 1
 }
 
-source "${BASH_SOURCE%/*}/../libexec/functions.sh"
+source "${BASH_SOURCE%/*}/../libexec/runkit-functions.sh"
 
 CONTAINER="$1"
 [ -z "$CONTAINER" ] && exit_syntax

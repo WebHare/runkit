@@ -1,5 +1,5 @@
 #!/bin/bash
-source "${BASH_SOURCE%/*}/../libexec/functions.sh"
+source "${BASH_SOURCE%/*}/../libexec/runkit-functions.sh"
 set -e #fail on any uncaught error
 
 exit_syntax()
