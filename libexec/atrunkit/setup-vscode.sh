@@ -37,4 +37,9 @@ if ! code --list-extensions|grep -q '^webhare.webhare-language-vscode$' ; then
   "$HOME/projects/webhare-language-vscode/bin/installlocal.sh"
 fi
 
+if ! code --list-extensions|grep -q '^dbaeumer.vscode-eslint' ; then
+  confirm_or_abort "Installing the ESLint (dbaeumer.vscode-eslint) extension" #TODO: does this trouble development on the module? then we need to offer a way to explicitly prevent this with a config file but the default should be to install
+  code --install-extension dbaeumer.vscode-eslint
+fi
+
 echo "[setup-vscode] It looks like everything is installed"
