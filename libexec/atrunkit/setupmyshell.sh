@@ -19,7 +19,7 @@ wh() { WEBHARE_WHCOMMAND=wh "$WHRUNKIT_ORIGCOMMAND" "@default" wh "\$@" ; } ;
 export -f wh ;
 whcd() {
   local DEST;
-  if [ -d "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}" ]; then
+  if [ -n "\$1" ] && [ -d "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}" ]; then
     DEST="\$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}")/\${1#*/}";
   else
     DEST="\$(wh run mod::system/scripts/internal/cli/getdir.whscr "\$1")";
@@ -28,8 +28,13 @@ whcd() {
 } ;
 export -f whcd ;
 
-complete -o filenames -o nospace -C 'wh __autocomplete_whcd' whcd ;
+__autocomplete_default_whcd() {
+  "$WHRUNKIT_ORIGCOMMAND" "@default" __autocomplete_whcd "$@" ;
+} ;
+
+complete -o filenames -o nospace -C '"$WHRUNKIT_ORIGCOMMAND" "@default" __autocomplete_whcd' whcd ;
 complete -o default -C 'wh __autocomplete_wh' wh ;
+complete -o default -C '"$WHRUNKIT_ORIGCOMMAND" __autocomplete_runkit' runkit ;
 
 HERE
 
@@ -46,7 +51,7 @@ DEST="\`wh-$SERVER run mod::system/scripts/internal/cli/getdir.whscr "\$@"\`";
 } ;
 export -f whcd-$SERVER ;
 
-complete -o filenames -o nospace -C 'wh-$SERVER __autocomplete_whcd' whcd-$SERVER ;
+complete -o filenames -o nospace -C '"$WHRUNKIT_ORIGCOMMAND" "@$SERVER" __autocomplete_whcd' whcd-$SERVER ;
 complete -o default -C 'wh-$SERVER __autocomplete_wh' wh-$SERVER ;
 
 HERE
