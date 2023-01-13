@@ -175,6 +175,7 @@ function download_backup()
   fi
 
   echo "$RESTOREARCHIVE" > "$WHRUNKIT_TARGETDIR/restore.archive" #FIXME also apply to webhare.restore file
+  date "+%Y-%m-%d" > "$WHRUNKIT_TARGETDIR/restore.date"
   echo "$BORG_REPO" > "$WHRUNKIT_TARGETDIR/restore.borgrepo"
 
   # remove any existing restore directory
