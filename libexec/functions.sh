@@ -42,6 +42,16 @@ function configuredocker()
   fi
 }
 
+function createCacheDirTagFile
+{
+  cat << HERE > "$1/CACHEDIR.TAG"
+Signature: 8a477f597d28d172789f06886806bc55
+# This file is a cache directory tag created by webhare-runkit.
+# For information about cache directory tags, see:
+# https://bford.info/cachedir/
+HERE
+}
+
 function applyborgsettings()
 {
   local SETTINGSNAME
@@ -173,6 +183,9 @@ function download_backup()
   [ -d "$RESTORETO" ] && rm -rf "$RESTORETO"
   mkdir -p "$RESTORETO"
   cd "$RESTORETO"
+
+  # Exclude backup data from backups
+  createCacheDirTagFile "$RESTORETO"
   borg extract "${BORGOPTIONS[@]}" "::$RESTOREARCHIVE" $BORGPATHS
   return 0
 }

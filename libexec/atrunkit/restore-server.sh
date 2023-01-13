@@ -114,6 +114,9 @@ if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't alread
 
   # NOTE this way we rely on whdata not containing dot files that need restoring!.. fix it a bt without moving .. etc
   mv "$WHDATAFOLDER"/* "$WEBHARE_DATAROOT/"
+
+  # Exclude the data of a restored server from backups
+  createCacheDirTagFile "$WEBHARE_DATAROOT"
 fi
 
 mkdir -p "$WEBHARE_DATAROOT"
