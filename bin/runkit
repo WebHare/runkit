@@ -6,63 +6,63 @@ source "${BASH_SOURCE%/*}/../libexec/runkit-functions.sh"
 if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   export WHRUNKIT_TARGETSERVER="${1:1}"
   shift
-
-  loadtargetsettings
-
   CMD="$1"
   shift
-
-  if [ ! -d "$WHRUNKIT_TARGETDIR" ]; then
-    echo "No such server $WHRUNKIT_TARGETSERVER (missing directory $WHRUNKIT_TARGETDIR)" 1>&2
+  if [ -f "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
+    echo "Command '$1' cannot be targetted at a WebHare instalation"
     exit 1
   fi
-
-  if [ ! -f "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" ]; then
-    echo "Unknown at-server command '$CMD' - try 'runkit help' ?"
-    exit 1
+else # Either runkit command or @default
+  WHRUNKIT_TARGETSERVER="default"
+  CMD="$1"
+  shift
+  if [ -f "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
+    source "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" "$@"
+    exit 0 # ensure exitcode 0 on succesful run
   fi
-
-  if [ -f $WHRUNKIT_TARGETDIR/docker.image ]; then
-    # it should be safe to assume its running inside docker
-    DOCKEROPTS="-i"
-    if [ -t 0 ] ; then
-      DOCKEROPTS="-ti"
-    fi
-    exec docker exec $DOCKEROPTS "runkit-wh-$WHRUNKIT_TARGETSERVER" wh "$@"
-  fi
-
-  ensure_whrunkit_command
-
-  [ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($WHRUNKIT_TARGETDIR/baseport) not set"
-  [ -n "$WEBHARE_DATAROOT" ] || die "Dataroot ($WHRUNKIT_TARGETDIR/dataroot) not set and $WHRUNKIT_TARGETDIR/whdata not present"
-  [ -f "$WHRUNKIT_TARGETDIR/opensearch-bindhost" ] && export WEBHARE_OPENSEARCH_BINDHOST="$(cat "$WHRUNKIT_TARGETDIR/opensearch-bindhost")"
-
-  if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$WHRUNKIT_TARGETDIR/allowinstallationinfo" ]; then # NOT  the default
-    export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
-  fi
-  if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$WHRUNKIT_TARGETDIR/allowpolicy" ]; then # NOT  the default
-    export WEBHARE_MODULEPATHS=  # avoid webharecue/policy from interfering with us - but it should actually watch subinstallations but not eg. restores ?
-  fi
-  [ -x "$WHRUNKIT_TARGETDIR/startup.sh" ] && export WEBHARE_POSTSTARTSCRIPT="$WHRUNKIT_TARGETDIR/startup.sh"
-
-  # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
-  [ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
-
-  [ -x "$WHRUNKIT_TARGETDIR/environment.sh" ] && source "$WHRUNKIT_TARGETDIR/environment.sh"
-
-  # TODO only if not the default:
-  source "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" "$@"
-  exit 0 # ensure exitcode 0 on succesful run
 fi
 
-# runkit directed command
-CMD="$1"
-shift
-
-if [ ! -f "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
-  echo "Unknown at-runkit command '$CMD' - try 'runkit help' ?"
+# Ensure existence
+if [ ! -f "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" ]; then
+  echo "Unknown command '$CMD' - try 'runkit help' ?"
   exit 1
 fi
 
-source "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" "$@"
+loadtargetsettings
+
+if [ ! -d "$WHRUNKIT_TARGETDIR" ]; then
+  echo "No such server $WHRUNKIT_TARGETSERVER (missing directory $WHRUNKIT_TARGETDIR)" 1>&2
+  exit 1
+fi
+
+if [ -f "$WHRUNKIT_TARGETDIR/docker.image" ]; then
+  # it should be safe to assume its running inside docker
+  DOCKEROPTS="-i"
+  if [ -t 0 ] ; then
+    DOCKEROPTS="-ti"
+  fi
+  exec docker exec $DOCKEROPTS "runkit-wh-$WHRUNKIT_TARGETSERVER" wh "$@"
+fi
+
+ensure_whrunkit_command
+
+[ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($WHRUNKIT_TARGETDIR/baseport) not set"
+[ -n "$WEBHARE_DATAROOT" ] || die "Dataroot ($WHRUNKIT_TARGETDIR/dataroot) not set and $WHRUNKIT_TARGETDIR/whdata not present"
+[ -f "$WHRUNKIT_TARGETDIR/opensearch-bindhost" ] && export WEBHARE_OPENSEARCH_BINDHOST="$(cat "$WHRUNKIT_TARGETDIR/opensearch-bindhost")"
+
+if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$WHRUNKIT_TARGETDIR/allowinstallationinfo" ]; then # NOT  the default
+  export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
+fi
+if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$WHRUNKIT_TARGETDIR/allowpolicy" ]; then # NOT  the default
+  export WEBHARE_MODULEPATHS=  # avoid webharecue/policy from interfering with us - but it should actually watch subinstallations but not eg. restores ?
+fi
+[ -x "$WHRUNKIT_TARGETDIR/startup.sh" ] && export WEBHARE_POSTSTARTSCRIPT="$WHRUNKIT_TARGETDIR/startup.sh"
+
+# settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
+[ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
+
+[ -x "$WHRUNKIT_TARGETDIR/environment.sh" ] && source "$WHRUNKIT_TARGETDIR/environment.sh"
+
+# TODO only if not the default:
+source "$WHRUNKIT_ROOT/libexec/atserver/$CMD.sh" "$@"
 exit 0 # ensure exitcode 0 on succesful run
