@@ -8,15 +8,15 @@ source "${BASH_SOURCE%/*}/__servercreation.sh" || die "cannot load function libr
 
 function exit_syntax
 {
-  echo "Syntax: runkit add-existing-server [--primary] [--baseport <port>] <server> <datadir>"
-  echo "        --primary  sets the baseport to 13679 and binds the server to the 'wh' alias"
+  echo "Syntax: runkit add-existing-server [--default] [--baseport <port>] <server> <datadir>"
+  echo "        --default  sets the baseport to 13679 and binds the server to the 'wh' alias"
   echo "        <server>   short name for the server, used as wh-<server> alias"
   echo "        <datadir>  where your data is currently stored (eg ~/projects/whdata/myserver/)"
   exit 1
 }
 
 while true; do
-  if [ "$1" == "--primary" ]; then
+  if [ "$1" == "--default" ]; then
     shift
     PRIMARY="1"
   elif [ "$1" == "--baseport" ]; then

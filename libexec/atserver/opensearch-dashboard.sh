@@ -5,8 +5,8 @@
 
 function exit_syntax
 {
-  echo "Syntax: runkit create-server [--primary] [--baseport <port>] <server>"
-  echo "        --primary  sets the baseport to 13679 and binds the server to the 'wh' alias"
+  echo "Syntax: runkit create-server [--default] [--baseport <port>] <server>"
+  echo "        --default  sets the baseport to 13679 and binds the server to the 'wh' alias"
   echo "        <server>   short name for the server, used as wh-<server> alias"
   echo "        <datadir>  where your data is currently stored (eg ~/projects/whdata/myserver/)"
   exit 1

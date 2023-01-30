@@ -1,11 +1,11 @@
 #!/bin/bash
-# syntax: [--primary] <servername>
+# syntax: [--default] <servername>
 # short: Configure a new server
 
 function exit_syntax
 {
-  echo "Syntax: runkit create-server [--primary] [--baseport <port>] [--source <sourcdir>] <server>"
-  echo "  --primary  sets the baseport to 13679 and binds the server to the 'wh' alias"
+  echo "Syntax: runkit create-server [--default] [--baseport <port>] [--source <sourcdir>] <server>"
+  echo "  --default  sets the baseport to 13679 and binds the server to the 'wh' alias"
   echo "  --source   override WebHare source tree to use"
   echo "  <server>   short name for the server, used as wh-<server> alias"
   exit 1
@@ -15,7 +15,7 @@ source "${BASH_SOURCE%/*}/__servercreation.sh" || die "cannot load function libr
 SOURCEROOT=""
 
 while true; do
-  if [ "$1" == "--primary" ]; then
+  if [ "$1" == "--default" ]; then
     shift
     PRIMARY="1"
   elif [ "$1" == "--baseport" ]; then

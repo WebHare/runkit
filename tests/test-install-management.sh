@@ -18,7 +18,7 @@ echo - Verify no installations yet
 [ "$(( $(runkit list-servers 2>/dev/null | wc -w) ))" == "0" ] || fail "Number of installations should be 0, runkit ignored environment settings"
 
 echo - Add primary installation
-runkit create-server --primary mywebhare
+runkit create-server --default mywebhare
 
 # There's very little we can run without building a full webhare..
 echo - Verify default installations

@@ -24,11 +24,15 @@ DOCKERIMAGE=""
 FAST=""
 RESTOREARCHIVE=""
 BORGOPTIONS=(--progress)
+VERBOSE=""
 
 while true; do
   if [ "$1" == "--archive" ]; then
     shift
     RESTOREARCHIVE="$1"
+    shift
+  elif [ "$1" == "-v" ] || [ "$1" == "-verbose" ]; then
+    VERBOSE="1"
     shift
   elif [ "$1" == "--skipdownload" ]; then
     SKIPDOWNLOAD="1"

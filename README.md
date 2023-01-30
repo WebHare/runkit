@@ -19,14 +19,14 @@ the WHRUNKIT_ROOT environment varaible
 ## Building WebHare from source
 ```bash
 runkit get-webhare-source
-runkit create-server --primary mywebhare
+runkit create-server --default mywebhare
 runkit @mywebhare wh make
 ```
 
 ## Managing WebHare installations
 Before you can use runkit, you need to set up a new installation or add your existing installation:
-- `add-existing-server [--primary] <servername> <path>` - Add an already configured WebHare
-- `create-server [--primary] <servername>` - Set up a new installation with the given name
+- `add-existing-server [--default] <servername> <path>` - Add an already configured WebHare
+- `create-server [--default] <servername>` - Set up a new installation with the given name
 
 Examples:
 ```bash
@@ -34,7 +34,7 @@ Examples:
 runkit create-server mytest
 
 # Adds ~/projects/whdata/myserver as your primary installation
-runkit add-existing-server --primary myserver ~/projects/whdata/myserver
+runkit add-existing-server --default myserver ~/projects/whdata/myserver
 ```
 
 The primary installation is the one with baseport '13679' and will be bound to the `wh` alias by runkit's setupmyshell.
@@ -60,7 +60,7 @@ if ! wh webserver addport 8888 2>/dev/null ; then
 fi
 
 echo "Setting up for tests"
-wh webserver addbackend --primary http://localhost:8888/
+wh webserver addbackend --default http://localhost:8888/
 wh webhare_testsuite:reset
 wh users adduser --sysop --password secret sysop@example.net
 wh registry set system.backend.layout.infotitle "CI login info"
@@ -83,7 +83,6 @@ ln -s "$(wh getmoduledir dev)" "$(wh-ci getdatadir)/installedmodules/"
 ```
 
 ## Restoring WebHare backups
-
 We've built runkit restore around borg backup repositories. You need to supply runkit with the proper credentials to
 access these backups. Request these credentials from whoever is hosting your backups.
 

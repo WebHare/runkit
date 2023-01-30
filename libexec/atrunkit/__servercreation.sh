@@ -7,7 +7,7 @@ function prepare_newserver()
 {
   if [ -n "$PRIMARY" ]; then
     if [ -n "$BASEPORT" ]; then
-      die You cannot set both --primary and --baseport
+      die You cannot set both --default and --baseport
     fi
     BASEPORT=13679
   fi
