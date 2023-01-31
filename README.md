@@ -139,9 +139,8 @@ You can redo database extraction (sometimes useful when testing) with `--skipdow
 
 ```bash
 CONTAINER=demo
-~/webhare-runkit/bin/restore-server $CONTAINER
-runkit-reload
-wh-$CONTAINER console
+runkit restore-server $CONTAINER
+runkit @$CONTAINER console
 ```
 
 ### Project links
