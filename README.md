@@ -84,9 +84,10 @@ ln -s "$(wh getmoduledir dev)" "$(wh-ci getdatadir)/installedmodules/"
 
 ## Restoring WebHare backups
 We've built runkit restore around borg backup repositories. You need to supply runkit with the proper credentials to
-access these backups. Request these credentials from whoever is hosting your backups.
+access these backups. Request these credentials from whoever is hosting your backups. Either the 
+`*borgbase.borg` or the `*rsync.borg` files can be used (if both available).
 
-Paste these credentials into `runkit set-borg-credentails <server>` and test the credentials
+Paste these credentials into `runkit set-borg-credentials <server>` and test the credentials
 by entering `runkit list-backups <server>`.
 
 If you keep a restored WebHare running you'll want to remove 'whdata/preparedbackup' and `download` directories as they only
@@ -128,10 +129,12 @@ wh cli getoverride "Verifying restored server"
 
 ### Restoring a backup for development (OSX)
 Eg. to locally debug an issue with a server. This assumes you have runkit and WebHare's source tree installed. In the
-example the container is still named `demo` and the `demo.borg` credentials file is present
+example the container is still named `demo` and the `demo.borg` credentials file is present.
 
-You can add `--nodocker` to `restore-server` and `launch-webhare.sh` to use your local WebHare source tree instead
-of docker containers. This will generally be faster if you've built a compatible version of WebHare for the data you're restoring.
+Use `runkit restore-server` to create a new 'restored from backup' server (don't use `runkit create-server`). 
+You can add `--nodocker` to `restore-server` and `launch-webhare.sh` to use your local WebHare source tree 
+instead of docker containers. This will generally be faster if you've built a compatible version of WebHare for 
+the data you're restoring.
 
 You can add the `--fast` option to `restore-server` to skip the restoration of logs and output.
 
