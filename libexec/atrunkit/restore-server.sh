@@ -11,7 +11,7 @@ Syntax: runkit restore-server [options] <servername>
         --archive arc          Archive to restore (defaults to latest)
         --nodocker             Do not use docker to do the actualy restore
         --dockerimage <image>  Docker image to use for restore
-        --fast                 Restore only essential dta (modules and database, but eg. no output or logs)
+        --fast                 Restore only essential data (modules and database, but eg. no output or logs)
         --skipdownload         Do not redownload the backup, go straight to the database restore step
 HERE
   echo " "
