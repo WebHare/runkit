@@ -82,6 +82,13 @@ wh-ci runtest "consilio.*"
 ln -s "$(wh getmoduledir dev)" "$(wh-ci getdatadir)/installedmodules/"
 ```
 
+### Using podman
+runkit can be used to manage a podman-based server.
+
+```bash
+runkit install-proxy
+```
+
 ## Restoring WebHare backups
 We've built runkit restore around borg backup repositories. You need to supply runkit with the proper credentials to
 access these backups. Request these credentials from whoever is hosting your backups. Either the 

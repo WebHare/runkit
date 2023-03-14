@@ -1,14 +1,15 @@
 #!/bin/bash
-set -e #fail on any uncaught error
+
+# short: Register all locally running WebHares with the proxy here
+
+set -eo pipefail
 
 exit_syntax()
 {
-  echo "Syntax: proxy-webhare.sh"
+  echo "Syntax: runkit reconfigure-proxy"
   echo "Establish our local proxy for all WebHares on this server"
   exit 1
 }
-
-source "${BASH_SOURCE%/*}/../libexec/runkit-functions.sh"
 
 while true; do
   if [ "$1" == "--help" ]; then

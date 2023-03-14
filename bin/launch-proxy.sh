@@ -34,13 +34,12 @@ done
 [ -n "$1" ] && exit_syntax
 
 CONTAINERNAME="runkit-proxy"
-ensurecommands docker
+configure_runkit_podman
 killcontainer "$CONTAINERNAME"
-configuredocker
 
 mkdir -p "$CONTAINERSTORAGE"
 
-RUNIMAGE=$( cat "$WHRUNKIT_DATADIR/_proxy/docker.image" 2>/dev/null || true )
+RUNIMAGE=$( cat "$WHRUNKIT_DATADIR/_proxy/container.image" 2>/dev/null || true )
 
 # FIXME use last STABLE
 

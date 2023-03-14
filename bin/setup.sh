@@ -38,9 +38,9 @@ if ! hash borg 2>/dev/null ; then
   addpackage borgbackup
 fi
 
-if ! hash docker 2>/dev/null ; then
+if ! hash podman 2>/dev/null ; then
   echo Need to install docker
-  addpackage docker.io
+  addpackage podman
 fi
 
 if ! hash jq 2>/dev/null ; then

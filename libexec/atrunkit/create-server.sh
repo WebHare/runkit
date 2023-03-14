@@ -4,15 +4,17 @@
 
 function exit_syntax
 {
-  echo "Syntax: runkit create-server [--default] [--baseport <port>] [--source <sourcdir>] <server>"
+  echo "Syntax: runkit create-server [--default] [--baseport <port>] [--source <sourcedir>] [--image <image>] <server>"
   echo "  --default  sets the baseport to 13679 and binds the server to the 'wh' alias"
   echo "  --source   override WebHare source tree to use"
+  echo "  --image    install container using specified image"
   echo "  <server>   short name for the server, used as wh-<server> alias"
   exit 1
 }
 
 source "${BASH_SOURCE%/*}/__servercreation.sh" || die "cannot load function library"
 SOURCEROOT=""
+IMAGE=""
 
 while true; do
   if [ "$1" == "--default" ]; then
@@ -26,6 +28,10 @@ while true; do
     shift
     SOURCEROOT="$1"
     shift
+  elif [ "$1" == "--image" ]; then
+    shift
+    IMAGE="$1"
+    shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
   elif [[ "$1" =~ ^-.* ]]; then
@@ -36,6 +42,18 @@ while true; do
   fi
 done
 
+if [ -n "$IMAGE" ]; then
+  if ! podman image exists "$IMAGE" >/dev/null 2>&1; then
+    if ! podman pull "$IMAGE"; then
+      echo "Failed to pull $IMAGE"
+      exit 1
+    fi
+  fi
+
+  COMMITREF="$(podman image inspect docker.io/webhare/platform:master | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
+  [ -z "$COMMITREF" ] && die "Image does not appear to be a WebHare image"
+fi
+
 WHRUNKIT_TARGETSERVER="$1"
 prepare_newserver
 
@@ -45,8 +63,9 @@ WEBHARE_DATAROOT=""
 mkdir -p "$WHRUNKIT_TARGETDIR/whdata"
 echo "$BASEPORT" > "$WHRUNKIT_TARGETDIR/baseport"
 [ -n "$SOURCEROOT" ] && echo "$SOURCEROOT" > "$WHRUNKIT_TARGETDIR/sourceroot"
+[ -n "$IMAGE" ] && echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
 loadtargetsettings # reload to ensure we have loaded baseport/data settings
 
-echo "Server created. To start: 'runkit @$WHRUNKIT_TARGETSERVER wh console' and access the server on http://127.0.0.1:$(($WEBHARE_BASEPORT + 9 ))"
+echo "Server created. To start: 'runkit @$WHRUNKIT_TARGETSERVER run-webhare' and access the server on http://127.0.0.1:$(($WEBHARE_BASEPORT + 9 ))"
 echo "Don't forget to run 'runkit-reload' to activate the 'wh-$WHRUNKIT_TARGETSERVER' command"

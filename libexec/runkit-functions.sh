@@ -1,5 +1,8 @@
 #!/bin/bash
 
+WHRUNKIT_NETWORKNAME=webhare-runkit
+WHRUNKIT_NETWORKPREFIX=10.15.19
+
 function onexit()
 {
   rv=$? #Make sure we don't destroy the exit code
@@ -22,23 +25,26 @@ function ensurecommands()
 
 function iscontainerup()
 {
-  [ "$(docker inspect -f '{{.State.Running}}' "$1" 2>/dev/null )" == true ] && return 0 || return 1
+  [ "$(podman inspect -f '{{.State.Running}}' "$1" 2>/dev/null )" == true ] && return 0 || return 1
 }
 
 function killcontainer()
 {
-  if docker inspect "$1" > /dev/null 2>&1 ; then
-    (docker stop "$1" 2>/dev/null && sleep 1) || true
-    docker kill "$1" 2>/dev/null || true
-    docker rm -f "$1"
+  if podman inspect "$1" > /dev/null 2>&1 ; then
+    (podman stop "$1" 2>/dev/null && sleep 1) || true
+    podman kill "$1" 2>/dev/null || true
+    podman rm -f "$1"
   fi
 }
 
-function configuredocker()
+function configure_runkit_podman()
 {
-  if ! docker network inspect webhare-runkit > /dev/null 2>&1 ; then
-    echo -n "Creating webhare-runkit network: "
-    docker network create webhare-runkit --subnet=10.15.19.0/24
+  ensurecommands podman
+
+  # This gives us an IP range to use:
+  if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
+    echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
+    podman network create $WHRUNKIT_NETWORKNAME --subnet=${WHRUNKIT_NETWORKPREFIX}.0/24
   fi
 }
 

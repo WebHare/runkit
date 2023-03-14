@@ -47,12 +47,13 @@ local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
   - `opensearch-bindhost` - IP address to set as WEBHARE_OPENSEARCH_BINDHOST
   - `environment.sh` - if present and executable, this will be sourced just before executing the command. Use this to setup eg. `export WEBHARE_CI=1`
   - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT
+  - `container.image` - image to use for the WebHare server. if set, will be started using podman
 - `_settings/`
   - getborgsettings.sh - a script to override how borg-related scripts lookup containers
   - `sourceroot` - contains default source checkout
   - `forgeroot` - overrides location of WebHare open source projects
 - `_proxy/`
-  - `docker.image` - image to use for the proxy server
+  - `container.image` - image to use for the proxy server
 
 ## credential files
 Credential files (borgsettings) should have the following structure:
@@ -67,6 +68,11 @@ BORG_PASSPHRASE="key passphrase"
 
 ## runkit guidelines
 - Do not invoke `wh` directly on a server. Use `$WHRUNKIT_WHCOMMAND` (setup by the `runkit @...` wrapper)
+
+
+## "Remote" development
+To simplify development you can quickly push local changes to eg a local VM
+
 
 
 # Tests

@@ -10,7 +10,7 @@ exit_syntax()
 Syntax: runkit restore-server [options] <servername>
         --archive arc          Archive to restore (defaults to latest)
         --nodocker             Do not use docker to do the actualy restore
-        --dockerimage <image>  Docker image to use for restore
+        --image <image>        Container image to use for restore
         --fast                 Restore only essential data (modules and database, but eg. no output or logs)
         --skipdownload         Do not redownload the backup, go straight to the database restore step
 HERE
@@ -73,7 +73,7 @@ if [ -z "$NODOCKER" ] && [ -z "$DOCKERIMAGE" ]; then
     NODOCKER=1
   else
     # TODO use the last STABLE branch, not master!
-    DOCKERIMAGE="webhare/platform:master"
+    DOCKERIMAGE="docker.io/webhare/platform:master"
     echo "nodocker/dockerimage not set - using dockerimage $DOCKERIMAGE"
   fi
 fi
@@ -130,18 +130,18 @@ echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKI
 
 if [ -n "$NODOCKER" ]; then
   ensure_whrunkit_command
-  [ -f "$WHRUNKIT_TARGETDIR/docker.image" ] && rm -f "$WHRUNKIT_TARGETDIR/docker.image"
+  [ -f "$WHRUNKIT_TARGETDIR/container.image" ] && rm -f "$WHRUNKIT_TARGETDIR/container.image"
 
   "$WHRUNKIT_WHCOMMAND" restore "$WEBHARE_DATAROOT/preparedbackup"
   echo ""
   echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
   exit 0
 else
-  if [ "$DOCKERIMAGE" == "webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
-    DOCKERIMAGE=webhare/platform:release-4-35
+  if [ "$DOCKERIMAGE" == "docker.io/webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
+    DOCKERIMAGE=docker.io/webhare/platform:release-4-35
     echo "Using docker image $DOCKERIMAGE because this is a dbserver backup"
   fi
-  echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/docker.image"
+  echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
   docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
   echo "Container appears succesfully restored"
