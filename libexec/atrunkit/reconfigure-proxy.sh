@@ -22,6 +22,8 @@ while true; do
   fi
 done
 
+configure_runkit_podman
+
 if ! iscontainerup runkit-proxy ; then
   echo "The proxy is not running."
   exit 1
@@ -46,6 +48,5 @@ for ID in $WEBHARE_CONTAINERS ; do
   WEBHARE_IP="$(podman inspect $ID |jq -r '.[0].NetworkSettings.Networks["webhare-runkit"].IPAddress')"
   #use the dedicated admin port because /admin/ may not be available (to make it available we have to deal with giving the proxy a proper hostname, and eventually letsencrypt)
   #TOOD to not have to deal with ignoring certificates, why can't the proxy open up its http-port using a command line option?
-  echo podman exec "$ID" wh cli addproxy https://${WHRUNKIT_NETWORKPREFIX}.1:5443/ "$PROXY_PASSWORD" "http://$WEBHARE_IP:13684/"
   podman exec "$ID" wh cli addproxy https://${WHRUNKIT_NETWORKPREFIX}.1:5443/ "$PROXY_PASSWORD" "http://$WEBHARE_IP:13684/"
 done

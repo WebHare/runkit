@@ -39,7 +39,8 @@ function killcontainer()
 
 function configure_runkit_podman()
 {
-  ensurecommands podman
+  ensurecommands podman jq
+  [ -f "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh ] && source "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh
 
   # This gives us an IP range to use:
   if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then

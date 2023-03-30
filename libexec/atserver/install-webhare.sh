@@ -31,6 +31,7 @@ WantedBy=multi-user.target
 HERE
 
 systemctl daemon-reload
+systemctl enable "$SERVICENAME" #ensure autostart
 systemctl start "$SERVICENAME"
 
 echo "WebHare $WHRUNKIT_TARGETSERVER initialized!"

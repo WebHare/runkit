@@ -43,6 +43,8 @@ while true; do
 done
 
 if [ -n "$IMAGE" ]; then
+  configure_runkit_podman
+
   if ! podman image exists "$IMAGE" >/dev/null 2>&1; then
     if ! podman pull "$IMAGE"; then
       echo "Failed to pull $IMAGE"

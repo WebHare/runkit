@@ -36,8 +36,8 @@ needed
 - `libexec/atinstall/<cmd>.sh` - commands that can be targeted at a server
 
 ## disk layout
-runkit builds up a configuration data structure in `$WHRUNKIT_DATAROOT`. every server gets a directory here, and runkit
-local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
+runkit builds up a configuration data structure in `$WHRUNKIT_DATADIR`. every server gets a directory here, and runkit
+local settings are stored in `$WHRUNKIT_DATADIR/_settings/`
 
 - `<server>/` - configuration and state for an server
   - `borgsettings` - settings to access the Borg backup
@@ -52,6 +52,8 @@ local settings are stored in `$WHRUNKIT_DATAROOT/_settings/`
   - getborgsettings.sh - a script to override how borg-related scripts lookup containers
   - `sourceroot` - contains default source checkout
   - `forgeroot` - overrides location of WebHare open source projects
+  - `letsencryptemail` - email address for automatic letsencrypt accounts (and future eg. chtatplane proxy use?)
+  - `publichostname` - used as WEBHAREPROXY_ADMINHOSTNAME, hosts a control interface for the proxy (and future eg. chtatplane proxy use? or usable by webhare to tell where its being hosted?)
 - `_proxy/`
   - `container.image` - image to use for the proxy server
 
@@ -71,9 +73,15 @@ BORG_PASSPHRASE="key passphrase"
 
 
 ## "Remote" development
-To simplify development you can quickly push local changes to eg a local VM
+To simplify development you can quickly push local changes to eg a local VM using `runkit copy-runkit-to-server <user@host>`
 
+### Using Vagrant
+Prep if you're using Parallels, adapt if needed:
 
+```bash
+brew install hashicorp/tap/hashicorp-vagrant
+vagrant plugin install vagrant-parallels
+vagrant -
 
 # Tests
 
@@ -86,5 +94,6 @@ RESTORESERVER=demo # set to your container. make sure you have the .borg setting
 wh builddocker
 runkit list-backups $RESTORESERVER
 runkit restore-server $RESTORESERVER
-bin/startup-proxy-and-webhare.sh tp-webhare
+bin/startup-proxy-and-webhare.sh $RESTORESERVER
 ```
+

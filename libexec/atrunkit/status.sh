@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# short: Report on available containers and whether they are running
+
 ERROR=""
 echo -n "runkit-proxy: "
 if podman inspect runkit-proxy >/dev/null 2>&1;  then
@@ -11,4 +14,7 @@ else
 fi
 
 [ -n "$ERROR" ] && die "Errors!"
+
+echo "(TODO: add webhares)"
+
 exit 0

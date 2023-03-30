@@ -29,6 +29,7 @@ WantedBy=multi-user.target
 HERE
 
 systemctl daemon-reload
+systemctl enable runkit-proxy #ensure autostart
 systemctl start runkit-proxy
 
 echo "Proxy initialized!"

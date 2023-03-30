@@ -39,7 +39,7 @@ if ! hash borg 2>/dev/null ; then
 fi
 
 if ! hash podman 2>/dev/null ; then
-  echo Need to install docker
+  echo Need to install podman to manage containers
   addpackage podman
 fi
 
