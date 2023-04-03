@@ -49,6 +49,27 @@ function configure_runkit_podman()
   fi
 }
 
+function fix_webhareimage_parameter() # Assumes $IMAGE is the image name to check
+{
+  if [[ $IMAGE =~ ^release/ ]]; then
+    #slugify the image. eg release/5.2 will become release-5-2
+    IMAGE="$(echo "$IMAGE" | tr -- "/." "--")"
+    IMAGE="docker.io/webhare/platform:$IMAGE"
+  fi
+
+  # TODO should a --nopull allow us to skip the docker pull check?
+  #if ! podman image exists "$IMAGE" >/dev/null 2>&1; then
+    if ! podman pull "$IMAGE"; then
+      echo "Failed to pull $IMAGE"
+      exit 1
+    fi
+  #fi
+
+  COMMITREF="$(podman image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
+  [ -z "$COMMITREF" ] && die "Image does not appear to be a WebHare image"
+  return 0
+}
+
 function createCacheDirTagFile
 {
   cat << HERE > "$1/CACHEDIR.TAG"
@@ -164,7 +185,14 @@ function loadtargetsettings
     WEBHARE_ISRESTORED="$(cat "$WEBHARE_DATAROOT/webhare.restoremode")"
   fi
 
-  export WEBHARE_CHECKEDOUT_TO WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_ISRESTORED WEBHARE_DIR
+  WHRUNKIT_CONTAINERIMAGE="$(cat "$WHRUNKIT_TARGETDIR/container.image" 2>/dev/null || true)"
+  if [ -n "$WHRUNKIT_CONTAINERIMAGE" ]; then
+    WHRUNKIT_CONTAINERNAME="runkit-wh-$WHRUNKIT_TARGETSERVER"
+  else
+    WHRUNKIT_CONTAINERNAME=""
+  fi
+
+  export WEBHARE_CHECKEDOUT_TO WEBHARE_BASEPORT WEBHARE_DATAROOT WEBHARE_ISRESTORED WEBHARE_DIR WHRUNKIT_CONTAINERNAME WHRUNKIT_CONTAINERIMAGE
 }
 
 function download_backup()

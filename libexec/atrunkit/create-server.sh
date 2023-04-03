@@ -42,22 +42,15 @@ while true; do
   fi
 done
 
+WHRUNKIT_TARGETSERVER="$1"
+[ -n "$WHRUNKIT_TARGETSERVER" ] || exit_syntax
+
+prepare_newserver
+
 if [ -n "$IMAGE" ]; then
   configure_runkit_podman
-
-  if ! podman image exists "$IMAGE" >/dev/null 2>&1; then
-    if ! podman pull "$IMAGE"; then
-      echo "Failed to pull $IMAGE"
-      exit 1
-    fi
-  fi
-
-  COMMITREF="$(podman image inspect docker.io/webhare/platform:master | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
-  [ -z "$COMMITREF" ] && die "Image does not appear to be a WebHare image"
+  fix_webhareimage_parameter
 fi
-
-WHRUNKIT_TARGETSERVER="$1"
-prepare_newserver
 
 WEBHARE_DATAROOT=""
 

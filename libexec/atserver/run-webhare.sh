@@ -33,9 +33,8 @@ done
 
 configure_runkit_podman
 
-if [ -f "$WHRUNKIT_TARGETDIR"/container.image ]; then
-  CONTAINERNAME="runkit-wh-$WHRUNKIT_TARGETSERVER"
-  killcontainer "$CONTAINERNAME"
+if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
+  killcontainer "$WHRUNKIT_CONTAINERNAME"
 
   USEIMAGE="$(cat "$WHRUNKIT_TARGETDIR"/container.image)"
   # Looks like we have to launch this WebHare using podman
@@ -69,14 +68,14 @@ if [ -f "$WHRUNKIT_TARGETDIR"/container.image ]; then
  # if [ -z "$WHRUNKIT_TARGETDIR"/container.ipv4 ]; then
 #    # Allocate a free IP address under
 
-  echo "Creating WebHare container $CONTAINERNAME"
+  echo "Creating WebHare container $WHRUNKIT_CONTAINERNAME"
   podman run -v "$WEBHARE_DATAROOT:/opt/whdata" \
              -h "$WHRUNKIT_TARGETSERVER".docker \
              --network "$WHRUNKIT_NETWORKNAME" \
              --ip "$USEIP" \
              -e TZ=Europe/Amsterdam \
              --label runkittype=webhare \
-             --name "$CONTAINERNAME" \
+             --name "$WHRUNKIT_CONTAINERNAME" \
              "${DOCKEROPTS[@]}" \
              "$USEIMAGE" \
              $STARTUPOPT

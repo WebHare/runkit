@@ -7,13 +7,13 @@ if [ "$1" == "freshdbconsole" ]; then
   exit 1
 fi
 
-if [ -f "$WHRUNKIT_TARGETDIR/container.image" ]; then
+if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   # it should be safe to assume its running inside docker
   DOCKEROPTS="-i"
   if [ -t 0 ] ; then
     DOCKEROPTS="-ti"
   fi
-  exec podman exec $DOCKEROPTS "runkit-wh-$WHRUNKIT_TARGETSERVER" wh "$@"
+  exec podman exec $DOCKEROPTS "$WHRUNKIT_CONTAINERNAME" wh "$@"
 fi
 
 exec "$WHRUNKIT_WHCOMMAND" "$@"

@@ -7,3 +7,11 @@ repository. (These tests are not about documentation)
 # Test downloading from the public repository
 ~/projects/webhare-runkit/tests/manual/install-from-public.sh
 ```
+
+## Installing a container based webhare
+Not automated yet...
+
+```bash
+podman machine start
+runkit create-server --image release/5.2 test-docker-server
+```

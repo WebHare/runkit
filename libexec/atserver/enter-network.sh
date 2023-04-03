@@ -2,7 +2,6 @@
 
 # short: Open a shell inside the container's network
 
-[ -f "$WHRUNKIT_TARGETDIR/container.image" ] || die "Not running in a container"
-CONTAINERNAME="runkit-wh-$WHRUNKIT_TARGETSERVER"
-iscontainerup "$CONTAINERNAME" || die "Container $CONTAINERNAME is not running"
-nsenter -n -u -i -t "$(podman inspect -f '{{.State.Pid}}' "$CONTAINERNAME")"
+[ -n "$WHRUNKIT_CONTAINERNAME" ] || die "Not running in a container"
+iscontainerup "$WHRUNKIT_CONTAINERNAME" || die "Container $WHRUNKIT_CONTAINERNAME is not running"
+nsenter -n -u -i -t "$(podman inspect -f '{{.State.Pid}}' "$WHRUNKIT_CONTAINERNAME")"

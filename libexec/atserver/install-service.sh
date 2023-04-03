@@ -11,10 +11,8 @@ if ! hash systemctl 2>/dev/null ; then
   exit 1
 fi
 
-SERVICENAME="runkit-wh-$WHRUNKIT_TARGETSERVER"
-
 # TODO using a temp file is nicer
-cat > "/etc/systemd/system/$SERVICENAME.service" << HERE
+cat > "/etc/systemd/system/$WHRUNKIT_CONTAINERNAME.service" << HERE
 [Unit]
 Description=runkit proxy
 After=podman.service
@@ -31,7 +29,7 @@ WantedBy=multi-user.target
 HERE
 
 systemctl daemon-reload
-systemctl enable "$SERVICENAME" #ensure autostart
-systemctl start "$SERVICENAME"
+systemctl enable "$WHRUNKIT_CONTAINERNAME" #ensure autostart
+systemctl start "$WHRUNKIT_CONTAINERNAME"
 
 echo "WebHare $WHRUNKIT_TARGETSERVER initialized!"
