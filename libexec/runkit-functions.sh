@@ -33,7 +33,7 @@ function killcontainer()
   if podman inspect "$1" > /dev/null 2>&1 ; then
     (podman stop "$1" 2>/dev/null && sleep 1) || true
     podman kill "$1" 2>/dev/null || true
-    podman rm -f "$1"
+    podman rm -f "$1" 2>/dev/null || true
   fi
 }
 

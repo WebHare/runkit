@@ -5,8 +5,13 @@ set -e
 
 if ! hash git 2>/dev/null ; then
   echo Installing git..
-  apt-get update -y
-  apt-get install -y git || true
+  if hash apt-get 2>/dev/null ; then
+    apt-get update -y
+    apt-get install -y git || true
+  else
+    dnf install -y git
+  fi
+
   if ! hash git 2>/dev/null ; then
     echo Looks like git installation failed
     exit 1
