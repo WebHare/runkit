@@ -124,6 +124,7 @@ if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't alread
 fi
 
 mkdir -p "$WEBHARE_DATAROOT"
+[ -f "$WEBHARE_DATAROOT"/webhare.restoredone ] && rm "$WEBHARE_DATAROOT"/webhare.restoredone #remove 'done' marker
 # download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
 echo "Restoring container $WHRUNKIT_TARGETSERVER database to $WHEBARE_DATAROOT" > "$WEBHARE_DATAROOT"/webhare.restoremode
 echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKIT_TARGETDIR/restore.borgrepo")" > "$WEBHARE_DATAROOT"/webhare.restoremode
@@ -133,6 +134,7 @@ if [ -n "$NODOCKER" ]; then
   [ -f "$WHRUNKIT_TARGETDIR/container.image" ] && rm -f "$WHRUNKIT_TARGETDIR/container.image"
 
   "$WHRUNKIT_WHCOMMAND" restore "$WEBHARE_DATAROOT/preparedbackup"
+  date > "$WEBHARE_DATAROOT"/webhare.restoredone
   echo ""
   echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
   exit 0
@@ -144,5 +146,6 @@ else
   echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
   podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+  date > "$WEBHARE_DATAROOT"/webhare.restoredone
   echo "Container appears succesfully restored"
 fi
