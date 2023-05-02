@@ -143,6 +143,6 @@ else
   fi
   echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
-  docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+  podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
   echo "Container appears succesfully restored"
 fi
