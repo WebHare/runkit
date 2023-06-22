@@ -334,6 +334,7 @@ if [ -z "$WHRUNKIT_DATADIR" ]; then
     WHRUNKIT_DATADIR="/opt/runkit-data"
     if [ ! -d "$WHRUNKIT_DATADIR" ] && [ -d /opt/whrunkit ] ; then
       mv /opt/whrunkit "$WHRUNKIT_DATADIR"
+    fi
   else
     WHRUNKIT_DATADIR="$HOME/whrunkit"
   fi
