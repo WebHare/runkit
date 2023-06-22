@@ -15,3 +15,8 @@ Not automated yet...
 podman machine start
 runkit create-server --image release/5.2 test-docker-server
 ```
+
+
+TODO:
+- build two servers. verify they each have a unique container.ipv4
+

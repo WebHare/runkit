@@ -81,9 +81,13 @@ Prep if you're using Parallels, adapt if needed:
 ```bash
 brew install hashicorp/tap/hashicorp-vagrant
 vagrant plugin install vagrant-parallels
-vagrant -
+cd ~/projects/webhare-runkit
+vagrant up
 
 # Tests
+
+```
+
 
 ## Build docker and restore
 

@@ -331,7 +331,9 @@ fi
 
 if [ -z "$WHRUNKIT_DATADIR" ]; then
   if [ "$EUID" == "0" ]; then
-    WHRUNKIT_DATADIR="/opt/whrunkit"
+    WHRUNKIT_DATADIR="/opt/runkit-data"
+    if [ ! -d "$WHRUNKIT_DATADIR" ] && [ -d /opt/whrunkit ] ; then
+      mv /opt/whrunkit "$WHRUNKIT_DATADIR"
   else
     WHRUNKIT_DATADIR="$HOME/whrunkit"
   fi
