@@ -322,13 +322,6 @@ autocomplete_print_compreply()
   done
 }
 
-
-WHRUNKIT_ROOT="$(cd "${BASH_SOURCE%/*}/.." ; pwd )"
-if [ -z "$WHRUNKIT_ROOT" ]; then
-   echo "Unable to find our root directory" 1>&2
-   exit 1
-fi
-
 if [ -z "$WHRUNKIT_DATADIR" ]; then
   if [ "$EUID" == "0" ]; then
     WHRUNKIT_DATADIR="/opt/runkit-data"

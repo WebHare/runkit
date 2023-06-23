@@ -1,7 +1,16 @@
 #!/bin/bash
 
+if [ -z "$WHRUNKIT_ROOT" ]; then
+  SCRIPTSOURCE="$(readlink -f "${BASH_SOURCE[0]}")"
+  WHRUNKIT_ROOT="${SCRIPTSOURCE%/*/*}"
+  if [ ! -x "$WHRUNKIT_ROOT/bin/runkit" ] ;then
+   echo "Unable to find our root directory" 1>&2
+   exit 1
+  fi
+fi
+
 export WHRUNKIT_ORIGCOMMAND="$0"
-source "${BASH_SOURCE%/*}/../libexec/runkit-functions.sh"
+source "${WHRUNKIT_ROOT}/libexec/runkit-functions.sh"
 
 if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   export WHRUNKIT_TARGETSERVER="${1:1}"

@@ -8,7 +8,9 @@ exit_syntax()
 
 
 DETACH=""
+TORUN=()
 DOCKEROPTS=()
+RESCUE=0
 
 while true; do
   if [ "$1" == "--detach" ]; then
@@ -16,6 +18,13 @@ while true; do
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
+  elif [ "$1" == "--sh" ]; then
+    TORUN=("/bin/bash")
+    DOCKEROPTS+=("-t" "-i")
+    shift
+  elif [ "$1" == "--rescue" ]; then
+    TORUN=("/bin/sleep 604800")
+    shift
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
     exit 1
@@ -26,11 +35,19 @@ done
 
 [ -n "$1" ] && exit_syntax
 
+mkdir -p "$WHRUNKIT_DATADIR/_proxy" # Ensure our datadir is there
+
 # FIXME use last STABLE
 [ -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] || echo docker.io/webhare/proxy:master > "$WHRUNKIT_DATADIR/_proxy/container.image"
 
 CONTAINERSTORAGE="$(cat "$WHRUNKIT_DATADIR/_proxy/dataroot" 2>/dev/null || true)"
-[ -n "$CONTAINERSTORAGE" ] || CONTAINERSTORAGE="$WHRUNKIT_DATADIR/_proxy/data"
+if [ -z "$CONTAINERSTORAGE" ]; then # not explicitly set
+  if [[ $(uname) == "Darwin" ]]; then
+    CONTAINERSTORAGE="runkit-proxy-data" # Use a volume so the container can do its chown things and we can test those. proxy container contents are rarely interesting to access on the Mac host
+  else
+    CONTAINERSTORAGE="$WHRUNKIT_DATADIR/_proxy/data"
+  fi
+fi
 
 CONTAINERNAME="runkit-proxy"
 configure_runkit_podman
@@ -60,14 +77,20 @@ fi
 # - setting DNS: "--dns=192.168.198.128" "--dns=8.8.8.8" "--dns=8.8.4.4"
 # /opt/webhare-cloud/libexec/run-container.sh  "lb-fra1-19" "-h" "lb-fra1-19.docker" "-e" "TZ=Europe/Amsterdam" "-e" "NGINXPROXY_LOCALHOSTPORT=5442" "-e" "WEBHAREPROXY_ADMINHOSTNAME=do-fra1-19.hw.webhare.net" "-e" "WEBHAREPROXY_LETSENCRYPTEMAIL=webhare-servermgmt+letsencypt@webhare.nl" "--net" "host" "-v" "/opt/dockerstorage/lb-fra1-19/webhare-proxy-data:/opt/webhare-proxy-data/" "--dns=192.168.198.128" "--dns=8.8.8.8" "--dns=8.8.4.4" "--ulimit" "core=0"
 
+if [ "$(uname)" == "Darwin" ]; then
+  DOCKEROPTS+=(--publish 10080:80/tcp --publish 10443:443/tcp)
+else
+  DOCKEROPTS+=(--network host)
+fi
+
 echo "Creating proxy container $CONTAINERNAME:"
 podman run "${DOCKEROPTS[@]}" -i \
-               -v "$CONTAINERSTORAGE:/opt/webhare-proxy-data" \
-               --network host \
+               --volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z" \
                -e TZ=Europe/Amsterdam \
                --name "$CONTAINERNAME" \
                --label runkittype=proxy \
                "--ulimit" "core=0" \
-               "${RUNIMAGE:-}"
+               "${RUNIMAGE:-}" \
+               "${TORUN[@]}"
 
 exit 0
