@@ -2,7 +2,7 @@
 
 exit_syntax()
 {
-  echo "Syntax: runkit run-proxy [--detach]"
+  echo "Syntax: runkit run-proxy [--sh] [--rescue]"
   exit 1
 }
 
@@ -11,16 +11,17 @@ DETACH=""
 TORUN=()
 DOCKEROPTS=()
 RESCUE=0
+SYSTEMD=
 
 while true; do
-  if [ "$1" == "--detach" ]; then
-    DETACH="1"
-    shift
-  elif [ "$1" == "--help" ]; then
+  if [ "$1" == "--help" ]; then
     exit_syntax
   elif [ "$1" == "--sh" ]; then
     TORUN=("/bin/bash")
     DOCKEROPTS+=("-t" "-i")
+    shift
+  elif [ "$1" == "--systemd" ]; then
+    SYSTEMD=1
     shift
   elif [ "$1" == "--rescue" ]; then
     TORUN=("/bin/sleep 604800")
@@ -49,19 +50,12 @@ if [ -z "$CONTAINERSTORAGE" ]; then # not explicitly set
   fi
 fi
 
-CONTAINERNAME="runkit-proxy"
+CONTAINERBASENAME="proxy"
+CONTAINERNAME="runkit-$CONTAINERBASENAME"
 configure_runkit_podman
-killcontainer "$CONTAINERNAME"
 
 mkdir -p "$CONTAINERSTORAGE"
-
 RUNIMAGE="$( cat "$WHRUNKIT_DATADIR/_proxy/container.image" )"
-
-if [ "$DETACH" == "1" ]; then
-  DOCKEROPTS+=(--detach)
-else
-  DOCKEROPTS+=(--rm)
-fi
 
 if [ -f "$WHRUNKIT_DATADIR/_settings/letsencryptemail" ]; then
   DOCKEROPTS+=(-e WEBHAREPROXY_LETSENCRYPTEMAIL="$(cat "$WHRUNKIT_DATADIR/_settings/letsencryptemail")")
@@ -81,16 +75,75 @@ if [ "$(uname)" == "Darwin" ]; then
   DOCKEROPTS+=(--publish 10080:80/tcp --publish 10443:443/tcp)
 else
   DOCKEROPTS+=(--network host)
+
+  if [ -z "$SYSTEMD" ] && [ "$(systemctl is-active $CONTAINERNAME)" == "active" ]; then
+    echo "You need to 'systemctl stop $CONTAINERNAME' before attemping to start us in the foreground"
+    exit 1
+  fi
 fi
 
-echo "Creating proxy container $CONTAINERNAME:"
-podman run "${DOCKEROPTS[@]}" -i \
+cleanup()
+{
+  if [ -n "$CONTAINERID" ]; then
+    echo "- Stopping container $CONTAINERID ($CONTAINERNAME)"
+    podman stop "$CONTAINERID"
+
+    [ -x "$WHRUNKIT_DATADIR/_settings/containerchange.sh" ] && "$WHRUNKIT_DATADIR/_settings/containerchange.sh" stopped "$CONTAINERID" "$CONTAINERNAME"
+
+    CONTAINERID=""
+  fi
+}
+
+# Wrap into function to prevent updates from affecting running scripts
+main()
+{
+  echo "- Stopping any existing container"
+  podman stop "$CONTAINERNAME" 2>/dev/null
+  podman rm -f -v "$CONTAINERNAME" 2>/dev/null
+
+  echo "- Creating new container"
+  CONTAINERID=$(podman create \
+               --rm \
+               "${DOCKEROPTS[@]}" -i \
                --volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z" \
                -e TZ=Europe/Amsterdam \
                --name "$CONTAINERNAME" \
                --label runkittype=proxy \
                "--ulimit" "core=0" \
                "${RUNIMAGE:-}" \
-               "${TORUN[@]}"
+               "${TORUN[@]}")
 
-exit 0
+  if [ -z "$CONTAINERID" ]; then
+    echo Creation failed
+    exit 1
+   fi
+
+  echo "$CONTAINERID" > "$WHRUNKIT_DATADIR/_proxy/container.id"
+
+  echo "- Starting it"
+  if ! podman start $CONTAINERNAME ; then
+    echo Startup failed
+    exit 1
+   fi
+
+  [ -x "$WHRUNKIT_DATADIR/_settings/containerchange.sh" ] && "$WHRUNKIT_DATADIR/_settings/containerchange.sh" started "$CONTAINERID" "$CONTAINERNAME"
+
+  trap cleanup EXIT INT TERM
+
+  if [ "$(uname)" != "Darwin" ]; then
+    PID="$(podman inspect -f '{{.State.Pid}}' $CONTAINERNAME)"
+    mkdir -p /runkit-containers/
+    rm /runkit-containers/$CONTAINERBASENAME 2> /dev/null
+    ln -s /proc/$PID/root /runkit-containers/$CONTAINERBASENAME
+  fi
+
+  echo "===== vvv $CONTAINERNAME vvvv ============"
+  podman attach $CONTAINERNAME &
+  attachpid=$!
+
+  wait $attachpid
+
+  echo "===== ^^^ $CONTAINERNAME stopped ========= (attach returned status code $?)"
+}
+
+main "$@"

@@ -50,6 +50,7 @@ local settings are stored in `$WHRUNKIT_DATADIR/_settings/`
   - `container.image` - image to use for the WebHare server. if set, will be started using podman
 - `_settings/`
   - getborgsettings.sh - a script to override how borg-related scripts lookup containers
+  - containerchange.sh - if it exists, a script that is invoked whenever a container is started or stopped
   - `sourceroot` - contains default source checkout
   - `forgeroot` - overrides location of WebHare open source projects
   - `letsencryptemail` - email address for automatic letsencrypt accounts (and future eg. chtatplane proxy use?)

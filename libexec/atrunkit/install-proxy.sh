@@ -22,7 +22,7 @@ Requires=podman.service
 TimeoutStartSec=0
 Restart=always
 
-ExecStart="$WHRUNKIT_ROOT"/bin/runkit run-proxy
+ExecStart="$WHRUNKIT_ROOT"/bin/runkit run-proxy --systemd
 
 [Install]
 WantedBy=multi-user.target
