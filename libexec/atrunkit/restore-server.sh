@@ -65,10 +65,14 @@ CONTAINER="$1"
 [ -z "$CONTAINER" ] && exit_syntax
 
 resolve_whrunkit_command
+applyborgsettings "$CONTAINER"
 
 # Figure out whether to use docker or the local runkit installation
 if [ -z "$NODOCKER" ] && [ -z "$DOCKERIMAGE" ]; then
-  if [ -x "$WHRUNKIT_WHCOMMAND" ]; then
+  if [ -f $WHRUNKIT_TARGETDIR/container.image ]; then
+    DOCKERIMAGE="$(cat $WHRUNKIT_TARGETDIR/container.image)"
+    echo "Using configured container image $DOCKERIMAGE"
+  elif [ -x "$WHRUNKIT_WHCOMMAND" ]; then
     echo "nodocker/dockerimage not set - restoring using $WHRUNKIT_WHCOMMAND"
     NODOCKER=1
   else
@@ -80,17 +84,16 @@ fi
 
 [ -z "$NODOCKER" ] && ensurecommands docker
 
-applyborgsettings "$CONTAINER"
 # applyborgsettings also sets WHRUNKIT_TARGETSERVER and WHRUNKIT_TARGETDIR
 
 validate_servername "$WHRUNKIT_TARGETSERVER"
-ensure_server_baseport
+[ -z "$NODOCKER" ] && ensure_server_baseport
 loadtargetsettings
 
 [ -n "$WEBHARE_DATAROOT" ] || die internal error, WEBHARE_DATAROOT not set
 
 if [ -n "$FAST" ]; then
-  BORGOPTIONS+=(--exclude "*/whdata/output/*" --exclude "*/whdata/log/*" --exclude "*/opt-whdata/output/*" --exclude "*/opt-whdata/log/*")
+  BORGOPTIONS+=(--exclude "*/whdata/output/*" --exclude "*/whdata/log/*" --exclude "*/opt-whdata/output/*" --exclude "*/opt-whdata/log/*" --exclude "*/opt-whdata/log/*")
 fi
 
 if [ -d "$WEBHARE_DATAROOT/dbase" ] || [ -d "$WEBHARE_DATAROOT/postgresql" ]; then
@@ -119,8 +122,8 @@ if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't alread
   # NOTE this way we rely on whdata not containing dot files that need restoring!.. fix it a bt without moving .. etc
   mv "$WHDATAFOLDER"/* "$WEBHARE_DATAROOT/"
 
-  # Exclude the data of a restored server from backups
-  createCacheDirTagFile "$WEBHARE_DATAROOT"
+  # Exclude the data of a restored server from backups - TODO we can only do this if the user confirmed this is a temp backup! Not on remote servers! reevaluate criteria...
+  # createCacheDirTagFile "$WEBHARE_DATAROOT"
 fi
 
 mkdir -p "$WEBHARE_DATAROOT"
@@ -145,7 +148,11 @@ else
   fi
   echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
-  podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+  if hash podman 2>/dev/null ; then
+    podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+  else #pre-2023 machines
+    docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+  fi
   date > "$WEBHARE_DATAROOT"/webhare.restoredone
   echo "Container appears succesfully restored"
 fi

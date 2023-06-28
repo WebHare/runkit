@@ -16,8 +16,16 @@ ANY=""
 for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
   TARGETDIR="$WHRUNKIT_DATADIR/$SERVER"
   BASEPORT="$(cat "$TARGETDIR/baseport" 2>/dev/null)"
-  if [ -z $BASEPORT ]; then
+  CONTAINERIMAGE="$(cat "$TARGETDIR/container.image" 2>/dev/null)"
+  if [ -z $BASEPORT ] && [ -z "$CONTAINERIMAGE" ]; then
     continue
+  fi
+
+  if [ "${CONTAINERIMAGE:0:27}" == "docker.io/webhare/platform:" ]; then
+    CONTAINERIMAGE="${CONTAINERIMAGE:27}"
+  fi
+  if [ "${CONTAINERIMAGE:0:24}" == "docker.io/webhare/proxy:" ]; then
+    CONTAINERIMAGE="${CONTAINERIMAGE:24}"
   fi
 
   DEFAULTINFO=""
@@ -33,7 +41,7 @@ for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
     DATAROOT="~${DATAROOT:${#HOME}}"
   fi
 
-  echo "$(right_pad $SERVER) $(right_pad "$BASEPORT $DEFAULTINFO") $DATAROOT"
+  echo "$(right_pad $SERVER) $(right_pad "${CONTAINERIMAGE:-$BASEPORT $DEFAULTINFO}") $DATAROOT"
   ANY="1"
 done
 

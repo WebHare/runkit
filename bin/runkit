@@ -44,10 +44,11 @@ if [ ! -d "$WHRUNKIT_TARGETDIR" ]; then
   exit 1
 fi
 
-[ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($WHRUNKIT_TARGETDIR/baseport) not set"
 [ -n "$WEBHARE_DATAROOT" ] || die "Dataroot ($WHRUNKIT_TARGETDIR/dataroot) not set and $WHRUNKIT_TARGETDIR/whdata not present"
 
 if [ ! -f "$WHRUNKIT_TARGETDIR/container.image" ]; then #additional checks unless things are inside ad ocker
+  [ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($WHRUNKIT_TARGETDIR/baseport) not set"
+
   ensure_whrunkit_command
   [ -f "$WHRUNKIT_TARGETDIR/opensearch-bindhost" ] && export WEBHARE_OPENSEARCH_BINDHOST="$(cat "$WHRUNKIT_TARGETDIR/opensearch-bindhost")"
 
