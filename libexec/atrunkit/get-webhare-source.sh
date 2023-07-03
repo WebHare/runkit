@@ -47,7 +47,7 @@ if [ -d "$CHECKOUT_TO" ]; then
   exit 1
 fi
 
-git clone -b "$BRANCH" "$REPOSITORY" "$CHECKOUT_TO"
+git clone --recurse-submodules -b "$BRANCH" "$REPOSITORY" "$CHECKOUT_TO"
 CHECKOUT_TO="$( cd "$CHECKOUT_TO" && pwd )"
 
 if [ ! -f "$WHRUNKIT_DATADIR/_settings/sourceroot" ]; then
