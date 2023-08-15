@@ -174,9 +174,11 @@ function loadtargetsettings
   WEBHARE_ISRESTORED=""
   WEBHARE_BASEPORT="$(cat "$WHRUNKIT_TARGETDIR/baseport" 2>/dev/null || true)"
   WEBHARE_DATAROOT="$(cat "$WHRUNKIT_TARGETDIR/dataroot" 2>/dev/null || true)"
-  if [ -z "$WEBHARE_DATAROOT" ]; then
-    WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata"
-    mkdir -p "$WEBHARE_DATAROOT"
+  if [ -d "$WHRUNKIT_TARGETDIR" ]; then #Only create subdirs when the targetdir exists to prevent `runkit @nosuchserver wh dirs` from littering files
+    if [ -z "$WEBHARE_DATAROOT" ]; then
+      WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata"
+      mkdir -p "$WEBHARE_DATAROOT"
+    fi
   fi
 
   if [ -f "$WHRUNKIT_TARGETDIR/sourceroot" ]; then
