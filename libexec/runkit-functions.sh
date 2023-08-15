@@ -135,17 +135,22 @@ function settargetdir
   fi
 
   if [ "$WHRUNKIT_TARGETSERVER" == "default" ]; then
-    for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
-      BASEPORT="$(cat "$WHRUNKIT_DATADIR/$SERVER/baseport" 2>/dev/null)"
-      if [ "$BASEPORT" == "13679" ]; then
-        WHRUNKIT_TARGETSERVER="$SERVER"
-        break
+    if [ -f "$WHRUNKIT_DATADIR/_settings/defaultwebhare" ]; then
+      WHRUNKIT_TARGETSERVER="$(cat "$WHRUNKIT_DATADIR/_settings/defaultwebhare")"
+    else
+      for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
+        BASEPORT="$(cat "$WHRUNKIT_DATADIR/$SERVER/baseport" 2>/dev/null)"
+        if [ "$BASEPORT" == "13679" ]; then
+          WHRUNKIT_TARGETSERVER="$SERVER"
+          break
+        fi
+      done
+
+      if [ "$WHRUNKIT_TARGETSERVER" == "default" ]; then
+        echo "No server is listening on port 13679 - cannot find the default"
+        echo "See also: https://gitlab.com/webhare/runkit#managing-webhare-installations"
+        exit 1
       fi
-    done
-    if [ "$WHRUNKIT_TARGETSERVER" == "default" ]; then
-      echo "No server is listening on port 13679 - cannot find the default"
-      echo "See also: https://gitlab.com/webhare/runkit#managing-webhare-installations"
-      exit 1
     fi
   fi
 
