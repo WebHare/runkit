@@ -19,6 +19,9 @@ while true; do
     STARTUPOPT="/bin/bash"
     DOCKEROPTS+=(-ti)
     shift
+  elif [ "$1" == "--privileged" ]; then
+    DOCKEROPTS+=(--privileged)
+    shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
   elif [[ "$1" =~ ^-.* ]]; then
@@ -69,7 +72,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
 #    # Allocate a free IP address under
 
   echo "Creating WebHare container $WHRUNKIT_CONTAINERNAME"
-  podman run -v "$WEBHARE_DATAROOT:/opt/whdata" \
+  podman run -v "$WEBHARE_DATAROOT:/opt/whdata":Z \
              -h "$WHRUNKIT_TARGETSERVER".docker \
              --network "$WHRUNKIT_NETWORKNAME" \
              --ip "$USEIP" \
