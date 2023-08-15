@@ -87,7 +87,7 @@ fi
 # applyborgsettings also sets WHRUNKIT_TARGETSERVER and WHRUNKIT_TARGETDIR
 
 validate_servername "$WHRUNKIT_TARGETSERVER"
-[ -z "$NODOCKER" ] && ensure_server_baseport
+[ -n "$NODOCKER" ] && ensure_server_baseport
 loadtargetsettings
 
 [ -n "$WEBHARE_DATAROOT" ] || die internal error, WEBHARE_DATAROOT not set
