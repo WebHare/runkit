@@ -23,6 +23,17 @@ runkit create-server --default mywebhare
 runkit @mywebhare wh make
 ```
 
+### Checking out an additional source tree
+This is used to eg manually verify a bootstrap-test (eg. whether you can still compile a bare source tree)
+
+```bash
+runkit get-webhare-source ~/projects/webhare-bootstrap-test
+runkit create-server --source ~/projects/webhare-bootstrap-test bootstrap-test
+runkit-reload
+```
+
+You can then try eg `wh webhare-bootstrap-test mic`
+
 ## Managing WebHare installations
 Before you can use runkit, you need to set up a new installation or add your existing installation:
 - `add-existing-server [--default] <servername> <path>` - Add an already configured WebHare
