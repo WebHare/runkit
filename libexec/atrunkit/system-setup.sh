@@ -14,4 +14,10 @@ if [ "$OVERCOMMIT" == "0" ] || [ "$OVERCOMMIT" == "2" ]; then
   echo 1 > /proc/sys/vm/overcommit_memory
 fi
 
+# Enable access to http
+if hash firewall-cmd 2>/dev/null ; then
+  firewall-cmd --zone=public --add-service=http
+  firewall-cmd --zone=public --add-service=https
+fi
+
 exit 0
