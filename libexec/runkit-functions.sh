@@ -227,8 +227,6 @@ function download_backup()
   mkdir -p "$RESTORETO"
   cd "$RESTORETO"
 
-  # Exclude backup data from backups
-  createCacheDirTagFile "$RESTORETO"
   borg extract "${BORGOPTIONS[@]}" "::$RESTOREARCHIVE" $BORGPATHS
   return 0
 }
