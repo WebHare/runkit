@@ -34,9 +34,8 @@ done
 
 [ -n "$1" ] && exit_syntax
 
-configure_runkit_podman
-
 if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
+  configure_runkit_podman
   killcontainer "$WHRUNKIT_CONTAINERNAME"
 
   USEIMAGE="$(cat "$WHRUNKIT_TARGETDIR"/container.image)"
@@ -72,16 +71,37 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
 #    # Allocate a free IP address under
 
   echo "Creating WebHare container $WHRUNKIT_CONTAINERNAME"
-  podman run -v "$WEBHARE_DATAROOT:/opt/whdata":Z \
-             -h "$WHRUNKIT_TARGETSERVER".docker \
-             --network "$WHRUNKIT_NETWORKNAME" \
-             --ip "$USEIP" \
-             -e TZ=Europe/Amsterdam \
-             --label runkittype=webhare \
-             --name "$WHRUNKIT_CONTAINERNAME" \
-             "${DOCKEROPTS[@]}" \
-             "$USEIMAGE" \
-             $STARTUPOPT
+
+  if [ "$WHRUNKIT_CONTAINERENGINE" == "docker" ]; then
+    docker run -v "$WEBHARE_DATAROOT:/opt/whdata" \
+               -h "$WHRUNKIT_TARGETSERVER".docker \
+               --network "$WHRUNKIT_NETWORKNAME" \
+               --ip "$USEIP" \
+               -e TZ=Europe/Amsterdam \
+               --label runkittype=webhare \
+               --name "$WHRUNKIT_CONTAINERNAME" \
+               "${DOCKEROPTS[@]}" \
+               "$USEIMAGE" \
+               $STARTUPOPT
+  else
+    MOUNTFLAGS=""
+    if [[ "$OSTYPE" != "darwin"* ]]; then
+      MOUNTFLAGS=":Z" #on darwin this triggers lsetxattr error, see https://github.com/containers/podman-compose/issues/509#issuecomment-1162988103
+    else
+      DOCKEROPTS+=(--user="$(id -u):$(id -g)" --userns=keep-id)
+    fi
+
+    podman run -v "$WEBHARE_DATAROOT:/opt/whdata"$MOUNTFLAGS \
+               -h "$WHRUNKIT_TARGETSERVER".docker \
+               --network "$WHRUNKIT_NETWORKNAME" \
+               --ip "$USEIP" \
+               -e TZ=Europe/Amsterdam \
+               --label runkittype=webhare \
+               --name "$WHRUNKIT_CONTAINERNAME" \
+               "${DOCKEROPTS[@]}" \
+               "$USEIMAGE" \
+               $STARTUPOPT
+  fi
 else
   exec "$WHRUNKIT_WHCOMMAND" console
 fi

@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
-[ -n "$WHRUNKIT_INSTALLTO" ] || WHRUNKIT_INSTALLTO="$HOME/webhare-runkit"
+if [ -z "$WHRUNKIT_INSTALLTO" ]; then
+  if [ "$(id -u)" == "0" ]; then #as root
+    WHRUNKIT_INSTALLTO="/opt/webhare-runkit"
+  else
+    WHRUNKIT_INSTALLTO="$HOME/webhare-runkit"
+  fi
+fi
+
 [ -n "$WHRUNKIT_INSTALLBASHRC" ] || WHRUNKIT_INSTALLBASHRC="$HOME/.bashrc"
 
 if ! hash git 2>/dev/null ; then

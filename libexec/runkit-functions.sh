@@ -43,9 +43,17 @@ function configure_runkit_podman()
   [ -f "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh ] && source "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh
 
   # This gives us an IP range to use:
-  if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
-    echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
-    podman network create $WHRUNKIT_NETWORKNAME --subnet=${WHRUNKIT_NETWORKPREFIX}.0/24
+  if [ "$WHRUNKIT_CONTAINERENGINE" == "docker" ]; then
+
+    if ! docker network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
+      echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
+      docker network create $WHRUNKIT_NETWORKNAME --subnet=${WHRUNKIT_NETWORKPREFIX}.0/24
+    fi
+  else
+    if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
+      echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
+      podman network create $WHRUNKIT_NETWORKNAME --subnet=${WHRUNKIT_NETWORKPREFIX}.0/24
+    fi
   fi
 }
 

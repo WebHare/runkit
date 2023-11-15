@@ -149,7 +149,8 @@ else
   echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
   if hash podman 2>/dev/null ; then
-    podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+    # Mark restored volume as unshared
+    podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata":Z "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
   else #pre-2023 machines
     docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
   fi
