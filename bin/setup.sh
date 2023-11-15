@@ -37,6 +37,8 @@ fi
 
 if ! hash borg 2>/dev/null ; then
   echo Need to install borg
+  # Enable EPEL
+  dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
   addpackage borgbackup
 fi
 
