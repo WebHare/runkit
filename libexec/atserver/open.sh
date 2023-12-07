@@ -5,4 +5,5 @@ if [ "$1" != "" ]; then
   exit 1
 fi
 
+ensure_whrunkit_command
 open $("$WHRUNKIT_WHCOMMAND" dirs | grep "^Rescue port:" | cut -d: -f2-)

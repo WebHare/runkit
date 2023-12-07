@@ -5,7 +5,7 @@
 ERROR=""
 echo -n "runkit-proxy: "
 
-PROXY_PID="$(podman inspect -f '{{.State.Pid}}' "runkit-proxy" 2>/dev/null)"
+PROXY_PID="$("$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Pid}}' "runkit-proxy" 2>/dev/null)"
 if [ -n "$PROXY_PID" ]; then
   echo "up, pid=$PROXY_PID" # TODO more status checks?
 elif [ -f /etc/systemd/system/runkit-proxy.service ] ; then

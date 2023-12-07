@@ -13,7 +13,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   if [ -t 0 ] ; then
     DOCKEROPTS="-ti"
   fi
-  exec podman exec $DOCKEROPTS "$WHRUNKIT_CONTAINERNAME" wh "$@"
+  exec "$WHRUNKIT_CONTAINERENGINE" exec $DOCKEROPTS "$WHRUNKIT_CONTAINERNAME" wh "$@"
 fi
 
 exec "$WHRUNKIT_WHCOMMAND" "$@"

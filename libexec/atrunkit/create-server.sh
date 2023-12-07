@@ -15,6 +15,7 @@ function exit_syntax
 source "${BASH_SOURCE%/*}/__servercreation.sh" || die "cannot load function library"
 SOURCEROOT=""
 IMAGE=""
+WHDATA=""
 
 while true; do
   if [ "$1" == "--default" ]; then
@@ -32,6 +33,16 @@ while true; do
     shift
     IMAGE="$1"
     shift
+  elif [ "$1" == "--whdata" ]; then
+    shift
+    WHDATA="$1"
+    shift
+  elif [ "$1" == "--recreate" ]; then
+    RECREATE="1"
+    shift
+  elif [ "$1" == "--nopull" ]; then
+    NOPULL="1"
+    shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
   elif [[ "$1" =~ ^-.* ]]; then
@@ -44,21 +55,30 @@ done
 
 WHRUNKIT_TARGETSERVER="$1"
 [ -n "$WHRUNKIT_TARGETSERVER" ] || exit_syntax
-
 prepare_newserver
+
+WEBHARE_DATAROOT=""
+
+mkdir -p "$WHRUNKIT_TARGETDIR"
+if [ -n "$WHDATA" ]; then
+  echo "$WHDATA" > "$WHRUNKIT_TARGETDIR/dataroot"
+else
+  mkdir -p "$WHRUNKIT_TARGETDIR/whdata"
+  rm -f "$WHRUNKIT_TARGETDIR/dataroot"
+fi
 
 if [ -n "$IMAGE" ]; then
   configure_runkit_podman
   fix_webhareimage_parameter
+  echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
+else
+  rm -f "$WHRUNKIT_TARGETDIR/container.image"
 fi
 
-WEBHARE_DATAROOT=""
 
 #TODO allow creating the PRIMARY installation
-mkdir -p "$WHRUNKIT_TARGETDIR/whdata"
 echo "$BASEPORT" > "$WHRUNKIT_TARGETDIR/baseport"
 [ -n "$SOURCEROOT" ] && echo "$SOURCEROOT" > "$WHRUNKIT_TARGETDIR/sourceroot"
-[ -n "$IMAGE" ] && echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
 loadtargetsettings # reload to ensure we have loaded baseport/data settings
 

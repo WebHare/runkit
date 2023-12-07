@@ -29,13 +29,13 @@ if ! iscontainerup runkit-proxy ; then
   exit 1
 fi
 
-WEBHARE_CONTAINERS="$(podman ps --filter=label=runkittype=webhare -q)"
+WEBHARE_CONTAINERS="$("$WHRUNKIT_CONTAINERENGINE" ps --filter=label=runkittype=webhare -q)"
 if [ -z "$WEBHARE_CONTAINERS" ]; then
   echo "No WebHare containers found"
   exit 1
 fi
 
-PROXY_PASSWORD="$(podman exec runkit-proxy /opt/container/get-proxy-key.sh)"
+PROXY_PASSWORD="$("$WHRUNKIT_CONTAINERENGINE" exec runkit-proxy /opt/container/get-proxy-key.sh)"
 if [ -z "$PROXY_PASSWORD" ]; then
   echo "Unable to retrieve the proxy's password"
   exit 1
@@ -44,9 +44,9 @@ fi
 for ID in $WEBHARE_CONTAINERS ; do
   # TODO webhare needs to offer an atomic update so we don't risk downtime
   # although webserver reset might be sufficiently safe?
-  podman exec "$ID" wh webserver reset --force
-  WEBHARE_IP="$(podman inspect $ID |jq -r '.[0].NetworkSettings.Networks["webhare-runkit"].IPAddress')"
+  "$WHRUNKIT_CONTAINERENGINE" exec "$ID" wh webserver reset --force
+  WEBHARE_IP="$("$WHRUNKIT_CONTAINERENGINE" inspect $ID |jq -r '.[0].NetworkSettings.Networks["webhare-runkit"].IPAddress')"
   #use the dedicated admin port because /admin/ may not be available (to make it available we have to deal with giving the proxy a proper hostname, and eventually letsencrypt)
   #TOOD to not have to deal with ignoring certificates, why can't the proxy open up its http-port using a command line option?
-  podman exec "$ID" wh cli addproxy https://${WHRUNKIT_NETWORKPREFIX}.1:5443/ "$PROXY_PASSWORD" "http://$WEBHARE_IP:13684/"
+  "$WHRUNKIT_CONTAINERENGINE" exec "$ID" wh cli addproxy https://${WHRUNKIT_NETWORKPREFIX}.1:5443/ "$PROXY_PASSWORD" "http://$WEBHARE_IP:13684/"
 done

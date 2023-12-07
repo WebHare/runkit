@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eo pipefail
+
 exit_syntax()
 {
   echo "Syntax: runkit run-proxy [--sh] [--rescue]"
@@ -12,6 +14,7 @@ TORUN=()
 DOCKEROPTS=()
 RESCUE=0
 SYSTEMD=
+ASSERVICE=
 
 while true; do
   if [ "$1" == "--help" ]; then
@@ -19,6 +22,9 @@ while true; do
   elif [ "$1" == "--sh" ]; then
     TORUN=("/bin/bash")
     DOCKEROPTS+=("-t" "-i")
+    shift
+  elif [ "$1" == "--as-service" ]; then
+    ASSERVICE="1"
     shift
   elif [ "$1" == "--systemd" ]; then
     SYSTEMD=1
@@ -76,17 +82,28 @@ if [ "$(uname)" == "Darwin" ]; then
 else
   DOCKEROPTS+=(--network host)
 
-  if [ -z "$SYSTEMD" ] && [ "$(systemctl is-active $CONTAINERNAME)" == "active" ]; then
+  if [ -z "$SYSTEMD" ] && [ -z "$ASSERVICE" ] && [ "$(systemctl is-active $CONTAINERNAME)" == "active" ]; then
     echo "You need to 'systemctl stop $CONTAINERNAME' before attemping to start us in the foreground"
     exit 1
   fi
 fi
 
+DOCKEROPTS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
+              -e TZ=Europe/Amsterdam
+              --name "$CONTAINERNAME"
+              --label runkittype=proxy
+              "--ulimit" "core=0"
+              --log-opt max-size=50m
+              --log-opt max-file=5
+              "${RUNIMAGE:-}"
+              "${TORUN[@]}"
+             )
+
 cleanup()
 {
   if [ -n "$CONTAINERID" ]; then
     echo "- Stopping container $CONTAINERID ($CONTAINERNAME)"
-    podman stop "$CONTAINERID"
+    "$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERID"
 
     [ -x "$WHRUNKIT_DATADIR/_settings/containerchange.sh" ] && "$WHRUNKIT_DATADIR/_settings/containerchange.sh" stopped "$CONTAINERID" "$CONTAINERNAME"
 
@@ -94,56 +111,84 @@ cleanup()
   fi
 }
 
+
 # Wrap into function to prevent updates from affecting running scripts
 main()
 {
   echo "- Stopping any existing container"
-  podman stop "$CONTAINERNAME" 2>/dev/null
-  podman rm -f -v "$CONTAINERNAME" 2>/dev/null
+  "$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERNAME" 2>/dev/null
+  "$WHRUNKIT_CONTAINERENGINE" rm -f -v "$CONTAINERNAME" 2>/dev/null
 
   echo "- Creating new container"
-  CONTAINERID=$(podman create \
-               --rm \
-               "${DOCKEROPTS[@]}" -i \
-               --volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z" \
-               -e TZ=Europe/Amsterdam \
-               --name "$CONTAINERNAME" \
-               --label runkittype=proxy \
-               "--ulimit" "core=0" \
-               "${RUNIMAGE:-}" \
-               "${TORUN[@]}")
+  CONTAINERID=$("$WHRUNKIT_CONTAINERENGINE" create --rm "${DOCKEROPTS[@]}")
 
   if [ -z "$CONTAINERID" ]; then
     echo Creation failed
     exit 1
    fi
 
-  echo "$CONTAINERID" > "$WHRUNKIT_DATADIR/_proxy/container.id"
-
   echo "- Starting it"
-  if ! podman start $CONTAINERNAME ; then
+  if ! "$WHRUNKIT_CONTAINERENGINE" start $CONTAINERNAME ; then
     echo Startup failed
     exit 1
    fi
 
-  [ -x "$WHRUNKIT_DATADIR/_settings/containerchange.sh" ] && "$WHRUNKIT_DATADIR/_settings/containerchange.sh" started "$CONTAINERID" "$CONTAINERNAME"
-
   trap cleanup EXIT INT TERM
 
   if [ "$(uname)" != "Darwin" ]; then
-    PID="$(podman inspect -f '{{.State.Pid}}' $CONTAINERNAME)"
+    PID="$("$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Pid}}' $CONTAINERNAME)"
     mkdir -p /runkit-containers/
     rm /runkit-containers/$CONTAINERBASENAME 2> /dev/null
     ln -s /proc/$PID/root /runkit-containers/$CONTAINERBASENAME
   fi
 
   echo "===== vvv $CONTAINERNAME vvvv ============"
-  podman attach $CONTAINERNAME &
+  "$WHRUNKIT_CONTAINERENGINE" attach $CONTAINERNAME &
   attachpid=$!
 
   wait $attachpid
 
   echo "===== ^^^ $CONTAINERNAME stopped ========= (attach returned status code $?)"
 }
+
+if [ -n "$ASSERVICE" ]; then
+
+  configure_runkit_podman
+
+  if ! hash systemctl 2>/dev/null ; then
+    echo "No systemctl - cannot install proxy"
+    exit 1
+  fi
+
+  # In the interest of server stability, we will not put any runkit code on the proxy startup path
+
+  # TODO using a temp file is nicer
+  cat > "/etc/systemd/system/runkit-proxy.service" << HERE
+[Unit]
+Description=runkit proxy
+After=podman.service
+Requires=podman.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+
+ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" stop runkit-proxy
+ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" rm -f -v runkit-proxy
+ExecStart="$WHRUNKIT_CONTAINERENGINE" run --rm ${DOCKEROPTS[@]}
+ExecStartPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started runkit-proxy
+ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started runkit-proxy
+
+[Install]
+WantedBy=multi-user.target
+HERE
+
+  systemctl daemon-reload
+  systemctl enable runkit-proxy #ensure autostart
+  systemctl start runkit-proxy
+
+  echo "Proxy initialized as unit"
+  exit 0
+fi
 
 main "$@"

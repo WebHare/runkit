@@ -38,6 +38,7 @@ if [ -z "$2" ]; then
   exit_syntax
 fi
 
+IMAGE=""
 prepare_newserver
 
 DATADIRECTORY="$( (cd "$2" 2>/dev/null && pwd ) || true)" #'pwd' ensures this path won't end with a /

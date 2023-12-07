@@ -12,6 +12,9 @@ function exit_syntax
 while true; do
   if [ "$1" == "--help" ]; then
     exit_syntax
+  elif [ "$1" == "--nopull" ]; then
+    NOPULL=1
+    shift
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
     exit 1
@@ -24,6 +27,7 @@ IMAGE="$1"
 
 [ -n "$IMAGE" ] || exit_syntax
 [ -n "$WHRUNKIT_CONTAINERNAME" ] || die "This WebHare is not in a Docker container"
+
 configure_runkit_podman
 fix_webhareimage_parameter
 

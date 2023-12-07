@@ -1,26 +1,3 @@
-# Setting up VS Code
-Configure using: `runkit setup-vscode`
-
-## Resetting VSCode integration
-To *backup* your VS Code installation completely (for testing bootstrap):
-
-```bash
-# Ensure you've shut down Code first!
-BACKUPTO="$HOME/vscode-backup-$(date +%Y%m%d_%H%M%S)"
-mkdir -p $BACKUPTO
-> $BACKUPTO/"This dir contains dotfiles, use ls -la" # you'll thank yourself later
-mv $HOME/.vsce $BACKUPTO/     # may not exist. extension publisher token
-mv $HOME/.vscode $BACKUPTO/
-mv ~/Library/Preferences/com.microsoft.VSCode.plist $BACKUPTO/
-mv ~/Library/Application\ Support/Code $BACKUPTO/
-```
-
-To fully cleanup everything installed by setup-vscode, you should also:
-```bash
-brew uninstall --cask visual-studio-code
-rm -rf ~/projects/webhare-language-vscode/
-```
-
 # runkit principles
 (TODO: this part is for 'developers of runkit' and the above is for 'developers of WebHare'. split docs?)
 

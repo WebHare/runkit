@@ -2,6 +2,7 @@
 
 PRIMARY=""
 BASEPORT=""
+RECREATE=""
 
 function prepare_newserver()
 {
@@ -9,21 +10,25 @@ function prepare_newserver()
     if [ -n "$BASEPORT" ]; then
       die You cannot set both --default and --baseport
     fi
-    BASEPORT=13679
-  fi
-
-  if [ -z "$BASEPORT" ]; then
-    BASEPORT="$(( RANDOM / 10 * 10 + 20000 ))"
-    # FIXME Check if in use
   fi
 
   validate_servername "$WHRUNKIT_TARGETSERVER"
 
   settargetdir
 
-  if [ -f "$WHRUNKIT_TARGETDIR/baseport" ]; then
+  if [ -z "$RECREATE" ] && [ -f "$WHRUNKIT_TARGETDIR/baseport" ]; then
     echo "Server '$WHRUNKIT_TARGETSERVER' already exists"
     exit 1
   fi
-}
 
+  BASEPORT="$(cat "$WHRUNKIT_TARGETDIR/baseport" 2>/dev/null)"
+
+  if [ -z "$BASEPORT" ]; then
+    if [ -n "$PRIMARY" ]; then
+      BASEPORT=13679
+     else
+      BASEPORT="$(( RANDOM / 10 * 10 + 20000 ))"
+      # FIXME Check if in use
+    fi
+  fi
+}

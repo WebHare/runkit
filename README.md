@@ -97,7 +97,7 @@ ln -s "$(wh getmoduledir dev)" "$(wh-ci getdatadir)/installedmodules/"
 runkit can be used to manage a podman-based server.
 
 ```bash
-runkit install-proxy
+runkit run-proxy --as-service
 ```
 
 ## Restoring WebHare backups

@@ -25,31 +25,31 @@ function ensurecommands()
 
 function iscontainerup()
 {
-  [ "$(podman inspect -f '{{.State.Running}}' "$1" 2>/dev/null )" == true ] && return 0 || return 1
+  [ "$("$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Running}}' "$1" 2>/dev/null )" == true ] && return 0 || return 1
 }
 
 function killcontainer()
 {
-  if podman inspect "$1" > /dev/null 2>&1 ; then
-    (podman stop "$1" 2>/dev/null && sleep 1) || true
-    podman kill "$1" 2>/dev/null || true
-    podman rm -f "$1" 2>/dev/null || true
+  if "$WHRUNKIT_CONTAINERENGINE" inspect "$1" > /dev/null 2>&1 ; then
+    ("$WHRUNKIT_CONTAINERENGINE" stop "$1" 2>/dev/null && sleep 1) || true
+    "$WHRUNKIT_CONTAINERENGINE" kill "$1" 2>/dev/null || true
+    "$WHRUNKIT_CONTAINERENGINE" rm -f "$1" 2>/dev/null || true
   fi
 }
 
 function configure_runkit_podman()
 {
-  ensurecommands podman jq
-  [ -f "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh ] && source "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh
 
   # This gives us an IP range to use:
   if [ "$WHRUNKIT_CONTAINERENGINE" == "docker" ]; then
-
     if ! docker network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
       echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
       docker network create $WHRUNKIT_NETWORKNAME --subnet=${WHRUNKIT_NETWORKPREFIX}.0/24
     fi
   else
+    ensurecommands podman jq
+    [ -f "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh ] && source "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh
+
     if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
       echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
       podman network create $WHRUNKIT_NETWORKNAME --subnet=${WHRUNKIT_NETWORKPREFIX}.0/24
@@ -64,16 +64,17 @@ function fix_webhareimage_parameter() # Assumes $IMAGE is the image name to chec
     IMAGE="$(echo "$IMAGE" | tr -- "/." "--")"
     IMAGE="docker.io/webhare/platform:$IMAGE"
   fi
+  if [[ $IMAGE =~ ^webhare/platform: ]]; then
+    #prefix docker.io
+    IMAGE="docker.io/$IMAGE"
+  fi
 
-  # TODO should a --nopull allow us to skip the docker pull check?
-  #if ! podman image exists "$IMAGE" >/dev/null 2>&1; then
-    if ! podman pull "$IMAGE"; then
-      echo "Failed to pull $IMAGE"
-      exit 1
-    fi
-  #fi
+  if [ -z "$NOPULL" ] && ! "$WHRUNKIT_CONTAINERENGINE" pull "$IMAGE"; then
+    echo "Failed to pull $IMAGE"
+    exit 1
+  fi
 
-  COMMITREF="$(podman image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
+  COMMITREF="$("$WHRUNKIT_CONTAINERENGINE" image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
   [ -z "$COMMITREF" ] && die "Image does not appear to be a WebHare image"
   return 0
 }
@@ -346,6 +347,7 @@ if [ -z "$WHRUNKIT_DATADIR" ]; then
   fi
 fi
 
+[ -z "$WHRUNKIT_CONTAINERENGINE" ] && WHRUNKIT_CONTAINERENGINE=podman
 export WHRUNKIT_DATADIR WHRUNKIT_ROOT
 mkdir -p "$WHRUNKIT_DATADIR"
 WEBHARE_RUNKIT_KEYFILE=""

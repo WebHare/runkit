@@ -8,9 +8,9 @@ if [ -z "$COPY_SSH_COMMAND" ]; then
 fi
 
 # We want a runkit to be there already, or we might make a mistake copying ourselves..
-REMOTERUNKITROOT="/opt/webare-runkit/"
+REMOTERUNKITROOT="/opt/webhare-runkit/"
 if ! $COPY_SSH_COMMAND test -x "$REMOTERUNKITROOT"/bin/runkit ; then
-  die "runkit not initially installed (or needs to be moved to /opt/-webhare-runkit)"
+  die "runkit not initially installed (or needs to be moved to /opt/webhare-runkit)"
 fi
 
 ( cd "$WHRUNKIT_ROOT" && tar -c -- * ) | $COPY_SSH_COMMAND tar -C "$REMOTERUNKITROOT" --warning=no-unknown-keyword -x

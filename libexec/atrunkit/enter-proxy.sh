@@ -1,5 +1,5 @@
 #!/bin/bash
-PID="$(podman inspect -f '{{.State.Pid}}' "runkit-proxy")"
+PID="$("$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Pid}}' "runkit-proxy")"
 if [ -z "$PID" ]; then
   echo Proxy container not running
   exit 255
