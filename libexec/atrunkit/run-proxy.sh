@@ -88,11 +88,16 @@ else
   fi
 fi
 
+if [ "$ASSERVICE" ]; hten
+  DOCKEROPTS+="--sdnotify=conmon"
+fi
+
 DOCKEROPTS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
               -e TZ=Europe/Amsterdam
               --name "$CONTAINERNAME"
               --label runkittype=proxy
               "--ulimit" "core=0"
+              --sdnotify=conmon
               --log-opt max-size=50m
               --log-opt max-file=5
               "${RUNIMAGE:-}"
@@ -172,6 +177,8 @@ Requires=podman.service
 [Service]
 TimeoutStartSec=0
 Restart=always
+Type=notify
+NotifyAccess=all
 
 ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" stop runkit-proxy
 ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" rm -f -v runkit-proxy
