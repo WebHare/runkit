@@ -177,7 +177,7 @@ ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" stop runkit-proxy
 ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" rm -f -v runkit-proxy
 ExecStart="$WHRUNKIT_CONTAINERENGINE" run --rm ${DOCKEROPTS[@]}
 ExecStartPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started runkit-proxy
-ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started runkit-proxy
+ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange stopped runkit-proxy
 
 [Install]
 WantedBy=multi-user.target

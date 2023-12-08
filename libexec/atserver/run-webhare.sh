@@ -57,6 +57,8 @@ done
 
 CMDLINE=()
 
+mkdir -p "$WEBHARE_DATAROOT" #Ensure the dataroot is there
+
 if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   configure_runkit_podman
   killcontainer "$WHRUNKIT_CONTAINERNAME"
@@ -107,6 +109,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   fi
 
   # Added --no-hosts - this easily breaks connectivity to the proxy server if it's aliased to ::1
+  # --sdnotify=conmon - WH doesn't support NOTIFY_SOCKET yet so a succesful container start will have to do for readyness (https://docs.podman.io/en/v4.4/markdown/options/sdnotify.html)
   CMDLINE+=(-h "$WHRUNKIT_TARGETSERVER".docker
                --network "$WHRUNKIT_NETWORKNAME"
                --ip "$USEIP"
@@ -114,6 +117,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
                --label runkittype=webhare
                --log-opt max-size=50m
                --log-opt max-file=5
+               --sdnotify=conmon
                --no-hosts
                --name "$WHRUNKIT_CONTAINERNAME"
                "${DOCKEROPTS[@]}"
@@ -145,13 +149,15 @@ Requires=${WHRUNKIT_CONTAINERENGINE}.service ${REQUIREUNITS}
 [Service]
 TimeoutStartSec=0
 Restart=always
+Type=notify
+NotifyAccess=all
 
-# Ensure any existing container gets out of the way
+# Ensure any existing container gets out of the way. TODO stop this from making 'not found' noise in the log
 ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" stop $WHRUNKIT_CONTAINERNAME
 ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" rm -f -v $WHRUNKIT_CONTAINERNAME
 ExecStart=${CMDLINE[@]}
 ExecStartPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started "$WHRUNKIT_CONTAINERNAME"
-ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started "$WHRUNKIT_CONTAINERNAME"
+ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange stopped "$WHRUNKIT_CONTAINERNAME"
 
 [Install]
 WantedBy=multi-user.target
