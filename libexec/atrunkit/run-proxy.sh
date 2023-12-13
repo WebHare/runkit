@@ -89,7 +89,7 @@ else
 fi
 
 if [ "$ASSERVICE" ]; hten
-  DOCKEROPTS+="--sdnotify=conmon"
+  DOCKEROPTS+=(--sdnotify=conmon)
 fi
 
 DOCKEROPTS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"

@@ -15,6 +15,7 @@ STARTUPOPT=""
 DOCKEROPTS=()
 ASSERVICE=""
 REQUIREUNITS=""
+NORESTART=""
 
 while true; do
   if [ "$1" == "--detach" ]; then
@@ -43,6 +44,9 @@ while true; do
   elif [ "$1" == "--as-service" ]; then
     ASSERVICE="1"
     shift
+  elif [ "$1" == "--no-restart" ]; then
+    NORESTART="1"
+    shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
   elif [[ "$1" =~ ^-.* ]]; then
@@ -61,7 +65,9 @@ mkdir -p "$WEBHARE_DATAROOT" #Ensure the dataroot is there
 
 if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   configure_runkit_podman
-  killcontainer "$WHRUNKIT_CONTAINERNAME"
+
+  # when not installing as a service, kill the current container
+  [ -z "$ASSERVICE" ] &&   killcontainer "$WHRUNKIT_CONTAINERNAME"
 
   USEIMAGE="$(cat "$WHRUNKIT_TARGETDIR"/container.image)"
   # Looks like we have to launch this WebHare using podman
@@ -108,8 +114,8 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
     CMDLINE+=(podman run -v "$WEBHARE_DATAROOT:/opt/whdata"$MOUNTFLAGS)
   fi
 
-  if [ "$ASSERVICE" ]; hten
-    DOCKEROPTS+="--sdnotify=conmon"
+  if [ "$ASSERVICE" ]; then
+    DOCKEROPTS+=(--sdnotify=conmon)
   fi
 
   # Added --no-hosts - this easily breaks connectivity to the proxy server if it's aliased to ::1
@@ -168,7 +174,11 @@ HERE
 
   systemctl daemon-reload
   systemctl enable "$WHRUNKIT_CONTAINERNAME" #ensure autostart
-  systemctl start "$WHRUNKIT_CONTAINERNAME"
+  if [ -n "$NORESTART" ]; then
+    systemctl start "$WHRUNKIT_CONTAINERNAME"
+  else
+    systemctl restart "$WHRUNKIT_CONTAINERNAME"
+  fi
   exit 0
 fi
 

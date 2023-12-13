@@ -16,6 +16,7 @@ source "${BASH_SOURCE%/*}/__servercreation.sh" || die "cannot load function libr
 SOURCEROOT=""
 IMAGE=""
 WHDATA=""
+QUIET=""
 
 while true; do
   if [ "$1" == "--default" ]; then
@@ -42,6 +43,9 @@ while true; do
     shift
   elif [ "$1" == "--nopull" ]; then
     NOPULL="1"
+    shift
+  elif [ "$1" == "--quiet" ]; then
+    QUIET="1"
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
@@ -82,5 +86,7 @@ echo "$BASEPORT" > "$WHRUNKIT_TARGETDIR/baseport"
 
 loadtargetsettings # reload to ensure we have loaded baseport/data settings
 
-echo "Server created. To start: 'runkit @$WHRUNKIT_TARGETSERVER run-webhare' and access the server on http://127.0.0.1:$(($WEBHARE_BASEPORT + 9 ))"
-echo "Don't forget to run 'runkit-reload' to activate the 'wh-$WHRUNKIT_TARGETSERVER' command"
+if [ -z "$QUIET" ]; then
+  echo "Server created. To start: 'runkit @$WHRUNKIT_TARGETSERVER run-webhare' and access the server on http://127.0.0.1:$(($WEBHARE_BASEPORT + 9 ))"
+  echo "Don't forget to run 'runkit-reload' to activate the 'wh-$WHRUNKIT_TARGETSERVER' command"
+fi
