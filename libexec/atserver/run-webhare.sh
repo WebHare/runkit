@@ -114,12 +114,12 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
     CMDLINE+=(podman run -v "$WEBHARE_DATAROOT:/opt/whdata"$MOUNTFLAGS)
   fi
 
-  if [ "$ASSERVICE" ]; then
+  # --sdnotify=conmon - WH doesn't support NOTIFY_SOCKET yet so a succesful container start will have to do for readyness (https://docs.podman.io/en/v4.4/markdown/options/sdnotify.html)
+  if [ -n "$ASSERVICE" ] && [ "$WHRUNKIT_CONTAINERENGINE" == "podman" ]; then
     DOCKEROPTS+=(--sdnotify=conmon)
   fi
 
   # Added --no-hosts - this easily breaks connectivity to the proxy server if it's aliased to ::1
-  # --sdnotify=conmon - WH doesn't support NOTIFY_SOCKET yet so a succesful container start will have to do for readyness (https://docs.podman.io/en/v4.4/markdown/options/sdnotify.html)
   CMDLINE+=(-h "$WHRUNKIT_TARGETSERVER".docker
                --network "$WHRUNKIT_NETWORKNAME"
                --ip "$USEIP"

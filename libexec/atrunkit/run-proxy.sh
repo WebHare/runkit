@@ -88,7 +88,8 @@ else
   fi
 fi
 
-if [ "$ASSERVICE" ]; hten
+# --sdnotify=conmon - our proxy doesn't support NOTIFY_SOCKET yet so a succesful container start will have to do for readyness (https://docs.podman.io/en/v4.4/markdown/options/sdnotify.html)
+if [ -n "$ASSERVICE" ] && [ "$WHRUNKIT_CONTAINERENGINE" == "podman" ]; then
   DOCKEROPTS+=(--sdnotify=conmon)
 fi
 
@@ -97,7 +98,6 @@ DOCKEROPTS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
               --name "$CONTAINERNAME"
               --label runkittype=proxy
               "--ulimit" "core=0"
-              --sdnotify=conmon
               --log-opt max-size=50m
               --log-opt max-file=5
               "${RUNIMAGE:-}"
@@ -121,8 +121,8 @@ cleanup()
 main()
 {
   echo "- Stopping any existing container"
-  "$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERNAME" 2>/dev/null
-  "$WHRUNKIT_CONTAINERENGINE" rm -f -v "$CONTAINERNAME" 2>/dev/null
+  "$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERNAME" || true 2>/dev/null
+  "$WHRUNKIT_CONTAINERENGINE" rm -f -v "$CONTAINERNAME" || true 2>/dev/null
 
   echo "- Creating new container"
   CONTAINERID=$("$WHRUNKIT_CONTAINERENGINE" create --rm "${DOCKEROPTS[@]}")
