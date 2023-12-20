@@ -11,7 +11,7 @@ exit_syntax()
 }
 
 DETACH=""
-STARTUPOPT=""
+CONTAINER_CMDLINE=()
 DOCKEROPTS=()
 ASSERVICE=""
 REQUIREUNITS=""
@@ -22,7 +22,7 @@ while true; do
     DETACH="1"
     shift
   elif [ "$1" == "--rescue" ]; then
-    STARTUPOPT="/bin/bash"
+    CONTAINER_CMDLINE+=("/bin/bash")
     DOCKEROPTS+=(-ti)
     shift
   elif [ "$1" == "--dockeropt" ]; then
@@ -61,13 +61,19 @@ done
 
 CMDLINE=()
 
+if [ -n "$ASSERVICE" ]; then
+  if [ -n "$REQUIREUNITS" ]; then
+    systemctl start $REQUIREUNITS # start all of the required units, they may mount the whdata partition
+  fi
+fi
+
 mkdir -p "$WEBHARE_DATAROOT" #Ensure the dataroot is there
 
 if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   configure_runkit_podman
 
   # when not installing as a service, kill the current container
-  [ -z "$ASSERVICE" ] &&   killcontainer "$WHRUNKIT_CONTAINERNAME"
+  [ -z "$ASSERVICE" ] && killcontainer "$WHRUNKIT_CONTAINERNAME"
 
   USEIMAGE="$(cat "$WHRUNKIT_TARGETDIR"/container.image)"
   # Looks like we have to launch this WebHare using podman
@@ -111,7 +117,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
       DOCKEROPTS+=(--user="$(id -u):$(id -g)" --userns=keep-id)
     fi
 
-    CMDLINE+=(podman run -v "$WEBHARE_DATAROOT:/opt/whdata"$MOUNTFLAGS)
+    CMDLINE+=(podman run -v "$WEBHARE_DATAROOT:/opt/whdata$MOUNTFLAGS")
   fi
 
   # --sdnotify=conmon - WH doesn't support NOTIFY_SOCKET yet so a succesful container start will have to do for readyness (https://docs.podman.io/en/v4.4/markdown/options/sdnotify.html)
@@ -131,7 +137,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
                --name "$WHRUNKIT_CONTAINERNAME"
                "${DOCKEROPTS[@]}"
                "$USEIMAGE"
-               $STARTUPOPT)
+               "${CONTAINER_CMDLINE[@]}")
 
 else
   CMDLINE=("$WHRUNKIT_WHCOMMAND" console)
