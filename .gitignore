@@ -1,2 +1,4 @@
 /local
 tests/.vagrant
+# WebHare will manage the tsconfig.json for the project
+/tsconfig.json
