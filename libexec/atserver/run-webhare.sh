@@ -86,22 +86,26 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
 
   USEIP="$(cat "$WHRUNKIT_TARGETDIR"/container.ipv4 2>/dev/null || true)"
   if [ -z "$USEIP" ]; then
-    # Find a free IP address
-    for LASTOCTET in $(seq 2 253) ; do
-      ISINUSE=0
-      USEIP="${WHRUNKIT_NETWORKPREFIX}.${LASTOCTET}"
-      for IP in $(cat $WHRUNKIT_DATADIR/*/container.ipv4 2>/dev/null || true); do
-        if [ "$IP" == "$USEIP" ]; then
-          ISINUSE=1
+    (
+      flock -s 200
+      # Find a free IP address
+      for LASTOCTET in $(seq 2 253) ; do
+        ISINUSE=0
+        USEIP="${WHRUNKIT_NETWORKPREFIX}.${LASTOCTET}"
+        for IP in $(cat "$WHRUNKIT_DATADIR"/*/container.ipv4 2>/dev/null || true); do
+          if [ "$IP" == "$USEIP" ]; then
+            ISINUSE=1
+            break;
+          fi
+        done
+        if [ "$ISINUSE" == "0" ]; then
           break;
         fi
       done
-      if [ "$ISINUSE" == "0" ]; then
-        break;
-      fi
-    done
-    [ "$ISINUSE" == "0" ] || die "Unable to find a free IP address"
-    echo $USEIP > "$WHRUNKIT_TARGETDIR"/container.ipv4
+      [ "$ISINUSE" == "0" ] || die "Unable to find a free IP address"
+      echo "$USEIP" > "$WHRUNKIT_TARGETDIR"/container.ipv4
+    ) 200>"$WHRUNKIT_DATADIR"/.lock
+    USEIP="$(cat "$WHRUNKIT_TARGETDIR"/container.ipv4 2>/dev/null || true)"
   fi
 
  # if [ -z "$WHRUNKIT_TARGETDIR"/container.ipv4 ]; then

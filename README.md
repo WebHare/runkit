@@ -1,4 +1,4 @@
-# WebHare runkit
+# WebHare Runkit
 Tools for running WebHare on desktops and servers and testing backup/restore procedures
 
 Download this repository using either of
@@ -14,25 +14,18 @@ it directly when invoking it. All examples below assume that `runkit` will invok
 We recommend adding `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your `~/.profile` or similar bash startup script
 
 Runkit will store its data in `$HOME/whrunkit/` or `/opt/runkit-data/` by default. You can override this directory by setting
-the WHRUNKIT_ROOT environment varaible
+the WHRUNKIT_ROOT environment varaible.
 
 ## Building WebHare from source
 ```bash
 runkit get-webhare-source
 runkit create-server --default mywebhare
-runkit @mywebhare wh make
+runkit wh make
 ```
 
-### Checking out an additional source tree
-This is used to eg manually verify a bootstrap-test (eg. whether you can still compile a bare source tree)
+If you want to develop modules in WebHare you should install the `dev` module next.
 
-```bash
-runkit get-webhare-source ~/projects/webhare-bootstrap-test
-runkit create-server --source ~/projects/webhare-bootstrap-test bootstrap-test
-runkit-reload
-```
-
-You can then try eg `wh webhare-bootstrap-test mic`
+If you want to modify WebHare itself or develop on the supporting code (eg the VSCode module, proxy or langauge extensions) see [Developing WebHare](doc/webhare-dev.md)
 
 ## Managing WebHare installations
 Before you can use runkit, you need to set up a new installation or add your existing installation:
@@ -51,48 +44,6 @@ runkit add-existing-server --default myserver ~/projects/whdata/myserver
 The primary installation is the one with baseport '13679' and will be bound to the `wh` alias by runkit's setupmyshell.
 Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always target a server using `runkit @<server> ...`.
 
-## Setting up a discardable WebHare for CI tests
-You can setup an installation for easily running CI tests on a 'fresh' WebHare install. There are many different ways to
-set this up, as an example (edit as necessary)
-
-```bash
-# Create a WebHare server named 'ci'
-runkit create-server ci
-runkit-reload
-
-# Setup environment and startup script to configure it
-cd "$(runkit @ci getserverconfigdir)"
-echo "export WEBHARE_CI=1" > environment.sh
-cat << HERE > startup.sh
-#!/bin/bash
-if ! wh webserver addport 8888 2>/dev/null ; then
-  echo "looks like startup script has already run"
-  exit 0
-fi
-
-echo "Setting up for tests"
-wh webserver addbackend --default http://localhost:8888/
-wh webhare_testsuite:reset
-wh users adduser --sysop --password secret sysop@example.net
-wh registry set system.backend.layout.infotitle "CI login info"
-wh registry set system.backend.layout.infotext "Login using username sysop@example.net and password secret"
-exit 0
-HERE
-
-chmod a+x environment.sh startup.sh
-
-mkdir -p "/$(wh-ci getdatadir)/etc"
-touch "/$(wh-ci getdatadir)/etc/allow-fresh-db"
-
-# To start your database fresh:
-runkit @ci freshdbconsole
-# And then in a second terminal you can already...
-wh-ci runtest "consilio.*"
-
-# Install some modules from your primary insatllation
-ln -s "$(wh getmoduledir dev)" "$(wh-ci getdatadir)/installedmodules/"
-```
-
 ### Using podman
 runkit can be used to manage a podman-based server.
 
@@ -102,7 +53,7 @@ runkit run-proxy --as-service
 
 ## Restoring WebHare backups
 We've built runkit restore around borg backup repositories. You need to supply runkit with the proper credentials to
-access these backups. Request these credentials from whoever is hosting your backups. Either the 
+access these backups. Request these credentials from whoever is hosting your backups. Either the
 `*borgbase.borg` or the `*rsync.borg` files can be used (if both available).
 
 Paste these credentials into `runkit set-borg-credentials <server>` and test the credentials
@@ -149,9 +100,9 @@ wh cli getoverride "Verifying restored server"
 Eg. to locally debug an issue with a server. This assumes you have runkit and WebHare's source tree installed. In the
 example the container is still named `demo` and the `demo.borg` credentials file is present.
 
-Use `runkit restore-server` to create a new 'restored from backup' server (don't use `runkit create-server`). 
-You can add `--nodocker` to `restore-server` and `launch-webhare.sh` to use your local WebHare source tree 
-instead of docker containers. This will generally be faster if you've built a compatible version of WebHare for 
+Use `runkit restore-server` to create a new 'restored from backup' server (don't use `runkit create-server`).
+You can add `--nodocker` to `restore-server` and `launch-webhare.sh` to use your local WebHare source tree
+instead of docker containers. This will generally be faster if you've built a compatible version of WebHare for
 the data you're restoring.
 
 You can add the `--fast` option to `restore-server` to skip the restoration of logs and output.
@@ -164,10 +115,6 @@ runkit restore-server $CONTAINER
 runkit @$CONTAINER console
 ```
 
-### Project links
-If you have other git projects that you want to manage using `whcd`, `wh up`, `wh st`
-etcetera, you should add them using `runkit link-project`. Eg `runkit link-project ~/projects/webhare-language-vscode/`
-
 ### Troubleshooting
 If borg gives you such as `argument REPOSITORY_OR_ARCHIVE: Invalid location format: ""`
 you need to `open-backup.sh` on the server first. This sets some environment
@@ -178,5 +125,3 @@ To watch the logs for a running WebHare: `~/webhare-runkit/bin/watch-webhare.sh 
 Keep in mind that if you run all this on a mac, WebHare's database will be running
 over a Docker volume mount and eg. index reconstruction after the restore can take
 quite some time, especially if this installation isn't using postgres yet.
-
-

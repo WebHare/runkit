@@ -78,4 +78,3 @@ runkit list-backups $RESTORESERVER
 runkit restore-server $RESTORESERVER
 bin/startup-proxy-and-webhare.sh $RESTORESERVER
 ```
-
