@@ -16,7 +16,7 @@ runkit create-server --source ~/projects/webhare-bootstrap-test bootstrap-test
 runkit-reload
 ```
 
-You can then try eg `wh webhare-bootstrap-test mic`
+You can then try eg `runkit @webhare-bootstrap-test wh mic`
 
 ## Setting up a discardable WebHare for CI tests
 You can setup an installation for easily running CI tests on a 'fresh' WebHare install. There are many different ways to
