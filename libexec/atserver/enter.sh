@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# short: Open a shell inside the container's network
+# short: Open a shell inside the container
 
 [ -n "$WHRUNKIT_CONTAINERNAME" ] || die "Not running in a container"
 iscontainerup "$WHRUNKIT_CONTAINERNAME" || die "Container $WHRUNKIT_CONTAINERNAME is not running"
 PID="$( "$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Pid}}' "$WHRUNKIT_CONTAINERNAME" )"
 
 if [ "$1" != "" ]; then
-  exec nsenter -n -u -i -t "$PID" "$@"
+  exec nsenter --all -t "$PID" "$@"
 else
-  PS1="[$(hostname --short)%${WHRUNKIT_TARGETSERVER} (network) \W]\$ " nsenter -n -u -i -t "$PID" /bin/bash --noprofile --norc
+  PS1="[$(hostname --short)%${WHRUNKIT_TARGETSERVER} \W]\$ " nsenter --all -t "$PID" /bin/bash --noprofile --norc
 fi
