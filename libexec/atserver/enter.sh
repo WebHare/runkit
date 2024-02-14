@@ -4,10 +4,15 @@
 
 [ -n "$WHRUNKIT_CONTAINERNAME" ] || die "Not running in a container"
 iscontainerup "$WHRUNKIT_CONTAINERNAME" || die "Container $WHRUNKIT_CONTAINERNAME is not running"
-PID="$( "$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Pid}}' "$WHRUNKIT_CONTAINERNAME" )"
 
-if [ "$1" != "" ]; then
-  exec nsenter --all -t "$PID" "$@"
+# we're not using nsenter --all now, it doesn't inherit the  containers environment
+
+if [ "$1" != "" ]; then #sending a command
+  EXECOPTS="-i"
+  CMD=("$@")
 else
-  PS1="[$(hostname --short)%${WHRUNKIT_TARGETSERVER} \W]\$ " nsenter --all -t "$PID" /bin/bash --noprofile --norc
+  EXECOPTS="-ti"
+  CMD=("/bin/bash")
 fi
+
+exec "$WHRUNKIT_CONTAINERENGINE" exec $EXECOPTS "$WHRUNKIT_CONTAINERNAME" env WEBHARE_CLI_USER="$WEBHARE_CLI_USER" PS1="[$(hostname --short)%${WHRUNKIT_TARGETSERVER} \W]\$ " "${CMD[@]}"
