@@ -148,7 +148,7 @@ function settargetdir
       WHRUNKIT_TARGETSERVER="$(cat "$WHRUNKIT_DATADIR/_settings/defaultwebhare")"
     else
       for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
-        BASEPORT="$(cat "$WHRUNKIT_DATADIR/$SERVER/baseport" 2>/dev/null)"
+        set_from_file BASEPORT "$WHRUNKIT_DATADIR/$SERVER/baseport"
         if [ "$BASEPORT" == "13679" ]; then
           WHRUNKIT_TARGETSERVER="$SERVER"
           break
@@ -181,8 +181,9 @@ function loadtargetsettings
 
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already
   WEBHARE_ISRESTORED=""
-  WEBHARE_BASEPORT="$(cat "$WHRUNKIT_TARGETDIR/baseport" 2>/dev/null || true)"
-  WEBHARE_DATAROOT="$(cat "$WHRUNKIT_TARGETDIR/dataroot" 2>/dev/null || true)"
+  set_from_file WEBHARE_BASEPORT "$WHRUNKIT_TARGETDIR/baseport"
+  set_from_file WEBHARE_DATAROOT "$WHRUNKIT_TARGETDIR/dataroot"
+
   if [ -d "$WHRUNKIT_TARGETDIR" ]; then #Only create subdirs when the targetdir exists to prevent `runkit @nosuchserver wh dirs` from littering files
     if [ -z "$WEBHARE_DATAROOT" ]; then
       WEBHARE_DATAROOT="$WHRUNKIT_TARGETDIR/whdata"
@@ -291,6 +292,15 @@ function load_forgeroot()
 {
   WHRUNKIT_FORGEROOT="$(cat "$WHRUNKIT_DATADIR"/_settings/forgeroot 2>/dev/null || true)"
   [ -n "$WHRUNKIT_FORGEROOT" ] || WHRUNKIT_FORGEROOT="https://gitlab.com/webhare/"
+}
+
+# Safely (ie don't trigger 'set -e' abort) set an environment value from a file which may not exist
+set_from_file()
+{
+  local VARNAME"=$1"
+  # shellcheck disable=SC2034 disable=SC2155
+  local RESULT="$(cat "$2" 2>/dev/null || true)"
+  eval "$VARNAME"=\$RESULT
 }
 
 # Initialize COMP_WORDS, COMP_CWORD and COMPREPLY. Split on whitespace only, ignoring COMP_WORDBREAKS

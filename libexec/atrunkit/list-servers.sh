@@ -15,8 +15,8 @@ right_pad()
 ANY=""
 for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
   TARGETDIR="$WHRUNKIT_DATADIR/$SERVER"
-  BASEPORT="$(cat "$TARGETDIR/baseport" 2>/dev/null)"
-  CONTAINERIMAGE="$(cat "$TARGETDIR/container.image" 2>/dev/null)"
+  set_from_file BASEPORT "$TARGETDIR/baseport"
+  set_from_file CONTAINERIMAGE "$TARGETDIR/container.image"
   if [ -z $BASEPORT ] && [ -z "$CONTAINERIMAGE" ]; then
     continue
   fi
