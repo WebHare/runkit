@@ -8,12 +8,8 @@ exit_syntax()
   exit 1
 }
 
-
-DETACH=""
 TORUN=()
 DOCKEROPTS=()
-RESCUE=0
-SYSTEMD=
 ASSERVICE=
 
 while true; do
@@ -25,9 +21,6 @@ while true; do
     shift
   elif [ "$1" == "--as-service" ]; then
     ASSERVICE="1"
-    shift
-  elif [ "$1" == "--systemd" ]; then
-    SYSTEMD=1
     shift
   elif [ "$1" == "--rescue" ]; then
     TORUN=("/bin/sleep 604800")
@@ -82,7 +75,7 @@ if [ "$(uname)" == "Darwin" ]; then
 else
   DOCKEROPTS+=(--network host)
 
-  if [ -z "$SYSTEMD" ] && [ -z "$ASSERVICE" ] && [ "$(systemctl is-active $CONTAINERNAME)" == "active" ]; then
+  if [ -z "$ASSERVICE" ] && [ "$(systemctl is-active $CONTAINERNAME)" == "active" ]; then
     echo "You need to 'systemctl stop $CONTAINERNAME' before attemping to start us in the foreground"
     exit 1
   fi
