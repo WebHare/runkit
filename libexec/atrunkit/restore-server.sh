@@ -47,7 +47,7 @@ while true; do
     shift
     BORGOPTIONS+=(--exclude "$1")
     shift
-  elif [ "$1" == "--dockerimage" ]; then
+  elif [ "$1" == "--image" ]; then
     shift
     DOCKERIMAGE="$1"
     shift
