@@ -4,13 +4,15 @@ set -eo pipefail
 
 exit_syntax()
 {
-  echo "Syntax: runkit run-proxy [--sh] [--rescue]"
+  echo "Syntax: runkit run-proxy [--sh] [--rescue] [--as-service]"
   exit 1
 }
 
 TORUN=()
 DOCKEROPTS=()
 ASSERVICE=
+NORESTART=""
+NOSTART=""
 
 while true; do
   if [ "$1" == "--help" ]; then
@@ -24,6 +26,12 @@ while true; do
     shift
   elif [ "$1" == "--rescue" ]; then
     TORUN=("/bin/sleep 604800")
+    shift
+  elif [ "$1" == "--no-restart" ]; then
+    NORESTART="1"
+    shift
+  elif [ "$1" == "--no-start" ]; then
+    NOSTART="1"
     shift
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
@@ -185,7 +193,13 @@ HERE
 
   systemctl daemon-reload
   systemctl enable runkit-proxy #ensure autostart
-  systemctl start runkit-proxy
+  if [ -z "$NOSTART" ]; then
+    if [ -n "$NORESTART" ]; then
+      systemctl start runkit-proxy
+    else
+      systemctl restart runkit-proxy
+    fi
+  fi
 
   echo "Proxy initialized as unit"
   exit 0

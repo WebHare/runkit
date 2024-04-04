@@ -16,6 +16,7 @@ DOCKEROPTS=()
 ASSERVICE=""
 REQUIREUNITS=""
 NORESTART=""
+NOSTART=""
 
 while true; do
   if [ "$1" == "--detach" ]; then
@@ -46,6 +47,9 @@ while true; do
     shift
   elif [ "$1" == "--no-restart" ]; then
     NORESTART="1"
+    shift
+  elif [ "$1" == "--no-start" ]; then
+    NOSTART="1"
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
@@ -184,10 +188,12 @@ HERE
 
   systemctl daemon-reload
   systemctl enable "$WHRUNKIT_CONTAINERNAME" #ensure autostart
-  if [ -n "$NORESTART" ]; then
-    systemctl start "$WHRUNKIT_CONTAINERNAME"
-  else
-    systemctl restart "$WHRUNKIT_CONTAINERNAME"
+  if [ -z "$NOSTART" ]; then
+    if [ -n "$NORESTART" ]; then
+      systemctl start "$WHRUNKIT_CONTAINERNAME"
+    else
+      systemctl restart "$WHRUNKIT_CONTAINERNAME"
+    fi
   fi
   exit 0
 fi
