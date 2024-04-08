@@ -21,5 +21,5 @@ done < <(xargs -0 -L1 -a "/proc/$PID/environ" | grep -E '^[A-Za-z0-9_]+=');
 if [ "$1" != "" ]; then
    exec nsenter --all -t "$PID" "$@"
  else
-  PS1="[$(hostname --short)%${WHRUNKIT_TARGETSERVER} \W]\$ " nsenter --all -t "$PID" /bin/bash --noprofile --norc
+  PS1="[$(hostname --short)@${WHRUNKIT_TARGETSERVER} \W]\$ " nsenter --all -t "$PID" /bin/bash --noprofile --norc
 fi
