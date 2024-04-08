@@ -1,7 +1,10 @@
 #!/bin/bash
+
+# short: Returns shell configuration to enable `wh` and `whcd` commands
+
 if [ -t 1 ]; then
   # If you want to see the output, `runkit setupmyshell | cat`
-  echo "\`runkit setupmyshell\` should be invoked as: eval \$(\"$WHRUNKIT_ORIGCOMMAND\" setupmyshell)" 1>&2
+  echo "'runkit setupmyshell' should be invoked as: eval \$(\"$WHRUNKIT_ORIGCOMMAND\" setupmyshell)" 1>&2
   exit 1
 fi
 

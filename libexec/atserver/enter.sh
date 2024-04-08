@@ -18,8 +18,12 @@ do
   export $LINE
 done < <(xargs -0 -L1 -a "/proc/$PID/environ" | grep -E '^[A-Za-z0-9_]+=');
 
+[ -n "$RUNKIT_TARGET_SLUG" ] || RUNKIT_TARGET_SLUG="$WHRUNKIT_TARGETSERVER@$(hostname --short)"
+PS1="[$RUNKIT_TARGET_SLUG \W]\$ "
+export PS1
+
 if [ "$1" != "" ]; then
-   exec nsenter --all -t "$PID" "$@"
+  exec nsenter --all -t "$PID" "$@"
  else
-  PS1="[$(hostname --short)@${WHRUNKIT_TARGETSERVER} \W]\$ " nsenter --all -t "$PID" /bin/bash --noprofile --norc
+  exec nsenter --all -t "$PID" /bin/bash --noprofile --norc
 fi
