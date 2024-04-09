@@ -7,13 +7,8 @@ if [ "$1" == "freshdbconsole" ]; then
   exit 1
 fi
 
-if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
-  # it should be safe to assume its running inside docker
-  DOCKEROPTS="-i"
-  if [ -t 0 ] ; then
-    DOCKEROPTS="-ti"
-  fi
-  exec "$WHRUNKIT_CONTAINERENGINE" exec $DOCKEROPTS "$WHRUNKIT_CONTAINERNAME" wh "$@"
+if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then #inside a container
+  exec "$WHRUNKIT_ORIGCOMMAND" "@$WHRUNKIT_TARGETSERVER" enter wh "$@"
+else
+  exec "$WHRUNKIT_WHCOMMAND" "$@"
 fi
-
-exec "$WHRUNKIT_WHCOMMAND" "$@"

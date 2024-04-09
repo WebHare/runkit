@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # short: Open a shell inside the container
 
 [ -n "$WHRUNKIT_CONTAINERNAME" ] || die "Not running in a container"
@@ -18,12 +17,14 @@ do
   export $LINE
 done < <(xargs -0 -L1 -a "/proc/$PID/environ" | grep -E '^[A-Za-z0-9_]+=');
 
-[ -n "$RUNKIT_TARGET_SLUG" ] || RUNKIT_TARGET_SLUG="$WHRUNKIT_TARGETSERVER@$(hostname --short)"
+# NOTE: only gnu understands `hostname --short``, Mac needs `-s`
+[ -n "$RUNKIT_TARGET_SLUG" ] || RUNKIT_TARGET_SLUG="$WHRUNKIT_TARGETSERVER@$(hostname -s)"
 PS1="[$RUNKIT_TARGET_SLUG \W]\$ "
 export PS1
+export RUNKIT_TARGET_SLUG
 
 if [ "$1" != "" ]; then
   exec nsenter --all -t "$PID" "$@"
  else
-  exec nsenter --all -t "$PID" /bin/bash --noprofile --norc
+  exec nsenter --all -t "$PID" wh shell
 fi
