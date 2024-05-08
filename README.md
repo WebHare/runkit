@@ -14,7 +14,7 @@ it directly when invoking it. All examples below assume that `runkit` will invok
 We recommend adding `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your `~/.profile` or similar bash startup script
 
 Runkit will store its data in `$HOME/whrunkit/` or `/opt/runkit-data/` by default. You can override this directory by setting
-the WHRUNKIT_ROOT environment varaible.
+the `WHRUNKIT_DATADIR` environment varaible.
 
 ## Building WebHare from source
 ```bash
