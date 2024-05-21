@@ -3,6 +3,7 @@
 # short: Restore a WebHare server and create as a runkit installation
 
 set -e #fail on any uncaught error
+set -x
 
 exit_syntax()
 {
@@ -107,12 +108,18 @@ if [ -z "$SKIPDOWNLOAD" ]; then
 fi
 
 #whdata is ususally deeper than expected, move it into place
-if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't already move it int oplace..
+if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't already move it into place..
   WHDATAFOLDER="$(find "$DOWNLOADTO" -name whdata -print -quit)"
   [ -z "$WHDATAFOLDER" ] && WHDATAFOLDER="$(find "$DOWNLOADTO" -name opt-whdata -print -quit)"
   if [ -z "$WHDATAFOLDER" ] || ! [ -d "$WHDATAFOLDER/preparedbackup" ]; then
     echo "Cannot find the 'whdata' folder inside the backup $DOWNLOADTO, cannot continue the restore"
     exit 1
+  fi
+
+  if [ -e "$WHDATAFOLDER/incomingbackup" ]; then
+    # This is a restore of an earlier restored server, and it still had a incomingbackup folder in its whdata
+    # That will collide with the incomingbackup folder we just created, so rename it
+    mv "$WHDATAFOLDER/incomingbackup" "$WHDATAFOLDER/incomingbackup.$(date "+%Y-%m-%dT%H:%M:%S")"
   fi
 
   # if [ -d "$WHDATAFOLDER/local" ]; then #FIXME document what exactly uses this - who stores into local/ ? is it documented?
