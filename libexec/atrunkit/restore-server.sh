@@ -3,7 +3,6 @@
 # short: Restore a WebHare server and create as a runkit installation
 
 set -e #fail on any uncaught error
-set -x
 
 exit_syntax()
 {
