@@ -25,15 +25,11 @@ DOCKERIMAGE=""
 FAST=""
 RESTOREARCHIVE=""
 BORGOPTIONS=(--progress)
-VERBOSE=""
 
 while true; do
   if [ "$1" == "--archive" ]; then
     shift
     RESTOREARCHIVE="$1"
-    shift
-  elif [ "$1" == "-v" ] || [ "$1" == "-verbose" ]; then
-    VERBOSE="1"
     shift
   elif [ "$1" == "--skipdownload" ]; then
     SKIPDOWNLOAD="1"
@@ -98,8 +94,7 @@ if [ -n "$FAST" ]; then
 fi
 
 if [ -d "$WEBHARE_DATAROOT/dbase" ] || [ -d "$WEBHARE_DATAROOT/postgresql" ]; then
-  echo "A database already exists in $WEBHARE_DATAROOT/postgresql"
-  exit 1
+  die "A database already exists in $WEBHARE_DATAROOT/postgresql"
 fi
 
 DOWNLOADTO="$WEBHARE_DATAROOT/incomingbackup"
@@ -108,12 +103,12 @@ if [ -z "$SKIPDOWNLOAD" ]; then
 fi
 
 #whdata is ususally deeper than expected, move it into place
-if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't already move it into place..
+RESTOREFROMDIR="$WEBHARE_DATAROOT/preparedbackup"
+if [ ! -d "$RESTOREFROMDIR" ]; then # Check if we didn't already move it into place..
   WHDATAFOLDER="$(find "$DOWNLOADTO" -name whdata -print -quit)"
   [ -z "$WHDATAFOLDER" ] && WHDATAFOLDER="$(find "$DOWNLOADTO" -name opt-whdata -print -quit)"
   if [ -z "$WHDATAFOLDER" ] || ! [ -d "$WHDATAFOLDER/preparedbackup" ]; then
-    echo "Cannot find the 'whdata' folder inside the backup $DOWNLOADTO, cannot continue the restore"
-    exit 1
+    die "Cannot find the 'whdata' folder inside the backup $DOWNLOADTO, cannot continue the restore"
   fi
 
   if [ -e "$WHDATAFOLDER/incomingbackup" ]; then
@@ -133,6 +128,11 @@ if [ ! -d "$WEBHARE_DATAROOT/preparedbackup" ]; then # Check if we didn't alread
   # createCacheDirTagFile "$WEBHARE_DATAROOT"
 fi
 
+EXPECTFILE="$RESTOREFROMDIR/backup/base.tar.gz"
+if [ ! -f "$EXPECTFILE" ]; then
+  die "$RESTOREFROMDIR doesn't appear to contain a backup to restore, $EXPECTFILE is missing"
+fi
+
 mkdir -p "$WEBHARE_DATAROOT"
 [ -f "$WEBHARE_DATAROOT"/webhare.restoredone ] && rm "$WEBHARE_DATAROOT"/webhare.restoredone #remove 'done' marker
 # download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
@@ -143,7 +143,7 @@ if [ -n "$NODOCKER" ]; then
   ensure_whrunkit_command
   [ -f "$WHRUNKIT_TARGETDIR/container.image" ] && rm -f "$WHRUNKIT_TARGETDIR/container.image"
 
-  "$WHRUNKIT_WHCOMMAND" restore "$WEBHARE_DATAROOT/preparedbackup"
+  "$WHRUNKIT_WHCOMMAND" restore "$RESTOREFROMDIR"
   date > "$WEBHARE_DATAROOT"/webhare.restoredone
   echo ""
   echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
