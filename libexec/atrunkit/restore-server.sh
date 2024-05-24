@@ -103,6 +103,12 @@ fi
 
 #whdata is ususally deeper than expected, move it into place
 RESTOREFROMDIR="$WEBHARE_DATAROOT/preparedbackup"
+
+# WH before 5.5/5.6 containt a bug and may create 'whdata/preparedbackup' even if in rescue mode.
+# This may be triggered whilst we are still restoring but a backup is attempted by eg cron
+# As whdata/preparedbackup will be empty, just attempting to rmdir it always is an easy workaround
+rmdir "$RESTOREFROMDIR" 2>/dev/null || true   #remove when WHs before 5.7 are irrelevant
+
 if [ ! -d "$RESTOREFROMDIR" ]; then # Check if we didn't already move it into place..
   WHDATAFOLDER="$(find "$DOWNLOADTO" -name whdata -print -quit)"
   [ -z "$WHDATAFOLDER" ] && WHDATAFOLDER="$(find "$DOWNLOADTO" -name opt-whdata -print -quit)"
