@@ -1,4 +1,7 @@
 /local
 tests/.vagrant
+# Ignore forks and stuff, important when copying between platforms
+._*
+.DS_Store
 # WebHare will manage the tsconfig.json for the project
 /tsconfig.json
