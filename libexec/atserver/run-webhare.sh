@@ -120,7 +120,8 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   else
     MOUNTFLAGS=""
     if [[ "$OSTYPE" != "darwin"* ]]; then
-      MOUNTFLAGS=":Z" #on darwin this triggers lsetxattr error, see https://github.com/containers/podman-compose/issues/509#issuecomment-1162988103
+      # MOUNTFLAGS=":Z" #on darwin this triggers lsetxattr error, see https://github.com/containers/podman-compose/issues/509#issuecomment-1162988103
+      DOCKEROPTS+=(--security-opt label=disable)
     else
       DOCKEROPTS+=(--user="$(id -u):$(id -g)" --userns=keep-id)
     fi
