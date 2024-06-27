@@ -221,10 +221,8 @@ function download_backup()
   if [ -z "$RESTOREARCHIVE" ]; then
     RESTOREARCHIVE="$(borg list --short --last 1)"
     [ -z "$RESTOREARCHIVE" ] && echo "No archive found!" && exit 1
-  else
-    # borg will print error messages to stderr (like "Archive ... does not exist")
-    borg info "::$RESTOREARCHIVE" > /dev/null || exit 1
   fi
+  # Just assume a specified archive will exist, checking using borg info is very slow (it'll download the chuck caches of *all* archives to do diskspace calculation
 
   echo "$RESTOREARCHIVE" > "$WHRUNKIT_TARGETDIR/restore.archive" #FIXME also apply to webhare.restore file
   date "+%Y-%m-%d" > "$WHRUNKIT_TARGETDIR/restore.date"
@@ -244,7 +242,7 @@ function download_backup()
 function validate_servername()
 {
   # NOTE: what more characters to allow? at least not '.' or '@' to prevent future ambiguity with metadata or remote server names
-  if ! [[ $1 =~ ^[a-z][-a-z0-9]*$ ]]; then
+  if ! [[ $1 =~ ^[0-9a-z][-a-z0-9]*$ ]]; then
     echo "Invalid server name '$1'" 1>&2
     exit 1
   fi
