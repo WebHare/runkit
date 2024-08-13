@@ -308,6 +308,9 @@ get_runkit_var()
       RESULT="$(cat "$WHRUNKIT_DATADIR"/_settings/forgeroot 2>/dev/null || true)"
       [ -n "$RESULT" ] || RESULT="https://gitlab.com/webhare/"
       ;;
+    defaultnetworkprefix)
+      RESULT="10.15.19"
+      ;;
     networkprefix)
       RESULT="$(cat "$WHRUNKIT_DATADIR"/_settings/networkprefix 2>/dev/null || true)"
       [ -n "$RESULT" ] || RESULT="10.15.19"
