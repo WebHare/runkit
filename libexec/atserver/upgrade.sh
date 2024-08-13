@@ -41,3 +41,5 @@ if iscontainerup "$WHRUNKIT_CONTAINERNAME" ; then
 else
   echo "container is not running - not restarting it"
 fi
+
+exit 0
