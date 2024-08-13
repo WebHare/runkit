@@ -4,10 +4,11 @@ set -eo pipefail
 
 exit_syntax()
 {
-  echo "Syntax: runkit run-proxy [--sh] [--rescue] [--as-service]"
+  echo "Syntax: runkit run-proxy [--sh] [--detach] [--rescue] [--as-service]"
   exit 1
 }
 
+DETACH=""
 TORUN=()
 DOCKEROPTS=()
 ASSERVICE=
@@ -17,6 +18,9 @@ NOSTART=""
 while true; do
   if [ "$1" == "--help" ]; then
     exit_syntax
+  elif [ "$1" == "--detach" ]; then
+    DETACH="1"
+    shift
   elif [ "$1" == "--sh" ]; then
     TORUN=("/bin/bash")
     DOCKEROPTS+=("-t" "-i")
@@ -94,6 +98,12 @@ if [ -n "$ASSERVICE" ] && [ "$WHRUNKIT_CONTAINERENGINE" == "podman" ]; then
   DOCKEROPTS+=(--sdnotify=conmon)
 fi
 
+if [ "$DETACH" == "1" ]; then
+  DOCKEROPTS+=(--detach)
+else
+  DOCKEROPTS+=(--rm)
+fi
+
 DOCKEROPTS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
               -e TZ=Europe/Amsterdam
               --name "$CONTAINERNAME"
@@ -105,19 +115,6 @@ DOCKEROPTS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
               "${TORUN[@]}"
              )
 
-cleanup()
-{
-  if [ -n "$CONTAINERID" ]; then
-    echo "- Stopping container $CONTAINERID ($CONTAINERNAME)"
-    "$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERID"
-
-    [ -x "$WHRUNKIT_DATADIR/_settings/containerchange.sh" ] && "$WHRUNKIT_DATADIR/_settings/containerchange.sh" stopped "$CONTAINERID" "$CONTAINERNAME"
-
-    CONTAINERID=""
-  fi
-}
-
-
 # Wrap into function to prevent updates from affecting running scripts
 main()
 {
@@ -125,36 +122,8 @@ main()
   "$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERNAME" || true 2>/dev/null
   "$WHRUNKIT_CONTAINERENGINE" rm -f -v "$CONTAINERNAME" || true 2>/dev/null
 
-  echo "- Creating new container"
-  CONTAINERID=$("$WHRUNKIT_CONTAINERENGINE" create --rm "${DOCKEROPTS[@]}")
-
-  if [ -z "$CONTAINERID" ]; then
-    echo Creation failed
-    exit 1
-   fi
-
-  echo "- Starting it"
-  if ! "$WHRUNKIT_CONTAINERENGINE" start $CONTAINERNAME ; then
-    echo Startup failed
-    exit 1
-   fi
-
-  trap cleanup EXIT INT TERM
-
-  if [ "$(uname)" != "Darwin" ]; then
-    PID="$("$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Pid}}' $CONTAINERNAME)"
-    mkdir -p /runkit-containers/
-    rm /runkit-containers/$CONTAINERBASENAME 2> /dev/null
-    ln -s /proc/$PID/root /runkit-containers/$CONTAINERBASENAME
-  fi
-
-  echo "===== vvv $CONTAINERNAME vvvv ============"
-  "$WHRUNKIT_CONTAINERENGINE" attach $CONTAINERNAME &
-  attachpid=$!
-
-  wait $attachpid
-
-  echo "===== ^^^ $CONTAINERNAME stopped ========= (attach returned status code $?)"
+  echo "- Starting new container"
+  exec "$WHRUNKIT_CONTAINERENGINE" run "${DOCKEROPTS[@]}"
 }
 
 if [ -n "$ASSERVICE" ]; then
@@ -181,11 +150,11 @@ Restart=always
 Type=notify
 NotifyAccess=all
 
-ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" stop runkit-proxy
-ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" rm -f -v runkit-proxy
-ExecStart="$WHRUNKIT_CONTAINERENGINE" run --rm ${DOCKEROPTS[@]}
-ExecStartPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started runkit-proxy
-ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange stopped runkit-proxy
+ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERNAME"
+ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" rm -f -v "$CONTAINERNAME"
+ExecStart="$WHRUNKIT_CONTAINERENGINE" run ${DOCKEROPTS[@]}
+ExecStartPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started "$CONTAINERNAME"
+ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange stopped "$CONTAINERNAME"
 
 [Install]
 WantedBy=multi-user.target
