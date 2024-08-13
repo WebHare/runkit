@@ -91,7 +91,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   USEIP="$(cat "$WHRUNKIT_TARGETDIR"/container.ipv4 2>/dev/null || true)"
   if [ -z "$USEIP" ]; then
     (
-      flock -s 200
+      [ "$(uname)" == "Darwin" ] || flock -s 200 # No flock on macOS, but we'll take our chances as macOS is not server-production-ready anyway
       # Find a free IP address
       for LASTOCTET in $(seq 2 253) ; do
         ISINUSE=0
