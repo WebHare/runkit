@@ -69,10 +69,11 @@ vagrant up
 ## Environment variables
 - WHRUNKIT_DATADIR - data root
 - WHRUNKIT_ROOT - source root (eg `$WHRUNKIT_ROOT/DEVELOPERS.md` is this file )
+- WHRUNKIT_INSTALLTO - override install location for install.sh
 - WHRUNKIT_PROJECTS - projects/development directory. defaults to `$HOME/projects`
 
-## Build docker and restore
 
+## Build docker and restore
 This recipe builds a local WebHare docker and restore a server into it
 
 ```bash
