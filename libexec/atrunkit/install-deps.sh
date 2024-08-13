@@ -1,4 +1,6 @@
 #!/bin/bash
+#short: install necessary Runkit dependencies
+
 set -e
 
 DIDPREPARE=""

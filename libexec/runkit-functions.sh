@@ -19,7 +19,7 @@ function die()
 function ensurecommands()
 {
   if ! hash "$@" >/dev/null 2>&1 ; then
-    "$WHRUNKIT_ROOT/bin/setup.sh"
+    "$WHRUNKIT_ROOT/libexec/atrunkit/install-deps.sh"
   fi
 }
 
