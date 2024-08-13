@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# short: Install system configuration script
+# short: Install system config, necessary packages
 
 set -eo pipefail
 
@@ -28,3 +28,5 @@ systemctl enable runkit-system-setup #ensure autostart
 systemctl start runkit-system-setup
 
 echo "System-setup initialized!"
+
+addpackage borgbackup openssh-client podman jq

@@ -39,7 +39,6 @@ function killcontainer()
 
 function configure_runkit_podman()
 {
-
   # This gives us an IP range to use:
   if [ "$WHRUNKIT_CONTAINERENGINE" == "docker" ]; then
     if ! docker network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
