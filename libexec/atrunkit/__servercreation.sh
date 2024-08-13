@@ -21,7 +21,9 @@ function prepare_newserver()
     exit 1
   fi
 
-  set_from_file BASEPORT "$WHRUNKIT_TARGETDIR/baseport"
+  if [ -z "$BASEPORT" ]; then
+    set_from_file BASEPORT "$WHRUNKIT_TARGETDIR/baseport"
+  fi
 
   if [ -z "$BASEPORT" ]; then
     if [ -n "$PRIMARY" ]; then
