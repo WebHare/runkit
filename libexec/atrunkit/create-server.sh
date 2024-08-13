@@ -87,6 +87,6 @@ echo "$BASEPORT" > "$WHRUNKIT_TARGETDIR/baseport"
 loadtargetsettings # reload to ensure we have loaded baseport/data settings
 
 if [ -z "$QUIET" ]; then
-  echo "Server created. To start: 'runkit @$WHRUNKIT_TARGETSERVER run-webhare' and access the server on http://127.0.0.1:$(($WEBHARE_BASEPORT + 9 ))"
+  echo "Server created. To start: 'runkit @$WHRUNKIT_TARGETSERVER run-webhare' and access the server on http://127.0.0.1:$(($WEBHARE_BASEPORT))"
   echo "Don't forget to run 'runkit-reload' to activate the 'wh-$WHRUNKIT_TARGETSERVER' command"
 fi
