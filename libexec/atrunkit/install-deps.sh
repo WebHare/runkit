@@ -14,11 +14,10 @@ function prepareinstall()
   fi
 
   DIDPREPARE=1
-  if which apt 2>/dev/null ; then
+  if hash apt 2>/dev/null ; then
     apt-get update
     INSTALL="apt-get install -f -y --no-install-recommends"
-    return
-  elif which dnf 2>/dev/null ; then
+  elif hash dnf 2>/dev/null ; then
     INSTALL="dnf install -y"
   else
     echo "Unknown packager"
