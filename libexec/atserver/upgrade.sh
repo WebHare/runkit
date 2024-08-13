@@ -8,12 +8,15 @@ function exit_syntax
   echo "WebHare server '$WHRUNKIT_TARGETSERVER' is currently running: $WHRUNKIT_CONTAINERIMAGE"
   exit 1
 }
-
+ENABLECONTAINER=
 while true; do
   if [ "$1" == "--help" ]; then
     exit_syntax
   elif [ "$1" == "--nopull" ]; then
     NOPULL=1
+    shift
+  elif [ "$1" == "--enablecontainer" ]; then
+    ENABLECONTAINER=1
     shift
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
@@ -26,12 +29,12 @@ done
 IMAGE="$1"
 
 [ -n "$IMAGE" ] || exit_syntax
-[ -n "$WHRUNKIT_CONTAINERNAME" ] || die "This WebHare is not in a Docker container"
+[ -z "$ENABLECONTAINER" ] && [ -z "$WHRUNKIT_CONTAINERNAME" ] && die "This WebHare is not configured to run in a container. Use --enablecontainer to explicitly convert it"
 
 configure_runkit_podman
-fix_webhareimage_parameter
+set_webhare_image # consumes $IMAGE and $NOPULL
 
-echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
+# TODO If converting from non-container to container, we should probably stop the server first
 
 if iscontainerup "$WHRUNKIT_CONTAINERNAME" ; then
   echo "container is running, restart it! If controlled by systemd: systemctl restart $WHRUNKIT_CONTAINERNAME"

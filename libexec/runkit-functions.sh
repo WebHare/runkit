@@ -57,7 +57,7 @@ function configure_runkit_podman()
   fi
 }
 
-function fix_webhareimage_parameter() # Assumes $IMAGE is the image name to check
+function set_webhare_image() # Assumes $IMAGE is the image name to check
 {
   if [[ $IMAGE =~ ^release/ ]]; then
     #slugify the image. eg release/5.2 will become release-5-2
@@ -75,7 +75,9 @@ function fix_webhareimage_parameter() # Assumes $IMAGE is the image name to chec
   fi
 
   COMMITREF="$("$WHRUNKIT_CONTAINERENGINE" image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
-  [ -z "$COMMITREF" ] && die "Image does not appear to be a WebHare image"
+  [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
+
+  echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
   return 0
 }
 

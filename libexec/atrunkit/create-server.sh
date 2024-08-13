@@ -73,8 +73,7 @@ fi
 
 if [ -n "$IMAGE" ]; then
   configure_runkit_podman
-  fix_webhareimage_parameter
-  echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
+  set_webhare_image
 else
   rm -f "$WHRUNKIT_TARGETDIR/container.image"
 fi
