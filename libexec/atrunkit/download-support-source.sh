@@ -10,7 +10,7 @@ load_forgeroot
 
 exit_syntax()
 {
-  echo "Syntax: runkit get-support-source [--dryrun] [destdir]"
+  echo "Syntax: runkit download-support-source [--dryrun] [--projects <projects>] [destdir]"
   exit 1
 }
 
@@ -21,6 +21,10 @@ while true; do
   elif [ "$1" == "--dryrun" ]; then
     DRYRUN="1"
     shift
+  elif [ "$1" == "--projects" ]; then
+    shift
+    SUPPORTING_PROJECTS="$1"
+    shift
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
     exit 1
@@ -30,7 +34,7 @@ while true; do
 done
 
 CHECKOUT_BASEDIR="${1}"
-[ -n "$CHECKOUT_BASEDIR" ] || CHECKOUT_BASEDIR="$HOME/projects"
+[ -n "$CHECKOUT_BASEDIR" ] || CHECKOUT_BASEDIR="$WHRUNKIT_PROJECTS"
 mkdir -p "$CHECKOUT_BASEDIR"
 mkdir -p "$WHRUNKIT_DATADIR"/_settings/projectlinks
 

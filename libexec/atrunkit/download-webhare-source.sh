@@ -11,7 +11,7 @@ REPOSITORY="${WHRUNKIT_FORGEROOT}platform.git"
 
 exit_syntax()
 {
-  echo "Syntax: runkit get-webhare-source [options] [destdir]"
+  echo "Syntax: runkit download-webhare-source [options] [destdir]"
   echo "  --repository <repository>: set repository to use (default: $REPOSITORY)"
   echo "  --branch <branch>: set branch to check out (default: $BRANCH)"
   exit 1
@@ -40,7 +40,7 @@ mkdir -p "$WHRUNKIT_DATADIR/_settings"
 
 CHECKOUT_TO="${1}"
 [ -n "$CHECKOUT_TO" ] || CHECKOUT_TO="$(cat "$WHRUNKIT_DATADIR/_settings/sourceroot" 2>/dev/null || true)"
-[ -n "$CHECKOUT_TO" ] || CHECKOUT_TO="$HOME/projects/webhare"
+[ -n "$CHECKOUT_TO" ] || CHECKOUT_TO="$WHRUNKIT_PROJECTS/webhare"
 
 if [ -d "$CHECKOUT_TO" ]; then
   echo "Checkout directory $CHECKOUT_TO already exists"

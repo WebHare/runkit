@@ -3,15 +3,14 @@
 ## Getting the supporting code
 ```bash
 # This will download and install the additional modules to your $HOME/projects directory
-runkit get-other-source
+runkit download-support-source
 ```
-
 
 ### Checking out an additional source tree
 This is used to eg manually verify a bootstrap-test (eg. whether you can still compile a bare source tree)
 
 ```bash
-runkit get-webhare-source ~/projects/webhare-bootstrap-test
+runkit download-webhare-source ~/projects/webhare-bootstrap-test
 runkit create-server --source ~/projects/webhare-bootstrap-test bootstrap-test
 runkit-reload
 ```
@@ -61,7 +60,7 @@ ln -s "$(wh getmoduledir dev)" "$(wh-ci getdatadir)/installedmodules/"
 ```
 
 ## Project links
-`get-other-source` sets up links to the supporting projects so you can access them using `whcd`
+`download-support-source` sets up links to the supporting projects so you can access them using `whcd`
 
 If you have other git projects that you want to manage using `whcd`, `wh up`, `wh st`
 etcetera, you should add them using `runkit link-project`. Eg `runkit link-project ~/projects/webhare-language-vscode/`

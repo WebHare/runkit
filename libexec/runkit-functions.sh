@@ -265,12 +265,12 @@ function resolve_whrunkit_command()
   if [ -z "$WEBHARE_DIR" ]; then
     # TODO Should we go around *ensuring* this is set everywhere? Or is this a very acceptible convention?
     #      Or we could just request you set a config option in the datadir point to the SOURCE checkout as that's what runkit needs/manages
-    if [ -x "$HOME/projects/webhare/whtree/bin/wh" ]; then
-      echo "runkit had to fall back to hardcoded $HOME/projects/webhare/whtree path" >&2
+    if [ -x "$WHRUNKIT_PROJECTS/webhare/whtree/bin/wh" ]; then
+      echo "runkit had to fall back to hardcoded $WHRUNKIT_PROJECTS/webhare/whtree path" >&2
       echo "Please create a file with the full path to your WebHare installation in $WHRUNKIT_DATADIR/_settings/sourceroot" >&2
-      echo "\$ echo $HOME/projects/webhare > $WHRUNKIT_DATADIR/_settings/sourceroot" >&2
+      echo "\$ echo $WHRUNKIT_PROJECTS/webhare > $WHRUNKIT_DATADIR/_settings/sourceroot" >&2
       sleep 2
-      WEBHARE_DIR="$HOME/projects/webhare/whtree"
+      WEBHARE_DIR="$WHRUNKIT_PROJECTS/webhare/whtree"
     fi
   fi
 
@@ -354,6 +354,8 @@ if [ -z "$WHRUNKIT_DATADIR" ]; then
     WHRUNKIT_DATADIR="$HOME/whrunkit"
   fi
 fi
+
+[ -n "$WHRUNKIT_PROJECTS" ] || WHRUNKIT_PROJECTS="$HOME/projects"
 
 [ -z "$WHRUNKIT_CONTAINERENGINE" ] && WHRUNKIT_CONTAINERENGINE=podman
 export WHRUNKIT_DATADIR WHRUNKIT_ROOT

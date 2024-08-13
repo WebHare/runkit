@@ -3,12 +3,17 @@
 set -eo pipefail
 source "${BASH_SOURCE%/*}/preptests.sh"
 
+if [ -z "$WHRUNKIT_DATADIR" ]; then
+  echo "WHRUNKIT_DATADIR not set"
+  exit 1
+fi
+
 mkdir -p "$WHRUNKIT_DATADIR/_settings"
 
 if [ -n "$RUNKIT_CI_SOURCEDOWNLOAD" ]; then
   echo - Test with sourcecode download
   echo "$TESTOUTPUTROOT/source" > "$WHRUNKIT_DATADIR/_settings/sourceroot"
-  runkit get-webhare-source
+  runkit download-webhare-source
 else
   # share source root then..
   cp "$HOME/whrunkit/_settings/sourceroot" "$WHRUNKIT_DATADIR/_settings/sourceroot"

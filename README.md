@@ -18,7 +18,7 @@ the `WHRUNKIT_DATADIR` environment varaible.
 
 ## Building WebHare from source
 ```bash
-runkit get-webhare-source
+runkit download-webhare-source
 runkit create-server --default mywebhare
 runkit wh make
 ```
