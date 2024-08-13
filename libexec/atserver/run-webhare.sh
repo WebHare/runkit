@@ -39,6 +39,7 @@ while true; do
     shift
   elif [ "$1" == "--publishrescueport" ]; then
     shift
+    [ -n "$1" ] || die "No port specified for --publishrescueport"
     DOCKEROPTS+=(--publish "$1:13679/tcp")
     DOCKEROPTS+=(--env WEBHARE_RESCUEPORT_BINDIP=0.0.0.0)
     shift
