@@ -42,21 +42,18 @@ CHECKOUT_TO="${1}"
 [ -n "$CHECKOUT_TO" ] || CHECKOUT_TO="$(cat "$WHRUNKIT_DATADIR/_settings/sourceroot" 2>/dev/null || true)"
 [ -n "$CHECKOUT_TO" ] || CHECKOUT_TO="$WHRUNKIT_PROJECTS/webhare"
 
-if [ -d "$CHECKOUT_TO" ]; then
+if [ -d "$CHECKOUT_TO"/.git ]; then
   echo "Checkout directory $CHECKOUT_TO already exists"
-  exit 1
+  git -C "$CHECKOUT_TO" fetch
+  git -C "$CHECKOUT_TO" checkout "$BRANCH"
+  git -C "$CHECKOUT_TO" pull --rebase
+else
+  git clone --recurse-submodules -b "$BRANCH" "$REPOSITORY" "$CHECKOUT_TO"
+  CHECKOUT_TO="$( cd "$CHECKOUT_TO" && pwd )"
 fi
-
-git clone --recurse-submodules -b "$BRANCH" "$REPOSITORY" "$CHECKOUT_TO"
-CHECKOUT_TO="$( cd "$CHECKOUT_TO" && pwd )"
 
 if [ ! -f "$WHRUNKIT_DATADIR/_settings/sourceroot" ]; then
   echo "$CHECKOUT_TO" > "$WHRUNKIT_DATADIR/_settings/sourceroot"
 fi
-
-# Store a pointer so we can find the source again at some point. We don't have any APIs that use this info yet though!
-CHECKOUTINFODIR="$WHRUNKIT_DATADIR/_settings/sourcecheckouts/$(date +%Y%m%dT%H%M%S)"
-mkdir -p "$CHECKOUTINFODIR"
-echo "$CHECKOUT_TO" > "$CHECKOUTINFODIR/sourceroot"
 
 exit 0
