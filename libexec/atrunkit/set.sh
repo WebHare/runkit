@@ -5,7 +5,7 @@ set -e #fail on any uncaught error
 
 exit_syntax()
 {
-  echo "Syntax: runkit set forgeroot <newroot>"
+  echo "Syntax: runkit set forgeroot|networkprefix <newvalue>"
   exit 1
 }
 
@@ -22,13 +22,17 @@ done
 
 CMD="$1"
 shift
+mkdir -p "$WHRUNKIT_DATADIR/_settings"
 
 case "$CMD" in
   forgeroot)
     NEWROOT="$1"
     [ -n "$NEWROOT" ] || die "No new root specified"
-    mkdir -p "$WHRUNKIT_DATADIR/_settings"
     echo "$NEWROOT" > "$WHRUNKIT_DATADIR/_settings/forgeroot"
+    ;;
+  networkprefix)
+    [ -n "$1" ] || die "No new prefix specified"
+    echo "$1" > "$WHRUNKIT_DATADIR/_settings/networkprefix"
     ;;
   *)
     echo "Unknown parameter"

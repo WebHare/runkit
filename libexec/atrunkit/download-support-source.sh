@@ -5,8 +5,7 @@
 set -eo pipefail
 
 SUPPORTING_PROJECTS="proxy lsp/webhare-lsp-types lsp/webhare-language-vscode"
-
-load_forgeroot
+get_runkit_var WHRUNKIT_FORGEROOT forgeroot
 
 exit_syntax()
 {

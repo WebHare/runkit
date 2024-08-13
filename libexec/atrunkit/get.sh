@@ -5,7 +5,7 @@ set -e #fail on any uncaught error
 
 exit_syntax()
 {
-  echo "Syntax: runkit get forgeroot"
+  echo "Syntax: runkit get forgeroot|networkprefix"
   exit 1
 }
 
@@ -21,15 +21,8 @@ while true; do
 done
 
 CMD="$1"
+RETVAL=""
 shift
 
-case "$CMD" in
-  forgeroot)
-    load_forgeroot
-    echo "$WHRUNKIT_FORGEROOT"
-    ;;
-  *)
-    echo "Unknown parameter"
-    exit 1
-    ;;
-esac
+get_runkit_var RETVAL "$CMD"
+echo "$RETVAL"

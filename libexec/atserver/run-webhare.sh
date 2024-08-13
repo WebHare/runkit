@@ -88,6 +88,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
     DOCKEROPTS+=(--rm)
   fi
 
+  get_runkit_var NETWORKPREFIX networkprefix
   USEIP="$(cat "$WHRUNKIT_TARGETDIR"/container.ipv4 2>/dev/null || true)"
   if [ -z "$USEIP" ]; then
     (
@@ -95,7 +96,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
       # Find a free IP address
       for LASTOCTET in $(seq 2 253) ; do
         ISINUSE=0
-        USEIP="${WHRUNKIT_NETWORKPREFIX}.${LASTOCTET}"
+        USEIP="${NETWORKPREFIX}.${LASTOCTET}"
         for IP in $(cat "$WHRUNKIT_DATADIR"/*/container.ipv4 2>/dev/null || true); do
           if [ "$IP" == "$USEIP" ]; then
             ISINUSE=1

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 WHRUNKIT_NETWORKNAME=webhare-runkit
-WHRUNKIT_NETWORKPREFIX=10.15.19
 
 function onexit()
 {
@@ -39,11 +38,13 @@ function killcontainer()
 
 function configure_runkit_podman()
 {
+  local NETWORKPREFIX
+  get_runkit_var NETWORKPREFIX networkprefix
   # This gives us an IP range to use:
   if [ "$WHRUNKIT_CONTAINERENGINE" == "docker" ]; then
     if ! docker network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
       echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
-      docker network create $WHRUNKIT_NETWORKNAME --subnet=${WHRUNKIT_NETWORKPREFIX}.0/24
+      docker network create $WHRUNKIT_NETWORKNAME --subnet="${NETWORKPREFIX}".0/24
     fi
   else
     ensurecommands podman jq
@@ -51,7 +52,7 @@ function configure_runkit_podman()
 
     if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
       echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
-      podman network create $WHRUNKIT_NETWORKNAME --subnet=${WHRUNKIT_NETWORKPREFIX}.0/24
+      podman network create $WHRUNKIT_NETWORKNAME --subnet=${NETWORKPREFIX}.0/24
     fi
   fi
 }
@@ -287,19 +288,38 @@ function ensure_whrunkit_command()
   [ -x "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh, tried '$WHRUNKIT_WHCOMMAND'"
 }
 
-function load_forgeroot()
-{
-  WHRUNKIT_FORGEROOT="$(cat "$WHRUNKIT_DATADIR"/_settings/forgeroot 2>/dev/null || true)"
-  [ -n "$WHRUNKIT_FORGEROOT" ] || WHRUNKIT_FORGEROOT="https://gitlab.com/webhare/"
-}
-
 # Safely (ie don't trigger 'set -e' abort) set an environment value from a file which may not exist
 set_from_file()
 {
-  local VARNAME"=$1"
+  local VARNAME="$1"
   # shellcheck disable=SC2034 disable=SC2155
   local RESULT="$(cat "$2" 2>/dev/null || true)"
   eval "$VARNAME"=\$RESULT
+}
+
+get_runkit_var()
+{
+  local VARNAME="$1"
+  local TOGET="$2"
+  local RESULT
+
+  case "$TOGET" in
+    forgeroot)
+      RESULT="$(cat "$WHRUNKIT_DATADIR"/_settings/forgeroot 2>/dev/null || true)"
+      [ -n "$RESULT" ] || RESULT="https://gitlab.com/webhare/"
+      ;;
+    networkprefix)
+      RESULT="$(cat "$WHRUNKIT_DATADIR"/_settings/networkprefix 2>/dev/null || true)"
+      [ -n "$RESULT" ] || RESULT="10.15.19"
+      ;;
+    *)
+      echo "Unknown variable '$TOGET'"
+      exit 1
+      ;;
+  esac
+
+  eval "$VARNAME"=\$RESULT
+  return 0
 }
 
 # Initialize COMP_WORDS, COMP_CWORD and COMPREPLY. Split on whitespace only, ignoring COMP_WORDBREAKS

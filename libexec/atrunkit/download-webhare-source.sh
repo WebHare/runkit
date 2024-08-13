@@ -6,7 +6,7 @@ set -e #fail on any uncaught error
 
 BRANCH="master"
 
-load_forgeroot
+get_runkit_var WHRUNKIT_FORGEROOT forgeroot
 REPOSITORY="${WHRUNKIT_FORGEROOT}platform.git"
 
 exit_syntax()
