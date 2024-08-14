@@ -17,7 +17,8 @@ Description=Automatically fix system configuration for WebHare
 [Service]
 Type=oneshot
 
-ExecStart="$WHRUNKIT_ROOT"/bin/runkit system-setup
+# prefixing with /bin/bash prevents SELinux from complaining about running code from eg. /root/projects/
+ExecStart=/bin/bash "$WHRUNKIT_ROOT"/bin/runkit system-setup
 
 [Install]
 WantedBy=multi-user.target
