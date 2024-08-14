@@ -25,6 +25,8 @@ function prepareinstall()
   fi
 }
 
+[ -f /etc/os-release ] && source /etc/os-release
+
 function addpackage()
 {
   prepareinstall
@@ -39,7 +41,9 @@ fi
 if ! hash borg 2>/dev/null ; then
   echo Need to install borg
   # Enable EPEL
-  dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+  if grep -qE "^ID_LIKE=.*\brhel\b" /etc/os-release || grep -qE "^ID=rhel$" /etc/os-release ; then
+    dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+  fi
   addpackage borgbackup
 fi
 
