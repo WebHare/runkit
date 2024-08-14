@@ -1,5 +1,4 @@
 /local
-tests/.vagrant
 # Ignore forks and stuff, important when copying between platforms
 ._*
 .DS_Store

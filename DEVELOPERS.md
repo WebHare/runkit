@@ -53,19 +53,6 @@ BORG_PASSPHRASE="key passphrase"
 ## "Remote" development
 To simplify development you can quickly push local changes to eg a local VM using `runkit copy-runkit-to-server <user@host>`
 
-### Using Vagrant
-Prep if you're using Parallels, adapt if needed:
-
-```bash
-brew install hashicorp/tap/hashicorp-vagrant
-vagrant plugin install vagrant-parallels
-cd ~/projects/webhare-runkit
-vagrant up
-
-# Tests
-
-```
-
 ## Environment variables
 - WHRUNKIT_DATADIR - data root
 - WHRUNKIT_ROOT - source root (eg `$WHRUNKIT_ROOT/DEVELOPERS.md` is this file )
