@@ -34,13 +34,14 @@ while true; do
   fi
 done
 
-if [ ! -x /usr/local/opt/opensearch-dashboards/bin/opensearch-dashboards ]; then
-  echo "You need to brew install opensearch-dashboards" 1>&2
+if ! hash opensearch-dashboards 2>/dev/null; then
+  echo "You need to install opensearch-dashboards" 1>&2
+   [[ "$(uname)" == "Darwin" ]] && echo "Try: brew install opensearch-dashboards" 1>&2
   exit 1
 fi
 
 [ -n "$WEBHARE_OPENSEARCH_BINDHOST" ] || WEBHARE_OPENSEARCH_BINDHOST="127.0.0.1"
-/usr/local/opt/opensearch-dashboards/bin/opensearch-dashboards --opensearch.hosts="http://$WEBHARE_OPENSEARCH_BINDHOST:$((WEBHARE_BASEPORT + 6))/" --host="$DASHBOARD_HOST" --port="$DASHBOARD_PORT" &
+opensearch-dashboards --opensearch.hosts="http://$WEBHARE_OPENSEARCH_BINDHOST:$((WEBHARE_BASEPORT + 6))/" --host="$DASHBOARD_HOST" --port="$DASHBOARD_PORT" &
 
 trap "kill %1; wait %1" TERM EXIT
 
