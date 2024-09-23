@@ -134,7 +134,8 @@ function applyborgsettings()
   echo "$BORG_PRIVATEKEY" > "$WEBHARE_RUNKIT_KEYFILE"
   umask "$SAVEUMASK"
 
-  export BORG_RSH="ssh -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes -i $WEBHARE_RUNKIT_KEYFILE"
+  # -S none is needed to be able to connect to rsync.net - we need to avoid muxing or we'll get "Repository path not allowed" when an earlier connection with different ssh key is already up
+  export BORG_RSH="ssh -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes -S none -i $WEBHARE_RUNKIT_KEYFILE"
   mkdir -p "$WHRUNKIT_TARGETDIR"
 }
 
