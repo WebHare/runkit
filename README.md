@@ -51,6 +51,12 @@ runkit can be used to manage a podman-based server.
 runkit run-proxy --as-service
 ```
 
+## Setting up a discardable WebHare for CI tests
+
+A useful option in development is to set up a local CI WebHare server. This allows you to locally test your CI process on a “fresh” WebHare installation.
+
+See the documentation [for an example of how you could do this](doc/webhare-dev.md#setting-up-a-discardable-webhare-for-ci-tests).
+
 ## Restoring WebHare backups
 We've built runkit restore around borg backup repositories. You need to supply runkit with the proper credentials to
 access these backups. Request these credentials from whoever is hosting your backups. Either the
