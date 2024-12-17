@@ -13,7 +13,7 @@ function exit_syntax
 }
 
 DASHBOARD_HOST="127.0.0.1"
-DASHBOARD_PORT="$((WEBHARE_BASEPORT + 7))"
+DASHBOARD_PORT="$((WEBHARE_BASEPORT + 8))" #Often 13687
 
 while true; do
   if [ "$1" == "--host" ]; then
@@ -41,6 +41,7 @@ if ! hash opensearch-dashboards 2>/dev/null; then
 fi
 
 [ -n "$WEBHARE_OPENSEARCH_BINDHOST" ] || WEBHARE_OPENSEARCH_BINDHOST="127.0.0.1"
+#baseport +6 is often 13685 and is where OpenSearch should already be running
 opensearch-dashboards --opensearch.hosts="http://$WEBHARE_OPENSEARCH_BINDHOST:$((WEBHARE_BASEPORT + 6))/" --host="$DASHBOARD_HOST" --port="$DASHBOARD_PORT" &
 
 trap "kill %1; wait %1" TERM EXIT
