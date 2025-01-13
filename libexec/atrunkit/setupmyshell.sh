@@ -41,7 +41,7 @@ __autocomplete_default_whcd() {
 } ;
 
 complete -o filenames -o nospace -C '"$WHRUNKIT_ORIGCOMMAND" "@default" __autocomplete_whcd' whcd ;
-complete -o default -C 'wh __autocomplete_wh' wh ;
+complete -o default -o nospace -C 'wh __autocomplete_wh' wh ;
 complete -o default -C '"$WHRUNKIT_ORIGCOMMAND" __autocomplete_runkit' runkit ;
 
 HERE
