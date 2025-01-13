@@ -60,7 +60,7 @@ DEST="\`wh-$SERVER run mod::system/scripts/internal/cli/getdir.whscr "\$@"\`";
 export -f whcd-$SERVER ;
 
 complete -o filenames -o nospace -C '"$WHRUNKIT_ORIGCOMMAND" "@$SERVER" __autocomplete_whcd' whcd-$SERVER ;
-complete -o default -C 'wh-$SERVER __autocomplete_wh' wh-$SERVER ;
+complete -o default -o nospace -C 'wh-$SERVER __autocomplete_wh' wh-$SERVER ;
 
 HERE
   fi
