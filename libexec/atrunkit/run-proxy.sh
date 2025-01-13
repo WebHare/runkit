@@ -155,6 +155,8 @@ ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" rm -f -v "$CONTAINERNAME"
 ExecStart="$WHRUNKIT_CONTAINERENGINE" run ${DOCKEROPTS[@]}
 ExecStartPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started "$CONTAINERNAME"
 ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange stopped "$CONTAINERNAME"
+# Tell systemd to use podman (or docker), or it will try to signal conmon which won't understand
+ExecStop=-"$WHRUNKIT_CONTAINERENGINE" stop $WHRUNKIT_CONTAINERNAME
 
 [Install]
 WantedBy=multi-user.target
