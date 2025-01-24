@@ -14,6 +14,8 @@ DOCKEROPTS=()
 ASSERVICE=
 NORESTART=""
 NOSTART=""
+SETIMAGE=""
+NOPULL=""
 
 while true; do
   if [ "$1" == "--help" ]; then
@@ -37,6 +39,13 @@ while true; do
   elif [ "$1" == "--no-start" ]; then
     NOSTART="1"
     shift
+  elif [ "$1" == "--no-pull" ]; then
+    NOPULL="1"
+    shift
+  elif [ "$1" == "--set-image" ]; then
+    shift
+    SETIMAGE="$1"
+    shift
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
     exit 1
@@ -49,7 +58,33 @@ done
 
 mkdir -p "$WHRUNKIT_DATADIR/_proxy" # Ensure our datadir is there
 
-# FIXME use last STABLE
+if [ -z "$SETIMAGE" ] && [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ]; then
+  SETIMAGE="docker.io/webhare/proxy:master" # TODO last stable version ? but we lack a branch for that
+fi
+
+if [ -n "$SETIMAGE" ]; then
+  if [[ $IMAGE =~ ^[0-9]\.[0-9]release/ ]]; then
+    #slugify the image. eg release/5.2 will become release-5-2
+    IMAGE="$(echo "$IMAGE" | tr -- "/." "--")"
+    IMAGE="docker.io/webhare/platform:$IMAGE"
+  fi
+  if [[ $IMAGE =~ ^webhare/platform: ]]; then
+    #prefix docker.io
+    IMAGE="docker.io/$IMAGE"
+  fi
+
+]
+
+  if [ -z "$NOPULL" ] && ! "$WHRUNKIT_CONTAINERENGINE" pull "$SETIMAGE"; then
+    echo "Failed to pull $SETIMAGE"
+    exit 1
+  fi
+
+  # FIXME proxy should provide veriifation labels
+  #  COMMITREF="$("$WHRUNKIT_CONTAINERENGINE" image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
+  #  [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
+  echo "$SETIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.image"
+fi
 [ -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] || echo docker.io/webhare/proxy:master > "$WHRUNKIT_DATADIR/_proxy/container.image"
 
 CONTAINERSTORAGE="$(cat "$WHRUNKIT_DATADIR/_proxy/dataroot" 2>/dev/null || true)"

@@ -59,7 +59,7 @@ done
 
 WHRUNKIT_TARGETSERVER="$1"
 [ -n "$WHRUNKIT_TARGETSERVER" ] || exit_syntax
-prepare_newserver
+prepare_newserver #aborts if server already exists
 
 WEBHARE_DATAROOT=""
 

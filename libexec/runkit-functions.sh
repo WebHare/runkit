@@ -285,7 +285,7 @@ function resolve_whrunkit_command()
 function ensure_whrunkit_command()
 {
   resolve_whrunkit_command
-  [ -n "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh"
+  [ -n "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh, or container.image not setup"
   [ -x "$WHRUNKIT_WHCOMMAND" ] || die "Don't know where to find your bin/wh, tried '$WHRUNKIT_WHCOMMAND'"
 }
 
