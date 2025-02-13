@@ -73,8 +73,6 @@ if [ -n "$SETIMAGE" ]; then
     IMAGE="docker.io/$IMAGE"
   fi
 
-]
-
   if [ -z "$NOPULL" ] && ! "$WHRUNKIT_CONTAINERENGINE" pull "$SETIMAGE"; then
     echo "Failed to pull $SETIMAGE"
     exit 1
