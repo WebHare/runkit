@@ -33,7 +33,19 @@ if [ ! -f "$WHRUNKIT_DATADIR/psql-passfile" ]; then
   echo "*:*:*:*:$(mktemp -u XXXXXXXXXXXXXXXXX)" > "$WHRUNKIT_DATADIR/psql-passfile"
 fi
 
-if [ ! -S $WEBHARE_DATAROOT/postgresql/.s.PGSQL.5432 ]; then
+# can runkit read PGHOST/PGUSER from WH ?
+
+# Pre 5.7:
+PGHOST="$WEBHARE_DATAROOT/postgresql"
+PGPORT=5432
+
+if [ ! -S "$PGHOST/.s.PGSQL.$PGPORT" ]; then
+  # WH5.7
+  PGHOST="$WEBHARE_DIR/currentinstall/pg"
+  PGPORT=$((WEBHARE_BASEPORT + 8))
+fi
+
+if [ ! -S "$PGHOST/.s.PGSQL.$PGPORT" ]; then
   echo Could not find the UNIX socket of the database, is @$WHRUNKIT_TARGETSERVER running?
   exit 1
 fi
@@ -57,22 +69,23 @@ PGADMIN_PYTHON="$PGADMIN_APPDIR/Contents/Frameworks/Python.framework/Versions/Cu
 [ -e "$PGADMIN_PYTHON" ] || brew install --cask pgadmin4
 [ -x "$PGADMIN_PYTHON" ] || die "Could not find pgAdmin 4 and installation failed. Looking for $PGADMIN_APPDIR"
 
-if ! "$PGADMIN_PYTHON" /Applications/pgAdmin\ 4.app/Contents/Resources/web/setup.py --dump-servers "$TEMPSERVERSJSONFILE" --sqlite-path ~/.pgadmin/pgadmin4.db; then
+if ! "$PGADMIN_PYTHON" "$PGADMIN_APPDIR"/Contents/Resources/web/setup.py dump-servers "$TEMPSERVERSJSONFILE" --sqlite-path ~/.pgadmin/pgadmin4.db; then
   echo Error exporting current list of servers
   exit 1
 fi
 
 IMPORTED=
 if ! jq -e ".Servers | to_entries[]  | select( .value.Name == \"$SERVERTITLE\")" "$TEMPSERVERSJSONFILE" > /dev/null; then
+  # adding to a 'Runkit' group doesn't make that group visible. use the Servers group..
 
   cat > $TEMPSERVERSJSONFILE << HERE
 {
     "Servers": {
         "1": {
             "Name": "$SERVERTITLE",
-            "Group": "Runkit",
-            "Host": "$WEBHARE_DATAROOT/postgresql",
-            "Port": 5432,
+            "Group": "Servers",
+            "Host": "$PGHOST",
+            "Port": $PGPORT,
             "MaintenanceDB": "postgres",
             "Username": "$USERNAME",
             "Role": "$USERNAME",
@@ -87,8 +100,10 @@ if ! jq -e ".Servers | to_entries[]  | select( .value.Name == \"$SERVERTITLE\")"
     }
 }
 HERE
+
+
   echo "Importing new server-definition into pgAdmin"
-  if ! "$PGADMIN_PYTHON" "$PGADMIN_APPDIR/Contents/Resources/web/setup.py" --load-servers "$TEMPSERVERSJSONFILE" --sqlite-path ~/.pgadmin/pgadmin4.db; then
+  if ! "$PGADMIN_PYTHON" "$PGADMIN_APPDIR/Contents/Resources/web/setup.py" load-servers "$TEMPSERVERSJSONFILE" --sqlite-path ~/.pgadmin/pgadmin4.db; then
     echo Error importing new server
     exit 1
   fi
@@ -99,7 +114,7 @@ fi
 
 if pgrep "pgAdmin 4" > /dev/null; then
   if [ -n "$IMPORTED" ]; then
-    echo "Please refresh the 'Runkit' server group (or restart pgAdmin when that group isn't visible yet)"
+    echo "Please refresh the 'Servers' server group (or restart pgAdmin when that group isn't visible yet)"
     sleep 1
   fi
   osascript -e "tell application \"pgAdmin 4\" to activate first window"
