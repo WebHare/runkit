@@ -87,4 +87,8 @@ systemctl enable --now runkit-system-setup.service
 systemctl enable --now runkit-daily-maintenance.timer
 systemctl enable --now runkit-load-report.timer
 
+mkdir -p "$WHRUNKIT_DATADIR/_log"
+cat "$WHRUNKIT_ROOT/version" > "$WHRUNKIT_DATADIR/_log/.last-install-system-version"
+date > "$WHRUNKIT_DATADIR/_log/.last-install-system-date"
+
 echo "System-setup initialized!"
