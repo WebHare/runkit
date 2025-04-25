@@ -22,6 +22,7 @@ local settings are stored in `$WHRUNKIT_DATADIR/_settings/`
   - `sourceroot` - contains path to the server's source code
   - `baseport` - port number
   - `opensearch-bindhost` - IP address to set as WEBHARE_OPENSEARCH_BINDHOST
+  - `environment` - if present and executable, this will be added to the environment. This syntax is supported by both container and direct execution, unlike environment.sh
   - `environment.sh` - if present and executable, this will be sourced just before executing the command. Use this to setup eg. `export WEBHARE_CI=1`
   - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT
   - `container.image` - image to use for the WebHare server. if set, will be started using podman

@@ -136,6 +136,10 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
     DOCKEROPTS+=(--sdnotify=conmon)
   fi
 
+  if [ -f "$WHRUNKIT_TARGETDIR/environment" ]; then
+    DOCKEROPTS+=(--env-file "$WHRUNKIT_TARGETDIR/environment")
+  fi
+
   # Added --no-hosts - this easily breaks connectivity to the proxy server if it's aliased to ::1
   CMDLINE+=(-h "$WHRUNKIT_TARGETSERVER".docker
                --network "$WHRUNKIT_NETWORKNAME"
@@ -151,6 +155,11 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
                "${CONTAINER_CMDLINE[@]}")
 
 else
+  if [ -f "$WHRUNKIT_TARGETDIR"/environment ]; then
+    # Read environment line-by-line, export all variables
+    # shellcheck disable=SC1090
+    eval $(sed 's/^\(.*\)=\(.*\)/export \1="\2"/' < "$WHRUNKIT_TARGETDIR"/environment)
+  fi
   CMDLINE=("$WHRUNKIT_WHCOMMAND" console)
 fi
 

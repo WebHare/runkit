@@ -63,6 +63,12 @@ if [ ! -f "$WHRUNKIT_TARGETDIR/container.image" ]; then #additional checks unles
   # settings.sh overrides BASEPORT and DATAROOT and interferes with us. WebHare should re-evaluate whether wh restore generated settings.sh is really needed
   [ -f "$WEBHARE_DATAROOT/settings.sh" ] && rm "$WEBHARE_DATAROOT/settings.sh"
 
+  if [ -f "$WHRUNKIT_TARGETDIR"/environment ]; then
+    # Read environment line-by-line, export all variables
+    # shellcheck disable=SC1090
+    eval $(sed 's/^\(.*\)=\(.*\)/export \1="\2"/' < "$WHRUNKIT_TARGETDIR"/environment)
+  fi
+
   [ -x "$WHRUNKIT_TARGETDIR/environment.sh" ] && source "$WHRUNKIT_TARGETDIR/environment.sh"
 fi
 
