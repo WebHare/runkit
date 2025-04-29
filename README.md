@@ -50,8 +50,9 @@ Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always t
 runkit help
 # List runkit managed servers
 runkit list-servers
-# Update server
+# Update server. image is a container image reference, eg: runkit @cms1 upgrade docker.io/webhare/platform:release-5-6
 runkit @<servername> upgrade <image>
+
 ```
 
 ### Using podman
