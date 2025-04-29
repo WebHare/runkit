@@ -44,6 +44,16 @@ runkit add-existing-server --default myserver ~/projects/whdata/myserver
 The primary installation is the one with baseport '13679' and will be bound to the `wh` alias by runkit's setupmyshell.
 Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always target a server using `runkit @<server> ...`.
 
+### Managing sercers
+```bash
+# General help
+runkit help
+# List runkit managed servers
+runkit list-servers
+# Update server
+runkit @<servername> upgrade <image>
+```
+
 ### Using podman
 runkit can be used to manage a podman-based server.
 
