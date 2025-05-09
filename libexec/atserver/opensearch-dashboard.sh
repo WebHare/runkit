@@ -5,10 +5,8 @@
 
 function exit_syntax
 {
-  echo "Syntax: runkit create-server [--default] [--baseport <port>] <server>"
-  echo "        --default  sets the baseport to 13679 and binds the server to the 'wh' alias"
-  echo "        <server>   short name for the server, used as wh-<server> alias"
-  echo "        <datadir>  where your data is currently stored (eg ~/projects/whdata/myserver/)"
+  echo "Syntax: runkit [@server] [--host bind to host] [--port port] opensearch-dashboard"
+  echo "        to connect to a WebHare outside docker try setting a non-127.0.0.1 IP in ~/whrunkit/<server>/opensearch-bindhost"
   exit 1
 }
 
@@ -34,16 +32,23 @@ while true; do
   fi
 done
 
-if ! hash opensearch-dashboards 2>/dev/null; then
-  echo "You need to install opensearch-dashboards" 1>&2
-   [[ "$(uname)" == "Darwin" ]] && echo "Try: brew install opensearch-dashboards" 1>&2
-  exit 1
-fi
-
+[ -n "$WHRUNKIT_CONTAINERENGINE" ] || die "WHRUNKIT_CONTAINERENGINE not set"
 [ -n "$WEBHARE_OPENSEARCH_BINDHOST" ] || WEBHARE_OPENSEARCH_BINDHOST="127.0.0.1"
-#baseport +6 is often 13685 and is where OpenSearch should already be running
-opensearch-dashboards --opensearch.hosts="http://$WEBHARE_OPENSEARCH_BINDHOST:$((WEBHARE_BASEPORT + 6))/" --host="$DASHBOARD_HOST" --port="$DASHBOARD_PORT" &
 
+configure_runkit_podman
+
+OPENSEARCH_HOSTS="http://$WEBHARE_OPENSEARCH_BINDHOST:$((WEBHARE_BASEPORT + 6))/"
+
+#baseport +6 is often 13685 and is where OpenSearch should already be running
+#opensearch-dashboards --opensearch.hosts="http://$WEBHARE_OPENSEARCH_BINDHOST:$((WEBHARE_BASEPORT + 6))/" --host="$DASHBOARD_HOST" --port="$DASHBOARD_PORT" &
+OPTS=(--rm
+      --interactive
+      --name "osdashboard-$DASHBOARD_PORT"
+      --publish "$DASHBOARD_PORT":5601
+      --env OPENSEARCH_HOSTS="$OPENSEARCH_HOSTS"
+    )
+
+"$WHRUNKIT_CONTAINERENGINE" run "${OPTS[@]}" opensearchproject/opensearch-dashboards:latest &
 trap "kill %1; wait %1" TERM EXIT
 
 OPENURL="http://$DASHBOARD_HOST:$DASHBOARD_PORT/app/dev_tools#/console"
