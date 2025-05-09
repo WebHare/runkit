@@ -5,6 +5,9 @@ if "$WHRUNKIT_WHCOMMAND" isrunning ; then
   exit 1
 fi
 
+# Make sure any known old scripts are gone
+"$WHRUNKIT_WHCOMMAND" service force-terminate-all --kill || true # ignore errors
+
 ALLOWFRESHFILE="$WEBHARE_DATAROOT/etc/allow-fresh-db"
 if [ ! -f "$ALLOWFRESHFILE" ]; then
   die "freshdbconsole WIPES YOUR DATABASE on startup. To prove this is what you wish, please create a file named '$ALLOWFRESHFILE'"
