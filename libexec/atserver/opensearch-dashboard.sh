@@ -46,6 +46,7 @@ OPTS=(--rm
       --name "osdashboard-$DASHBOARD_PORT"
       --publish "$DASHBOARD_PORT":5601
       --env OPENSEARCH_HOSTS="$OPENSEARCH_HOSTS"
+      --env DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
     )
 
 "$WHRUNKIT_CONTAINERENGINE" run "${OPTS[@]}" opensearchproject/opensearch-dashboards:latest &
