@@ -56,7 +56,7 @@ HERE
 ######### Load reporting
 cat > /etc/systemd/system/runkit-load-report.service << HERE
 [Unit]
-Description=runkit daily maintenance
+Description=runkit load reporter
 Wants=runkit-load-report.timer
 
 [Service]
