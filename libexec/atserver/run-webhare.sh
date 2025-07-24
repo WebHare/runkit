@@ -52,7 +52,7 @@ while true; do
     ASSERVICE="1"
     SHOWUNITFILE="1"
     shift
-  elif [ "$1" == "--no-start" ]; then
+  elif [ "$1" == "--prepare" ]; then
     NOSTART="1"
     shift
   elif [ "$1" == "--help" ]; then

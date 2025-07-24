@@ -33,7 +33,7 @@ while true; do
   elif [ "$1" == "--rescue" ]; then
     TORUN=("/bin/sleep 604800")
     shift
-  elif [ "$1" == "--no-start" ]; then
+  elif [ "$1" == "--prepare" ]; then
     NOSTART="1"
     shift
   elif [ "$1" == "--no-pull" ]; then
