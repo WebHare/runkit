@@ -24,8 +24,11 @@ if [ "$OVERCOMMIT" == "0" ] || [ "$OVERCOMMIT" == "2" ]; then
 fi
 
 # Disable selinux. we're not compatible with enforcing mode yet (eg proxy won't start)
-echo "selinux=$(getenforce)" >> "$LOGFILE"
-setenforce 0
+# NOTE 2025-07-24 - some systems are now running fine in enforcing mode, so lets's stop disabling it
+#if hash setenforce 2>/dev/null ; then
+#  echo "selinux=$(getenforce)" >> "$LOGFILE"
+#  setenforce 0
+#fi
 
 # Enable access to http
 if hash firewall-cmd 2>/dev/null ; then
