@@ -13,12 +13,18 @@ function exit_syntax
   echo "WebHare server '$WHRUNKIT_TARGETSERVER' is currently running: $WHRUNKIT_CONTAINERIMAGE"
   exit 1
 }
+
 ENABLECONTAINER=
+QUIET=
+
 while true; do
   if [ "$1" == "--help" ]; then
     exit_syntax
   elif [ "$1" == "--enablecontainer" ]; then
     ENABLECONTAINER=1
+    shift
+  elif [ "$1" == "--quiet" ]; then
+    QUIET=1
     shift
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
@@ -38,7 +44,7 @@ fi
 if [ -z "$IMAGE" ]; then #Only runkit 1.2 started writing requestedimage, so we fall back to container.image for not-yet-updated servers
   IMAGE=$(cat "$WHRUNKIT_TARGETDIR/container.image" 2> /dev/null || true)
 fi
-if [ -z "$IMAGE" ]; then #Only runkit 1.2 started writing requestedimage, so we fall back to container.image for not-yet-updated servers
+if [ -z "$IMAGE" ]; then #We have no clue what image to set!
   echo "No image specified for the current $WHRUNKIT_TARGETSERVER container, you will need to explicitly set the image" >&2
   exit 1
 fi
@@ -47,11 +53,12 @@ configure_runkit_podman
 set_webhare_image "$IMAGE"
 
 # TODO If converting from non-container to container, we should probably stop the server first
-
-if iscontainerup "$WHRUNKIT_CONTAINERNAME" ; then
-  echo "container is running, restart it! If controlled by systemd: runkit @$WHRUNKIT_TARGETSERVER run-webhare --as-service"
-else
-  echo "container is not running - not restarting it"
+if [ -z "$QUIET" ]; then
+  if iscontainerup "$WHRUNKIT_CONTAINERNAME" ; then
+    echo "container is running, restart it! If controlled by systemd: runkit @$WHRUNKIT_TARGETSERVER run-webhare --as-service"
+  else
+    echo "container is not running - not restarting it"
+  fi
 fi
 
 exit 0
