@@ -31,7 +31,7 @@ if [ -n "$JSON" ]; then
 {
   "runkitVersion": "$(cat "$WHRUNKIT_ROOT"/version)",
   "gitHash": "$( (cd "$WHRUNKIT_ROOT" && git rev-parse HEAD) 2>/dev/null)",
-  "servers": $(runkit list-servers --json)
+  "servers": $("$WHRUNKIT_ORIGCOMMAND" list-servers --json)
 }
 HERE
   exit 0
