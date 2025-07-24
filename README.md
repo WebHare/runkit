@@ -44,15 +44,16 @@ runkit add-existing-server --default myserver ~/projects/whdata/myserver
 The primary installation is the one with baseport '13679' and will be bound to the `wh` alias by runkit's setupmyshell.
 Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always target a server using `runkit @<server> ...`.
 
-### Managing sercers
+### Managing servers
 ```bash
 # General help
 runkit help
 # List runkit managed servers
 runkit list-servers
-# Update server. image is a container image reference, eg: runkit @cms1 upgrade docker.io/webhare/platform:release-5-6
+# Update server. image is a full container image reference (eg: runkit @cms1 upgrade docker.io/webhare/platform:release-5-6), a release branch (release/5.6) or an explicit version (5.6.7)
 runkit @<servername> upgrade <image>
-
+# The update is not effective until the server is restarted
+runkit @<servername> run-webhare --as-service
 ```
 
 ### Using podman
