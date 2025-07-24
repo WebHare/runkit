@@ -41,9 +41,6 @@ while true; do
   elif [ "$1" == "--recreate" ]; then
     RECREATE="1"
     shift
-  elif [ "$1" == "--nopull" ]; then
-    NOPULL="1"
-    shift
   elif [ "$1" == "--quiet" ]; then
     QUIET="1"
     shift
@@ -71,13 +68,10 @@ else
   rm -f "$WHRUNKIT_TARGETDIR/dataroot"
 fi
 
-if [ -n "$IMAGE" ]; then
+if [ -n "$IMAGE" ]; then # For create-server, not setting an image has no direct effect (unlike upgrade which reapplies the current tag)
   configure_runkit_podman
   set_webhare_image "$IMAGE"
-else
-  rm -f "$WHRUNKIT_TARGETDIR/container.image"
 fi
-
 
 #TODO allow creating the PRIMARY installation
 echo "$BASEPORT" > "$WHRUNKIT_TARGETDIR/baseport"
