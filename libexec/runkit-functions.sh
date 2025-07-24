@@ -59,25 +59,39 @@ function configure_runkit_podman()
 
 function set_webhare_image() # Assumes $IMAGE is the image name to check
 {
-  if [[ $IMAGE =~ ^release/ ]]; then
+  REGISTRYROOT=$( cat "$WHRUNKIT_DATADIR/_settings/registryroot" 2>/dev/null || echo "docker.io/webhare" )
+  if [[ $IMAGE =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    #x.y.z tags map directly to images
+    FINALIMAGE="$REGISTRYROOT/platform:$IMAGE"
+  elif [[ $IMAGE =~ ^custom- ]] || [[ $IMAGE =~ ^edge- ]]|| [[ $IMAGE =~ ^feature- ]]; then
+    #branch names map directly to images
+    FINALIMAGE="$REGISTRYROOT/platform:$IMAGE"
+  elif [[ $IMAGE =~ ^release/ ]]; then
     #slugify the image. eg release/5.2 will become release-5-2
-    IMAGE="$(echo "$IMAGE" | tr -- "/." "--")"
-    IMAGE="docker.io/webhare/platform:$IMAGE"
-  fi
-  if [[ $IMAGE =~ ^webhare/platform: ]]; then
+    FINALIMAGE="$(echo "$IMAGE" | tr -- "/." "--")"
+    FINALIMAGE="$REGISTRYROOT/platform:$FINALIMAGE"
+  elif [[ $IMAGE =~ ^webhare/platform: ]]; then
     #prefix docker.io
-    IMAGE="docker.io/$IMAGE"
+    FINALIMAGE="docker.io/$IMAGE"
+  else
+    FINALIMAGE="$IMAGE"
   fi
 
-  if [ -z "$NOPULL" ] && ! "$WHRUNKIT_CONTAINERENGINE" pull "$IMAGE"; then
-    echo "Failed to pull $IMAGE"
+  if [ -z "$NOPULL" ] && ! "$WHRUNKIT_CONTAINERENGINE" pull "$FINALIMAGE"; then
+    if [ "$FINALIMAGE" != "$IMAGE" ]; then
+      echo "Failed to pull $IMAGE (resolved to $FINALIMAGE)"
+    else
+      echo "Failed to pull $IMAGE"
+    fi
+
     exit 1
   fi
 
-  COMMITREF="$("$WHRUNKIT_CONTAINERENGINE" image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
+  COMMITREF="$("$WHRUNKIT_CONTAINERENGINE" image inspect "$FINALIMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
   [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
 
-  echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
+  echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.requestedimage"
+  echo "$FINALIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
   return 0
 }
 

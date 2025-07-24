@@ -5,6 +5,11 @@
 function exit_syntax
 {
   echo "Syntax: runkit @server upgrade <image>"
+  echo "  image can be either:"
+  echo "  - the full image path, eg: docker.io/webhare/platform:release-5-6"
+  echo "  - a short name, eg: release/5.6, following the most recent 5.6.x version"
+  echo "  - a semantic version, eg: 5.6.3"
+  echo ""
   echo "WebHare server '$WHRUNKIT_TARGETSERVER' is currently running: $WHRUNKIT_CONTAINERIMAGE"
   exit 1
 }

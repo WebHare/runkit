@@ -31,6 +31,7 @@ local settings are stored in `$WHRUNKIT_DATADIR/_settings/`
   - containerchange.sh - if it exists, a script that is invoked whenever a container is started or stopped
   - `sourceroot` - contains default source checkout
   - `forgeroot` - overrides location of WebHare open source projects
+  - `registryroot` - overrides location of registry locations (defaults to `docker.io/webhare`)
   - `letsencryptemail` - email address for automatic letsencrypt accounts (and future eg. chtatplane proxy use?)
   - `publichostname` - used as WEBHAREPROXY_ADMINHOSTNAME, hosts a control interface for the proxy (and future eg. chtatplane proxy use? or usable by webhare to tell where its being hosted?)
 - `_proxy/`
