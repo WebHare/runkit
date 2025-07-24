@@ -4,7 +4,7 @@
 
 function exit_syntax
 {
-  echo "Syntax: runkit @server upgrade <image>"
+  echo "Syntax: runkit @server upgrade [image]"
   echo "  image can be either:"
   echo "  - the full image path, eg: docker.io/webhare/platform:release-5-6"
   echo "  - a short name, eg: release/5.6, following the most recent 5.6.x version"
@@ -17,9 +17,6 @@ ENABLECONTAINER=
 while true; do
   if [ "$1" == "--help" ]; then
     exit_syntax
-  elif [ "$1" == "--nopull" ]; then
-    NOPULL=1
-    shift
   elif [ "$1" == "--enablecontainer" ]; then
     ENABLECONTAINER=1
     shift
@@ -33,11 +30,21 @@ done
 
 IMAGE="$1"
 
-[ -n "$IMAGE" ] || exit_syntax
 [ -z "$ENABLECONTAINER" ] && [ -z "$WHRUNKIT_CONTAINERNAME" ] && die "This WebHare is not configured to run in a container. Use --enablecontainer to explicitly convert it"
 
+if [ -z "$IMAGE" ]; then
+  IMAGE=$(cat "$WHRUNKIT_TARGETDIR/container.requestedimage" 2> /dev/null || true)
+fi
+if [ -z "$IMAGE" ]; then #Only runkit 1.2 started writing requestedimage, so we fall back to container.image for not-yet-updated servers
+  IMAGE=$(cat "$WHRUNKIT_TARGETDIR/container.image" 2> /dev/null || true)
+fi
+if [ -z "$IMAGE" ]; then #Only runkit 1.2 started writing requestedimage, so we fall back to container.image for not-yet-updated servers
+  echo "No image specified for the current $WHRUNKIT_TARGETSERVER container, you will need to explicitly set the image" >&2
+  exit 1
+fi
+
 configure_runkit_podman
-set_webhare_image # consumes $IMAGE and $NOPULL
+set_webhare_image "$IMAGE"
 
 # TODO If converting from non-container to container, we should probably stop the server first
 

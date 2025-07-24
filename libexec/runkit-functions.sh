@@ -57,8 +57,10 @@ function configure_runkit_podman()
   fi
 }
 
-function set_webhare_image() # Assumes $IMAGE is the image name to check
+function set_webhare_image()
 {
+  IMAGE="$1"
+
   REGISTRYROOT=$( cat "$WHRUNKIT_DATADIR/_settings/registryroot" 2>/dev/null || echo "docker.io/webhare" )
   if [[ $IMAGE =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     #x.y.z tags map directly to images
@@ -77,11 +79,14 @@ function set_webhare_image() # Assumes $IMAGE is the image name to check
     FINALIMAGE="$IMAGE"
   fi
 
-  if [ -z "$NOPULL" ] && ! "$WHRUNKIT_CONTAINERENGINE" pull "$FINALIMAGE"; then
+  retval=0
+  RESOLVEDIMAGE="$("$WHRUNKIT_CONTAINERENGINE" pull "$FINALIMAGE")" || retval=$?
+
+  if [ "$retval" != "0" ]; then
     if [ "$FINALIMAGE" != "$IMAGE" ]; then
-      echo "Failed to pull $IMAGE (resolved to $FINALIMAGE)"
+      echo "Failed to pull $IMAGE (resolved to $FINALIMAGE) - errorcode $retval"
     else
-      echo "Failed to pull $IMAGE"
+      echo "Failed to pull $IMAGE - errorcode $retval"
     fi
 
     exit 1
@@ -91,7 +96,7 @@ function set_webhare_image() # Assumes $IMAGE is the image name to check
   [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
 
   echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.requestedimage"
-  echo "$FINALIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
+  echo "$RESOLVEDIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
   return 0
 }
 
@@ -398,6 +403,8 @@ fi
 
 [ -z "$WHRUNKIT_CONTAINERENGINE" ] && WHRUNKIT_CONTAINERENGINE=podman
 export WHRUNKIT_DATADIR WHRUNKIT_ROOT
+export REGISTRY_AUTH_FILE="$WHRUNKIT_DATADIR/_settings/registry-auth.json" # To persist podman auth settings
+
 mkdir -p "$WHRUNKIT_DATADIR"
 WEBHARE_RUNKIT_KEYFILE=""
 trap onexit EXIT #Cleanup WEBHARE_RUNKIT_KEYFILE if it exists
