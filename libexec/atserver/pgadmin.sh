@@ -28,22 +28,17 @@ function clean
 
 trap "clean $? $LINENO" EXIT INT TERM ERR
 
-
-if [ ! -f "$WHRUNKIT_DATADIR/psql-passfile" ]; then
-  echo "*:*:*:*:$(mktemp -u XXXXXXXXXXXXXXXXX)" > "$WHRUNKIT_DATADIR/psql-passfile"
+PASSFILE="$WHRUNKIT_DATADIR/psql-passfile"
+if [ ! -f "$PASSFILE" ]; then
+  echo "*:*:*:*:$(mktemp -u XXXXXXXXXXXXXXXXX)" > "$PASSFILE"
 fi
+chmod 600 "$PASSFILE"
 
 # can runkit read PGHOST/PGUSER from WH ?
 
-# Pre 5.7:
-PGHOST="$WEBHARE_DATAROOT/postgresql"
-PGPORT=5432
-
-if [ ! -S "$PGHOST/.s.PGSQL.$PGPORT" ]; then
-  # WH5.7
-  PGHOST="$WEBHARE_DIR/currentinstall/pg"
-  PGPORT=$((WEBHARE_BASEPORT + 8))
-fi
+# WH5.7
+PGHOST="$WEBHARE_DIR/currentinstall/pg"
+PGPORT=$((WEBHARE_BASEPORT + 8))
 
 if [ ! -S "$PGHOST/.s.PGSQL.$PGPORT" ]; then
   echo Could not find the UNIX socket of the database, is @$WHRUNKIT_TARGETSERVER running?
@@ -51,16 +46,18 @@ if [ ! -S "$PGHOST/.s.PGSQL.$PGPORT" ]; then
 fi
 
 USERNAME=runkit_pgadmin
-PASSWORD=$(cat "$WHRUNKIT_DATADIR/psql-passfile" | cut -d: -f5)
+PASSWORD=$(cat "$PASSFILE" | cut -d: -f5)
 SERVERTITLE="@$WHRUNKIT_TARGETSERVER"
 
+#note 'usename' is NOT a typo
 IFS=$'\t' PGADMINUSER=($($WHRUNKIT_WHCOMMAND psql -q -t -A -F $'\t' -c "select * from pg_catalog.pg_user where usename='$USERNAME'"))
 if [ -z "${PGADMINUSER[0]}" ]; then
-  PASSWORD=$(cat $WHRUNKIT_DATADIR/pgadmin-user-password)
   $WHRUNKIT_WHCOMMAND psql -q -c "BEGIN TRANSACTION READ WRITE" -c "CREATE USER $USERNAME WITH PASSWORD '$PASSWORD'" -c "COMMIT"
 elif [ -n "$RESETPASSWORD" ]; then
   $WHRUNKIT_WHCOMMAND psql -q -c "BEGIN TRANSACTION READ WRITE" -c "ALTER USER $USERNAME SET PASSWORD '$PASSWORD'" -c "COMMIT"
 fi
+
+$WHRUNKIT_WHCOMMAND psql -q -c "BEGIN TRANSACTION READ WRITE" -c "ALTER USER $USERNAME WITH SUPERUSER" -c "GRANT ALL PRIVILEGES ON DATABASE webhare TO $USERNAME" -c "COMMIT"
 
 
 TEMPSERVERSJSONFILE="$(mktemp /tmp/runkit-pgadmin-servers-"$WHRUNKIT_TARGETSERVER".XXXXXXXXXXX)"
@@ -86,7 +83,7 @@ if ! jq -e ".Servers | to_entries[]  | select( .value.Name == \"$SERVERTITLE\")"
             "Group": "Servers",
             "Host": "$PGHOST",
             "Port": $PGPORT,
-            "MaintenanceDB": "postgres",
+            "MaintenanceDB": "webhare",
             "Username": "$USERNAME",
             "Role": "$USERNAME",
             "SSLMode": "prefer",
@@ -95,7 +92,7 @@ if ! jq -e ".Servers | to_entries[]  | select( .value.Name == \"$SERVERTITLE\")"
             "UseSSHTunnel": 0,
             "TunnelPort": "22",
             "TunnelAuthentication": 0,
-            "PassFile": "$WHRUNKIT_DATADIR/psql-passfile"
+            "PassFile": "$PASSFILE"
         }
     }
 }
@@ -111,6 +108,12 @@ HERE
 else
   echo found
 fi
+
+# Clear environment before starting pgAdmin
+unset PGPORT
+unset PGHOST
+unset PGDATABASE
+unset PGUSER
 
 if pgrep "pgAdmin 4" > /dev/null; then
   if [ -n "$IMPORTED" ]; then
