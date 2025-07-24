@@ -1,6 +1,32 @@
 #!/bin/bash
 # short: Lists WebHare servers configured in runkit
 
+set -eo pipefail
+
+exit_syntax()
+{
+  echo "Syntax: runkit list-servers [--json]"
+  exit 1
+}
+
+JSON=""
+
+while true; do
+  if [ "$1" == "--json" ]; then
+    JSON="1"
+    shift
+  elif [ "$1" == "--help" ]; then
+    exit_syntax
+  elif [[ "$1" =~ ^-.* ]]; then
+    echo "Invalid switch '$1'"
+    exit 1
+  else
+    break
+  fi
+done
+
+[ -n "$1" ] && exit_syntax
+
 right_pad()
 {
   PAD="                       "
@@ -12,39 +38,66 @@ right_pad()
   echo "$1$PAD"
 }
 
-ANY=""
-for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
-  TARGETDIR="$WHRUNKIT_DATADIR/$SERVER"
-  set_from_file BASEPORT "$TARGETDIR/baseport"
-  set_from_file CONTAINERIMAGE "$TARGETDIR/container.image"
-  if [ -z $BASEPORT ] && [ -z "$CONTAINERIMAGE" ]; then
-    continue
-  fi
+function list_servers()
+{
+  ANY=""
 
-  if [ "${CONTAINERIMAGE:0:27}" == "docker.io/webhare/platform:" ]; then
-    CONTAINERIMAGE="${CONTAINERIMAGE:27}"
-  fi
-  if [ "${CONTAINERIMAGE:0:24}" == "docker.io/webhare/proxy:" ]; then
-    CONTAINERIMAGE="${CONTAINERIMAGE:24}"
-  fi
+  for SERVER in $( cd "$WHRUNKIT_DATADIR" ; echo * | sort); do
+    TARGETDIR="$WHRUNKIT_DATADIR/$SERVER"
+    set_from_file BASEPORT "$TARGETDIR/baseport"
+    set_from_file CONTAINERIMAGE "$TARGETDIR/container.requestedimage"
+    [ -z "$CONTAINERIMAGE" ] && set_from_file  CONTAINERIMAGE "$TARGETDIR/container.image" # fallback to pre 1.2.1 file
 
-  DEFAULTINFO=""
-  if [ "$BASEPORT" == "13679" ]; then
-    DEFAULTINFO="(default)"
-  fi
+    if [ -z $BASEPORT ] && [ -z "$CONTAINERIMAGE" ]; then
+      continue
+    fi
 
-  DATAROOT="$(cat "$TARGETDIR/dataroot" 2>/dev/null || true)"
-  [ -z "$DATAROOT" ] && DATAROOT="$TARGETDIR/whdata"
+    if [ "${CONTAINERIMAGE:0:27}" == "docker.io/webhare/platform:" ]; then
+      CONTAINERIMAGE="${CONTAINERIMAGE:27}"
+    fi
+    if [ "${CONTAINERIMAGE:0:24}" == "docker.io/webhare/proxy:" ]; then
+      CONTAINERIMAGE="${CONTAINERIMAGE:24}"
+    fi
 
-  # Subst $HOME with ~
-  if [ "${DATAROOT::${#HOME}}" == "$HOME" ]; then
-    DATAROOT="~${DATAROOT:${#HOME}}"
-  fi
+    DEFAULTINFO=""
+    if [ "$BASEPORT" == "13679" ]; then
+      DEFAULTINFO="(default)"
+    fi
 
-  echo "$(right_pad $SERVER) $(right_pad "${CONTAINERIMAGE:-$BASEPORT $DEFAULTINFO}") $DATAROOT"
-  ANY="1"
-done
+    DATAROOT="$(cat "$TARGETDIR/dataroot" 2>/dev/null || true)"
+    [ -z "$DATAROOT" ] && DATAROOT="$TARGETDIR/whdata"
 
-[ -z "$ANY" ] && die "No servers appear to be installed"
+    # Subst $HOME with ~
+    if [ "${DATAROOT::${#HOME}}" == "$HOME" ]; then
+      DATAROOT="~${DATAROOT:${#HOME}}"
+    fi
+
+    if [ -z "$ANY" ]; then
+      ANY=1
+    elif [ -n "$JSON" ]; then
+      echo ","
+    fi
+
+    if [ -n "$JSON" ]; then
+    cat << HERE
+      { "server": $(jq --raw-input <<<"$SERVER")
+      , "containerImage": $(jq --raw-input <<<"$CONTAINERIMAGE")
+      , "basePort": ${BASEPORT:-null}
+      , "dataRoot": $(jq --raw-input <<<"$DATAROOT")
+      }
+HERE
+    else
+      echo "$(right_pad $SERVER) $(right_pad "${CONTAINERIMAGE:-$BASEPORT $DEFAULTINFO}") $DATAROOT"
+    fi
+  done
+
+  [ -z "$ANY" ]  && [ -z "$JSON" ] && echo "No servers appear to be installed" >&2
+}
+
+if [ -n "$JSON" ]; then
+  echo "[ $(list_servers) ]"  | jq
+else
+  list_servers
+fi
 
 exit 0
