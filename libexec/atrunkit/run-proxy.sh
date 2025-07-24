@@ -33,9 +33,6 @@ while true; do
   elif [ "$1" == "--rescue" ]; then
     TORUN=("/bin/sleep 604800")
     shift
-  elif [ "$1" == "--no-restart" ]; then
-    NORESTART="1"
-    shift
   elif [ "$1" == "--no-start" ]; then
     NOSTART="1"
     shift
@@ -198,11 +195,7 @@ HERE
   systemctl daemon-reload
   systemctl enable runkit-proxy #ensure autostart
   if [ -z "$NOSTART" ]; then
-    if [ -n "$NORESTART" ]; then
-      systemctl start runkit-proxy
-    else
-      systemctl restart runkit-proxy
-    fi
+    systemctl restart runkit-proxy
   fi
 
   echo "Proxy initialized as unit"

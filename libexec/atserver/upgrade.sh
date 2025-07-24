@@ -37,7 +37,7 @@ set_webhare_image # consumes $IMAGE and $NOPULL
 # TODO If converting from non-container to container, we should probably stop the server first
 
 if iscontainerup "$WHRUNKIT_CONTAINERNAME" ; then
-  echo "container is running, restart it! If controlled by systemd: systemctl restart $WHRUNKIT_CONTAINERNAME"
+  echo "container is running, restart it! If controlled by systemd: runkit @$WHRUNKIT_TARGETSERVER run-webhare --as-service"
 else
   echo "container is not running - not restarting it"
 fi
