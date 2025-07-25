@@ -185,7 +185,7 @@ if [ -n "$ASSERVICE" ]; then
   configure_runkit_podman
 
   if ! hash systemctl 2>/dev/null ; then
-    echo "No systemctl - cannot install systemd unit"
+    echo "No systemctl - cannot install webhare --as-service"
     exit 1
   fi
 
