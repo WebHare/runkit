@@ -4,7 +4,7 @@
 
 [ -n "$WHRUNKIT_CONTAINERNAME" ] || die "Not running in a container"
 iscontainerup "$WHRUNKIT_CONTAINERNAME" || die "Container $WHRUNKIT_CONTAINERNAME is not running"
-PID="$( "$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Pid}}' "$WHRUNKIT_CONTAINERNAME" )"
+PID="$( podman inspect -f '{{.State.Pid}}' "$WHRUNKIT_CONTAINERNAME" )"
 
 if [ "$1" != "" ]; then
   exec nsenter -n -u -i -t "$PID" "$@"

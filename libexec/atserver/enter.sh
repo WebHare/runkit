@@ -4,7 +4,7 @@
 [ -n "$WHRUNKIT_CONTAINERNAME" ] || die "Not running in a container"
 iscontainerup "$WHRUNKIT_CONTAINERNAME" || die "Container $WHRUNKIT_CONTAINERNAME is not running"
 
-PID="$( "$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Pid}}' "$WHRUNKIT_CONTAINERNAME" )"
+PID="$( podman inspect -f '{{.State.Pid}}' "$WHRUNKIT_CONTAINERNAME" )"
 
 export WEBHARE_BASEPORT=13679 #Inside a container the baseport is always 13679
 # Note: WH5.5 will explicitly set WEBHARE_BASEPORT=13679 in its container environment

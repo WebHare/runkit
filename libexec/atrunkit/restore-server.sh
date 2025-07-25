@@ -9,7 +9,7 @@ exit_syntax()
   cat << HERE
 Syntax: runkit restore-server [options] <servername>
         --archive arc          Archive to restore (defaults to latest)
-        --nodocker             Do not use docker to do the actualy restore
+        --nocontainer          Do not use a container to do the actualy restore
         --image <image>        Container image to use for restore
         --fast                 Restore only essential data (modules and database, but eg. no output or logs)
         --skipdownload         Do not redownload the backup, go straight to the database restore step
@@ -19,8 +19,8 @@ HERE
 }
 
 SKIPDOWNLOAD=""
-NODOCKER=""
-DOCKERIMAGE=""
+NOCONTAINER=""
+CONTAINERIMAGE=""
 FAST=""
 RESTOREARCHIVE=""
 BORGOPTIONS=(--progress)
@@ -33,8 +33,8 @@ while true; do
   elif [ "$1" == "--skipdownload" ]; then
     SKIPDOWNLOAD="1"
     shift
-  elif [ "$1" == "--nodocker" ]; then #do not use docker to restore webhare
-    NODOCKER="1"
+  elif [ "$1" == "--nodocker" ] || [ "$1" == "--nocontainer" ]; then #do not use a container to restore webhare
+    NOCONTAINER="1"
     shift
   elif [ "$1" == "--fast" ]; then
     FAST="1"
@@ -45,7 +45,7 @@ while true; do
     shift
   elif [ "$1" == "--image" ]; then
     shift
-    DOCKERIMAGE="$1"
+    CONTAINERIMAGE="$1"
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
@@ -63,27 +63,27 @@ CONTAINER="$1"
 resolve_whrunkit_command
 applyborgsettings "$CONTAINER"
 
-# Figure out whether to use docker or the local runkit installation
-if [ -z "$NODOCKER" ] && [ -z "$DOCKERIMAGE" ]; then
+# Figure out whether to use a container or the local runkit installation
+if [ -z "$NOCONTAINER" ] && [ -z "$CONTAINERIMAGE" ]; then
   if [ -f $WHRUNKIT_TARGETDIR/container.image ]; then
-    DOCKERIMAGE="$(cat $WHRUNKIT_TARGETDIR/container.image)"
-    echo "Using configured container image $DOCKERIMAGE"
+    CONTAINERIMAGE="$(cat $WHRUNKIT_TARGETDIR/container.image)"
+    echo "Using configured container image $CONTAINERIMAGE"
   elif [ -x "$WHRUNKIT_WHCOMMAND" ]; then
-    echo "nodocker/dockerimage not set - restoring using $WHRUNKIT_WHCOMMAND"
-    NODOCKER=1
+    echo "--nocontainer/--image not set - restoring using $WHRUNKIT_WHCOMMAND"
+    NOCONTAINER=1
   else
     # TODO use the last STABLE branch, not master!
-    DOCKERIMAGE="docker.io/webhare/platform:master"
-    echo "nodocker/dockerimage not set - using dockerimage $DOCKERIMAGE"
+    CONTAINERIMAGE="docker.io/webhare/platform:master"
+    echo "--nocontainer/--image not set - using container image $CONTAINERIMAGE"
   fi
 fi
 
-[ -z "$NODOCKER" ] && ensurecommands docker
+[ -z "$NOCONTAINER" ] && ensurecommands podman
 
 # applyborgsettings also sets WHRUNKIT_TARGETSERVER and WHRUNKIT_TARGETDIR
 
 validate_servername "$WHRUNKIT_TARGETSERVER"
-[ -n "$NODOCKER" ] && ensure_server_baseport
+[ -n "$NOCONTAINER" ] && ensure_server_baseport
 loadtargetsettings
 
 [ -n "$WEBHARE_DATAROOT" ] || die internal error, WEBHARE_DATAROOT not set
@@ -144,7 +144,7 @@ mkdir -p "$WEBHARE_DATAROOT"
 echo "Restoring container $WHRUNKIT_TARGETSERVER database to $WHEBARE_DATAROOT" > "$WEBHARE_DATAROOT"/webhare.restoremode
 echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKIT_TARGETDIR/restore.borgrepo")" > "$WEBHARE_DATAROOT"/webhare.restoremode
 
-if [ -n "$NODOCKER" ]; then
+if [ -n "$NOCONTAINER" ]; then
   ensure_whrunkit_command
   [ -f "$WHRUNKIT_TARGETDIR/container.image" ] && rm -f "$WHRUNKIT_TARGETDIR/container.image"
 
@@ -154,18 +154,15 @@ if [ -n "$NODOCKER" ]; then
   echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
   exit 0
 else
-  if [ "$DOCKERIMAGE" == "docker.io/webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
-    DOCKERIMAGE=docker.io/webhare/platform:release-4-35
-    echo "Using docker image $DOCKERIMAGE because this is a dbserver backup"
+  if [ "$CONTAINERIMAGE" == "docker.io/webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
+    CONTAINERIMAGE=docker.io/webhare/platform:release-4-35
+    echo "Using image $CONTAINERIMAGE because this is a dbserver backup"
   fi
-  echo "$DOCKERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
+  echo "$CONTAINERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
-  if hash podman 2>/dev/null ; then
-    # Mark restored volume as unshared
-    podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata":Z "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
-  else #pre-2023 machines
-    docker run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata" "$DOCKERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
-  fi
+  # Mark restored volume as unshared
+  podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata":Z "$CONTAINERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+
   date > "$WEBHARE_DATAROOT"/webhare.restoredone
   echo "Container appears succesfully restored"
 fi

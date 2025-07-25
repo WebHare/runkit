@@ -10,10 +10,9 @@ exit_syntax()
 
 DETACH=""
 TORUN=()
-DOCKEROPTS=()
+CONTAINEROPTIONS=()
 ASSERVICE=
-NORESTART=""
-NOSTART=""
+PREPARE=""
 SETIMAGE=""
 NOPULL=""
 
@@ -25,7 +24,7 @@ while true; do
     shift
   elif [ "$1" == "--sh" ]; then
     TORUN=("/bin/bash")
-    DOCKEROPTS+=("-t" "-i")
+    CONTAINEROPTIONS+=("-t" "-i")
     shift
   elif [ "$1" == "--as-service" ]; then
     ASSERVICE="1"
@@ -34,7 +33,7 @@ while true; do
     TORUN=("/bin/sleep 604800")
     shift
   elif [ "$1" == "--prepare" ]; then
-    NOSTART="1"
+    PREPARE="1"
     shift
   elif [ "$1" == "--no-pull" ]; then
     NOPULL="1"
@@ -70,13 +69,13 @@ if [ -n "$SETIMAGE" ]; then
     IMAGE="docker.io/$IMAGE"
   fi
 
-  if [ -z "$NOPULL" ] && ! "$WHRUNKIT_CONTAINERENGINE" pull "$SETIMAGE"; then
+  if [ -z "$NOPULL" ] && ! podman pull "$SETIMAGE"; then
     echo "Failed to pull $SETIMAGE"
     exit 1
   fi
 
   # FIXME proxy should provide veriifation labels
-  #  COMMITREF="$("$WHRUNKIT_CONTAINERENGINE" image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
+  #  COMMITREF="$(podman image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
   #  [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
   echo "$SETIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.image"
 fi
@@ -99,23 +98,22 @@ mkdir -p "$CONTAINERSTORAGE"
 RUNIMAGE="$( cat "$WHRUNKIT_DATADIR/_proxy/container.image" )"
 
 if [ -f "$WHRUNKIT_DATADIR/_settings/letsencryptemail" ]; then
-  DOCKEROPTS+=(-e WEBHAREPROXY_LETSENCRYPTEMAIL="$(cat "$WHRUNKIT_DATADIR/_settings/letsencryptemail")")
+  CONTAINEROPTIONS+=(-e WEBHAREPROXY_LETSENCRYPTEMAIL="$(cat "$WHRUNKIT_DATADIR/_settings/letsencryptemail")")
 fi
 if [ -f "$WHRUNKIT_DATADIR/_settings/publichostname" ]; then
-  DOCKEROPTS+=(-e WEBHAREPROXY_ADMINHOSTNAME="$(cat "$WHRUNKIT_DATADIR/_settings/publichostname")")
+  CONTAINEROPTIONS+=(-e WEBHAREPROXY_ADMINHOSTNAME="$(cat "$WHRUNKIT_DATADIR/_settings/publichostname")")
 fi
 
-# TODO support system docker/podman options eg
+# TODO support options eg
 # - setting a recognizable hostname for the LB?  (eg  "-h" "lb-fra1-19.docker")
 # - seting WEBHAREPROXY_ADMINHOSTNAME=do-fra1-19.hw.webhare.net
 # - setting WEBHAREPROXY_LETSENCRYPTEMAIL=webhare-servermgmt+letsencypt@webhare.nl
 # - setting DNS: "--dns=192.168.198.128" "--dns=8.8.8.8" "--dns=8.8.4.4"
-# /opt/webhare-cloud/libexec/run-container.sh  "lb-fra1-19" "-h" "lb-fra1-19.docker" "-e" "TZ=Europe/Amsterdam" "-e" "NGINXPROXY_LOCALHOSTPORT=5442" "-e" "WEBHAREPROXY_ADMINHOSTNAME=do-fra1-19.hw.webhare.net" "-e" "WEBHAREPROXY_LETSENCRYPTEMAIL=webhare-servermgmt+letsencypt@webhare.nl" "--net" "host" "-v" "/opt/dockerstorage/lb-fra1-19/webhare-proxy-data:/opt/webhare-proxy-data/" "--dns=192.168.198.128" "--dns=8.8.8.8" "--dns=8.8.4.4" "--ulimit" "core=0"
 
 if [ "$(uname)" == "Darwin" ]; then
-  DOCKEROPTS+=(--publish 10080:80/tcp --publish 10443:443/tcp)
+  CONTAINEROPTIONS+=(--publish 10080:80/tcp --publish 10443:443/tcp)
 else
-  DOCKEROPTS+=(--network host)
+  CONTAINEROPTIONS+=(--network host)
 
   if [ -z "$ASSERVICE" ] && [ "$(systemctl is-active $CONTAINERNAME)" == "active" ]; then
     echo "You need to 'systemctl stop $CONTAINERNAME' before attemping to start us in the foreground"
@@ -124,17 +122,17 @@ else
 fi
 
 # --sdnotify=conmon - our proxy doesn't support NOTIFY_SOCKET yet so a succesful container start will have to do for readyness (https://docs.podman.io/en/v4.4/markdown/options/sdnotify.html)
-if [ -n "$ASSERVICE" ] && [ "$WHRUNKIT_CONTAINERENGINE" == "podman" ]; then
-  DOCKEROPTS+=(--sdnotify=conmon)
+if [ -n "$ASSERVICE" ]; then
+  CONTAINEROPTIONS+=(--sdnotify=conmon)
 fi
 
 if [ "$DETACH" == "1" ]; then
-  DOCKEROPTS+=(--detach)
+  CONTAINEROPTIONS+=(--detach)
 else
-  DOCKEROPTS+=(--rm)
+  CONTAINEROPTIONS+=(--rm)
 fi
 
-DOCKEROPTS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
+CONTAINEROPTIONS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
               -e TZ=Europe/Amsterdam
               --name "$CONTAINERNAME"
               --label runkittype=proxy
@@ -149,11 +147,11 @@ DOCKEROPTS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
 main()
 {
   echo "- Stopping any existing container"
-  "$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERNAME" || true 2>/dev/null
-  "$WHRUNKIT_CONTAINERENGINE" rm -f -v "$CONTAINERNAME" || true 2>/dev/null
+  podman stop "$CONTAINERNAME" || true 2>/dev/null
+  podman rm -f -v "$CONTAINERNAME" || true 2>/dev/null
 
   echo "- Starting new container"
-  exec "$WHRUNKIT_CONTAINERENGINE" run "${DOCKEROPTS[@]}"
+  exec podman run "${CONTAINEROPTIONS[@]}"
 }
 
 if [ -n "$ASSERVICE" ]; then
@@ -180,13 +178,13 @@ Restart=always
 Type=notify
 NotifyAccess=all
 
-ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" stop "$CONTAINERNAME"
-ExecStartPre=-"$WHRUNKIT_CONTAINERENGINE" rm -f -v "$CONTAINERNAME"
-ExecStart="$WHRUNKIT_CONTAINERENGINE" run ${DOCKEROPTS[@]}
+ExecStartPre=-podman stop "$CONTAINERNAME"
+ExecStartPre=-podman rm -f -v "$CONTAINERNAME"
+ExecStart=podman run ${CONTAINEROPTIONS[@]}
 ExecStartPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange started "$CONTAINERNAME"
 ExecStopPost=-"$WHRUNKIT_ROOT/bin/runkit" __oncontainerchange stopped "$CONTAINERNAME"
-# Tell systemd to use podman (or docker), or it will try to signal conmon which won't understand
-ExecStop=-"$WHRUNKIT_CONTAINERENGINE" stop $WHRUNKIT_CONTAINERNAME
+# Tell systemd to use podman or it will try to signal conmon which won't understand
+ExecStop=-podman stop $WHRUNKIT_CONTAINERNAME
 
 [Install]
 WantedBy=multi-user.target
@@ -194,7 +192,7 @@ HERE
 
   systemctl daemon-reload
   systemctl enable runkit-proxy #ensure autostart
-  if [ -z "$NOSTART" ]; then
+  if [ -z "$PREPARE" ]; then
     systemctl restart runkit-proxy
   fi
 

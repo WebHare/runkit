@@ -1,6 +1,6 @@
 #!/bin/bash
 # syntax: <image>
-# short: Upgrade a docker-based server
+# short: Upgrade a container-based server
 
 function exit_syntax
 {

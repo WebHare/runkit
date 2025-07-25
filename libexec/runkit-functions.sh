@@ -24,15 +24,15 @@ function ensurecommands()
 
 function iscontainerup()
 {
-  [ "$("$WHRUNKIT_CONTAINERENGINE" inspect -f '{{.State.Running}}' "$1" 2>/dev/null )" == true ] && return 0 || return 1
+  [ "$(podman inspect -f '{{.State.Running}}' "$1" 2>/dev/null )" == true ] && return 0 || return 1
 }
 
 function killcontainer()
 {
-  if "$WHRUNKIT_CONTAINERENGINE" inspect "$1" > /dev/null 2>&1 ; then
-    ("$WHRUNKIT_CONTAINERENGINE" stop "$1" 2>/dev/null && sleep 1) || true
-    "$WHRUNKIT_CONTAINERENGINE" kill "$1" 2>/dev/null || true
-    "$WHRUNKIT_CONTAINERENGINE" rm -f "$1" 2>/dev/null || true
+  if podman inspect "$1" > /dev/null 2>&1 ; then
+    (podman stop "$1" 2>/dev/null && sleep 1) || true
+    podman kill "$1" 2>/dev/null || true
+    podman rm -f "$1" 2>/dev/null || true
   fi
 }
 
@@ -41,19 +41,12 @@ function configure_runkit_podman()
   local NETWORKPREFIX
   get_runkit_var NETWORKPREFIX networkprefix
   # This gives us an IP range to use:
-  if [ "$WHRUNKIT_CONTAINERENGINE" == "docker" ]; then
-    if ! docker network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
-      echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
-      docker network create $WHRUNKIT_NETWORKNAME --subnet="${NETWORKPREFIX}".0/24
-    fi
-  else
-    ensurecommands podman jq
-    [ -f "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh ] && source "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh
+  ensurecommands podman jq
+  [ -f "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh ] && source "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh
 
-    if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
-      echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
-      podman network create $WHRUNKIT_NETWORKNAME --subnet=${NETWORKPREFIX}.0/24
-    fi
+  if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
+    echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
+    podman network create $WHRUNKIT_NETWORKNAME --subnet=${NETWORKPREFIX}.0/24
   fi
 }
 
@@ -80,7 +73,7 @@ function set_webhare_image()
   fi
 
   retval=0
-  RESOLVEDIMAGE="$("$WHRUNKIT_CONTAINERENGINE" pull "$FINALIMAGE")" || retval=$?
+  RESOLVEDIMAGE="$(podman pull "$FINALIMAGE")" || retval=$?
 
   if [ "$retval" != "0" ]; then
     if [ "$FINALIMAGE" != "$IMAGE" ]; then
@@ -92,7 +85,7 @@ function set_webhare_image()
     exit 1
   fi
 
-  COMMITREF="$("$WHRUNKIT_CONTAINERENGINE" image inspect "$FINALIMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
+  COMMITREF="$(podman image inspect "$FINALIMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
   [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
 
   echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.requestedimage"
@@ -401,7 +394,6 @@ fi
 
 [ -n "$WHRUNKIT_PROJECTS" ] || WHRUNKIT_PROJECTS="$HOME/projects"
 
-[ -z "$WHRUNKIT_CONTAINERENGINE" ] && WHRUNKIT_CONTAINERENGINE=podman
 export WHRUNKIT_DATADIR WHRUNKIT_ROOT
 export REGISTRY_AUTH_FILE="$WHRUNKIT_DATADIR/_settings/registry-auth.json" # To persist podman auth settings
 

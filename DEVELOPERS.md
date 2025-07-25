@@ -3,7 +3,7 @@
 
 - The WebHare-runkit and the embedded `wh` commands should avoid overlap as much as possible. `runkit` should invoke `wh` where
 needed
-- `wh` should limit itself to things that will also work inside the docker containers
+- `wh` should limit itself to things that will also work inside the containers
   - so `wh` should not have the ability to install and start an OpenSearch dashboard - that's something we don't want to do
     inside containers but is fine on a source checkout
   - in time, `wh up` and `wh make` might turn out to be out-of-scope?
@@ -62,12 +62,12 @@ To simplify development you can quickly push local changes to eg a local VM usin
 - WHRUNKIT_PROJECTS - projects/development directory. defaults to `$HOME/projects`
 
 
-## Build docker and restore
-This recipe builds a local WebHare docker and restore a server into it
+## Build container and restore
+This recipe builds a local WebHare container and restore a server into it
 
 ```bash
 RESTORESERVER=demo # set to your container. make sure you have the .borg settings!
-wh builddocker
+wh buildcontainer
 runkit list-backups $RESTORESERVER
 runkit restore-server $RESTORESERVER
 bin/startup-proxy-and-webhare.sh $RESTORESERVER

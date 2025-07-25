@@ -52,13 +52,6 @@ function list_servers()
       continue
     fi
 
-    if [ "${CONTAINERIMAGE:0:27}" == "docker.io/webhare/platform:" ]; then
-      CONTAINERIMAGE="${CONTAINERIMAGE:27}"
-    fi
-    if [ "${CONTAINERIMAGE:0:24}" == "docker.io/webhare/proxy:" ]; then
-      CONTAINERIMAGE="${CONTAINERIMAGE:24}"
-    fi
-
     DEFAULTINFO=""
     if [ "$BASEPORT" == "13679" ]; then
       DEFAULTINFO="(default)"

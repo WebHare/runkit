@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if ! "$WHRUNKIT_CONTAINERENGINE" inspect runkit-proxy >/dev/null 2>&1; then
+if ! podman inspect runkit-proxy >/dev/null 2>&1; then
   # Test if a softlink exists
   if [ -L "$WHRUNKIT_DATADIR/_settings/projectlinks/proxy" ]; then
     PROXYPROJECT="$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/proxy")"

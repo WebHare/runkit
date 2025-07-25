@@ -13,10 +13,9 @@ Not automated yet...
 
 ```bash
 podman machine start
-runkit create-server --image release/5.2 test-docker-server
+runkit create-server --image release/5.2 test-container-server
 ```
 
 
 TODO:
 - build two servers. verify they each have a unique container.ipv4
-

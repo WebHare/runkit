@@ -41,10 +41,10 @@ if [ "$COMP_CWORD" == 1 ]; then
   complete_installations "${COMP_WORDS[$COMP_CWORD]}"
   complete_command "${BASH_SOURCE%/*}/../atrunkit/" "${COMP_WORDS[$COMP_CWORD]}"
 elif [ "$COMP_CWORD" == 2 ] && [[ "${COMP_WORDS[1]}" == @* ]]; then
-  # FIXME: it looks like docker installations don't have the same commands, check for that
+  # FIXME: it looks like container installations don't have the same commands, check for that
   complete_command "${BASH_SOURCE%/*}/../atserver/" "${COMP_WORDS[$COMP_CWORD]}"
 elif [ "$COMP_CWORD" -gt 2 ] && [[ "${COMP_WORDS[1]}" == @* ]] && [ "${COMP_WORDS[2]}" == "wh" ]; then
-  # FIXME: it looks like docker installations don't have the same commands, check for that
+  # FIXME: it looks like container installations don't have the same commands, check for that
 
   wh_params=("${COMP_WORDS[@]:2}")
   COMP_LINE="${wh_params[*]}" COMP_POINT="" "$WHRUNKIT_ORIGCOMMAND" "${COMP_WORDS[1]}" wh __autocomplete_wh

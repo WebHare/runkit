@@ -1,7 +1,7 @@
 # WebHare on arm64
 WARNING: arm64 is experimental. DO NOT RUN IN PRODUCTION.
 
-- We're not regularly publishing an arm64 version to the Docker registries
+- We're not regularly publishing an arm64 version to the podman registries
 - We do not run continuous integration tests for arm64 WebHare
 
 But if you really need a pihare:
@@ -14,19 +14,19 @@ or any obvious derivative to avoid confusion (especially if we do start to provi
 You can build your own images or use the ones we built:
 ```bash
 # Build WebHare
-wh builddocker
-docker image tag webhare/webhare-extern:localbuild unilynx/pihare-platform:latest
-docker login docker.io
-docker push unilynx/pihare-platform:latest
+wh buildcontainer
+podman image tag webhare/webhare-extern:localbuild unilynx/pihare-platform:latest
+podman login docker.io
+podman push unilynx/pihare-platform:latest
 
 # Build the proxy
 cd ~/projects/baseimage
  ./build.sh ubuntu-20
-docker tag docker.io/webhare/baseimage:ubuntu-20-devbuild docker.io/webhare/baseimage:ubuntu-20
+podman tag docker.io/webhare/baseimage:ubuntu-20-devbuild docker.io/webhare/baseimage:ubuntu-20
 cd ~/projects/proxy
 ./build.sh --nopull
-docker tag docker.io/webhare/proxy:devbuild unilynx/pihare-proxy:latest
-docker push unilynx/pihare-proxy:latest
+podman tag docker.io/webhare/proxy:devbuild unilynx/pihare-proxy:latest
+podman push unilynx/pihare-proxy:latest
 ```
 
 Installing on a Pi:

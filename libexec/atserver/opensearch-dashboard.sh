@@ -6,7 +6,7 @@
 function exit_syntax
 {
   echo "Syntax: runkit [@server] [--host bind to host] [--port port] opensearch-dashboard"
-  echo "        to connect to a WebHare outside docker try setting a non-127.0.0.1 IP in ~/whrunkit/<server>/opensearch-bindhost"
+  echo "        to connect to a WebHare outside a container try setting a non-127.0.0.1 IP in ~/whrunkit/<server>/opensearch-bindhost"
   exit 1
 }
 
@@ -32,7 +32,6 @@ while true; do
   fi
 done
 
-[ -n "$WHRUNKIT_CONTAINERENGINE" ] || die "WHRUNKIT_CONTAINERENGINE not set"
 [ -n "$WEBHARE_OPENSEARCH_BINDHOST" ] || WEBHARE_OPENSEARCH_BINDHOST="127.0.0.1"
 
 configure_runkit_podman
@@ -49,7 +48,7 @@ OPTS=(--rm
       --env DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
     )
 
-"$WHRUNKIT_CONTAINERENGINE" run "${OPTS[@]}" opensearchproject/opensearch-dashboards:latest &
+podman run "${OPTS[@]}" opensearchproject/opensearch-dashboards:latest &
 trap "kill %1; wait %1" TERM EXIT
 
 OPENURL="http://$DASHBOARD_HOST:$DASHBOARD_PORT/app/dev_tools#/console"

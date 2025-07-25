@@ -50,11 +50,15 @@ Other installs are bound to a `wh-server` alias eg `wh-mytest`. You can always t
 runkit help
 # List runkit managed servers
 runkit list-servers
-# Update server. image is a full container image reference (eg: runkit @cms1 upgrade docker.io/webhare/platform:release-5-6), a release branch (release/5.6) or an explicit version (5.6.7)
-runkit @<servername> upgrade <image>
+# Update server.
+runkit @<servername> upgrade [image]
 # The update is not effective until the server is restarted
 runkit @<servername> run-webhare --as-service
 ```
+
+Image references used in `runkit upgrade` (and in `runkit create-server`) are usually a release branch, eg `release/5.6` to get the most recent 5.6.x releaes. It can also be a full container image reference (eg: `docker.io/webhare/platform:release-5-6`) or an explicit version (eg `5.6.7`). If upgrade is invoked without an image reference it will upgrade inside the last selected branch.
+
+Note that you *must* use `run-webhare` to apply the update - if you simply restart the unit or the server it will still use the last started image.
 
 ### Using podman
 runkit can be used to manage a podman-based server.
@@ -119,8 +123,8 @@ Eg. to locally debug an issue with a server. This assumes you have runkit and We
 example the container is still named `demo` and the `demo.borg` credentials file is present.
 
 Use `runkit restore-server` to create a new 'restored from backup' server (don't use `runkit create-server`).
-You can add `--nodocker` to `restore-server` and `launch-webhare.sh` to use your local WebHare source tree
-instead of docker containers. This will generally be faster if you've built a compatible version of WebHare for
+You can add `--nocontainer` to `restore-server` and `launch-webhare.sh` to use your local WebHare source tree
+instead of containers. This will generally be faster if you've built a compatible version of WebHare for
 the data you're restoring.
 
 You can add the `--fast` option to `restore-server` to skip the restoration of logs and output.
