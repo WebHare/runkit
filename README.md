@@ -60,6 +60,14 @@ Image references used in `runkit upgrade` (and in `runkit create-server`) are us
 
 Note that you *must* use `run-webhare` to apply the update - if you simply restart the unit or the server it will still use the last started image.
 
+### Manging the proxy server
+```bash
+# Install a tagged version
+runkit run-proxy --as-service --set-image 3.4.1
+# Install the most recent development verison
+runkit run-proxy --as-service --set-image master
+```
+
 ### Using podman
 runkit can be used to manage a podman-based server.
 

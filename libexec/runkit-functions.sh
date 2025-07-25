@@ -38,6 +38,10 @@ function killcontainer()
 
 function configure_runkit_podman()
 {
+  if [ -z "$WHRUNKIT_REGISTRYROOT" ]; then
+    WHRUNKIT_REGISTRYROOT=$( cat "$WHRUNKIT_DATADIR/_settings/registryroot" 2>/dev/null || echo "docker.io/webhare" )
+  fi
+
   local NETWORKPREFIX
   get_runkit_var NETWORKPREFIX networkprefix
   # This gives us an IP range to use:
@@ -50,45 +54,63 @@ function configure_runkit_podman()
   fi
 }
 
-function set_webhare_image()
+function set_container_image() # out: resolvedimage, basename, setimage
 {
-  IMAGE="$1"
+  local OUT_RESOLVEDIMAGE="$1"
+  local BASENAME="$2"
+  local SETIMAGE="$3"
+  local retval FINALIMAGE _RESOLVEDIMAGE
 
-  REGISTRYROOT=$( cat "$WHRUNKIT_DATADIR/_settings/registryroot" 2>/dev/null || echo "docker.io/webhare" )
-  if [[ $IMAGE =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  if [[ $SETIMAGE =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     #x.y.z tags map directly to images
-    FINALIMAGE="$REGISTRYROOT/platform:$IMAGE"
-  elif [[ $IMAGE =~ ^custom- ]] || [[ $IMAGE =~ ^edge- ]]|| [[ $IMAGE =~ ^feature- ]]; then
+    FINALIMAGE="$WHRUNKIT_REGISTRYROOT/$BASENAME:$SETIMAGE"
+  elif [[ $SETIMAGE =~ ^custom- ]] || [[ $SETIMAGE =~ ^edge- ]]|| [[ $SETIMAGE =~ ^feature- ]] || [ "$SETIMAGE" == "master" ]; then
     #branch names map directly to images
-    FINALIMAGE="$REGISTRYROOT/platform:$IMAGE"
-  elif [[ $IMAGE =~ ^release/ ]]; then
+    FINALIMAGE="$WHRUNKIT_REGISTRYROOT/$BASENAME:$SETIMAGE"
+  elif [[ $SETIMAGE =~ ^release/ ]]; then
     #slugify the image. eg release/5.2 will become release-5-2
-    FINALIMAGE="$(echo "$IMAGE" | tr -- "/." "--")"
-    FINALIMAGE="$REGISTRYROOT/platform:$FINALIMAGE"
-  elif [[ $IMAGE =~ ^webhare/platform: ]]; then
+    FINALIMAGE="$(echo "$SETIMAGE" | tr -- "/." "--")"
+    FINALIMAGE="$WHRUNKIT_REGISTRYROOT/$BASENAME:$FINALIMAGE"
+  elif [[ $SETIMAGE =~ ^webhare/$BASENAME: ]]; then
     #prefix docker.io
-    FINALIMAGE="docker.io/$IMAGE"
+    FINALIMAGE="docker.io/$SETIMAGE"
   else
-    FINALIMAGE="$IMAGE"
+    FINALIMAGE="$SETIMAGE"
   fi
 
   retval=0
-  RESOLVEDIMAGE="$(podman pull "$FINALIMAGE")" || retval=$?
+  _RESOLVEDIMAGE="$(podman pull "$FINALIMAGE")" || retval=$?
 
   if [ "$retval" != "0" ]; then
-    if [ "$FINALIMAGE" != "$IMAGE" ]; then
-      echo "Failed to pull $IMAGE (resolved to $FINALIMAGE) - errorcode $retval"
+    if [ "$FINALIMAGE" != "$SETIMAGE" ]; then
+      echo "Failed to pull $SETIMAGE (resolved to $FINALIMAGE) - errorcode $retval"
     else
-      echo "Failed to pull $IMAGE - errorcode $retval"
+      echo "Failed to pull $SETIMAGE - errorcode $retval"
     fi
 
     exit 1
   fi
 
-  COMMITREF="$(podman image inspect "$FINALIMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
+  eval "$OUT_RESOLVEDIMAGE=\$_RESOLVEDIMAGE"
+  return 0
+}
+
+function set_webhare_image() # setimage
+{
+  local SETIMAGE="$1"
+  local RESOLVEDIMAGE
+
+  if [ "$1" == "master" ]; then # this is never considered a good idea - you'll auto-upgrade to the next major branch once released
+    echo "Directly selecting the master branch is not supported. Please use a release/x.yy tag instead" >&2
+    exit 1
+  fi
+
+  set_container_image "RESOLVEDIMAGE" "platform" "$SETIMAGE"
+
+  COMMITREF="$(podman image inspect "$RESOLVEDIMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
   [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
 
-  echo "$IMAGE" > "$WHRUNKIT_TARGETDIR/container.requestedimage"
+  echo "$SETIMAGE" > "$WHRUNKIT_TARGETDIR/container.requestedimage"
   echo "$RESOLVEDIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
   return 0
 }
@@ -105,9 +127,6 @@ HERE
 
 function applyborgsettings()
 {
-  local SETTINGSNAME
-  SETTINGSNAME="$1"
-
   ensurecommands borg
 
   #TODO how risky is accept-new (in practice) ?
@@ -248,7 +267,7 @@ function download_backup()
 
   [ -d "$RESTORETO" ] && rm -rf "$RESTORETO"
   mkdir -p "$RESTORETO"
-  cd "$RESTORETO"
+  cd "$RESTORETO" || exit 1
 
   borg extract "${BORGOPTIONS[@]}" "::$RESTOREARCHIVE" $BORGPATHS
   return 0

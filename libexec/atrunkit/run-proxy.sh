@@ -14,7 +14,6 @@ CONTAINEROPTIONS=()
 ASSERVICE=
 PREPARE=""
 SETIMAGE=""
-NOPULL=""
 
 while true; do
   if [ "$1" == "--help" ]; then
@@ -35,9 +34,6 @@ while true; do
   elif [ "$1" == "--prepare" ]; then
     PREPARE="1"
     shift
-  elif [ "$1" == "--no-pull" ]; then
-    NOPULL="1"
-    shift
   elif [ "$1" == "--set-image" ]; then
     shift
     SETIMAGE="$1"
@@ -52,33 +48,29 @@ done
 
 [ -n "$1" ] && exit_syntax
 
+
 mkdir -p "$WHRUNKIT_DATADIR/_proxy" # Ensure our datadir is there
 
 if [ -z "$SETIMAGE" ] && [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ]; then
   SETIMAGE="docker.io/webhare/proxy:master" # TODO last stable version ? but we lack a branch for that
 fi
 
-if [ -n "$SETIMAGE" ]; then
-  if [[ $IMAGE =~ ^[0-9]\.[0-9]release/ ]]; then
-    #slugify the image. eg release/5.2 will become release-5-2
-    IMAGE="$(echo "$IMAGE" | tr -- "/." "--")"
-    IMAGE="docker.io/webhare/platform:$IMAGE"
-  fi
-  if [[ $IMAGE =~ ^webhare/platform: ]]; then
-    #prefix docker.io
-    IMAGE="docker.io/$IMAGE"
-  fi
-
-  if [ -z "$NOPULL" ] && ! podman pull "$SETIMAGE"; then
-    echo "Failed to pull $SETIMAGE"
-    exit 1
-  fi
-
-  # FIXME proxy should provide veriifation labels
-  #  COMMITREF="$(podman image inspect "$IMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
-  #  [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
-  echo "$SETIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.image"
+if [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] && [ -z "$SETIMAGE" ]; then
+  SETIMAGE="master"
 fi
+
+if [ -n "$SETIMAGE" ]; then
+  configure_runkit_podman
+
+  set_container_image "RESOLVEDIMAGE" "proxy" "$SETIMAGE"
+
+  COMMITREF="$(podman image inspect "$RESOLVEDIMAGE" | jq -r '.[0].Labels["dev.webhare.proxy.git-commit-ref"]')"
+  [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare proxy"
+
+  echo "$SETIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.requestedimage"
+  echo "$RESOLVEDIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.image"
+fi
+
 [ -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] || echo docker.io/webhare/proxy:master > "$WHRUNKIT_DATADIR/_proxy/container.image"
 
 CONTAINERSTORAGE="$(cat "$WHRUNKIT_DATADIR/_proxy/dataroot" 2>/dev/null || true)"
@@ -92,7 +84,6 @@ fi
 
 CONTAINERBASENAME="proxy"
 CONTAINERNAME="runkit-$CONTAINERBASENAME"
-configure_runkit_podman
 
 mkdir -p "$CONTAINERSTORAGE"
 RUNIMAGE="$( cat "$WHRUNKIT_DATADIR/_proxy/container.image" )"
@@ -155,7 +146,6 @@ main()
 }
 
 if [ -n "$ASSERVICE" ]; then
-
   configure_runkit_podman
 
   if ! hash systemctl 2>/dev/null ; then
