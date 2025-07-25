@@ -1,0 +1,25 @@
+{
+  "name": "@webhare/runkit",
+  "version": "1.0.0",
+  "description": "Tools for running WebHare on desktops and servers and testing backup/restore procedures",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.webhare.com:webhare-opensource/runkit.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "private": true,
+  "devDependencies": {
+    "shellcheck": "^3.1.0"
+  }
+}

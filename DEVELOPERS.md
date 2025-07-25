@@ -51,6 +51,8 @@ BORG_PASSPHRASE="key passphrase"
 ## runkit guidelines
 - Do not invoke `wh` directly on a server. Use `$WHRUNKIT_WHCOMMAND` (setup by the `runkit @...` wrapper)
 
+## CI tests
+Invoke './tests/runtests.sh' to run the CI tests.
 
 ## "Remote" development
 To simplify development you can quickly push local changes to eg a local VM using `runkit copy-runkit-to-server <user@host>`
