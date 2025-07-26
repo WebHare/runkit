@@ -47,6 +47,12 @@ function list_servers()
     set_from_file BASEPORT "$TARGETDIR/baseport"
     set_from_file CONTAINERIMAGE "$TARGETDIR/container.requestedimage"
     [ -z "$CONTAINERIMAGE" ] && set_from_file  CONTAINERIMAGE "$TARGETDIR/container.image" # fallback to pre 1.2.1 file
+    set_from_file RESTORE_ARCHIVE "$TARGETDIR/restore.archive"
+    set_from_file RESTORE_BORGREPO "$TARGETDIR/restore.borgrepo"
+    set_from_file RESTORE_DATE "$TARGETDIR/restore.date"
+    set_from_file CONTAINER_OPTIONS "$TARGETDIR/container-options"
+    set_from_file DOCKER_OPTIONS "$TARGETDIR/docker-options" # to see which server still have 'old' options files
+    set_from_file REQUIRED_UNITS "$TARGETDIR/required-units"
 
     if [ -z $BASEPORT ] && [ -z "$CONTAINERIMAGE" ]; then
       continue
@@ -72,11 +78,18 @@ function list_servers()
     fi
 
     if [ -n "$JSON" ]; then
+      # jq -R -s '@text' ensures escaping and newlines if needed
     cat << HERE
-      { "server": $(jq --raw-input <<<"$SERVER")
-      , "containerImage": $(jq --raw-input <<<"$CONTAINERIMAGE")
+      { "server": $(echo -n "$SERVER" | jq -R -s '@text')
+      , "containerImage": $(echo -n "$CONTAINERIMAGE" | jq -R -s '@text')
       , "basePort": ${BASEPORT:-null}
-      , "dataRoot": $(jq --raw-input <<<"$DATAROOT")
+      , "dataRoot": $(echo -n "$DATAROOT" | jq -R -s '@text' )
+      , "restoreArchive": $(echo -n "$RESTORE_ARCHIVE" | jq -R -s '@text' )
+      , "restoreBorgRepo": $(echo -n "$RESTORE_BORGREPO" | jq -R -s '@text' )
+      , "restoreDate": $(echo -n "$RESTORE_DATE" | jq -R -s '@text' )
+      , "containerOptions": $(echo -n "$CONTAINER_OPTIONS" | jq -R -s '@text' )
+      , "dockerOptions": $(echo -n "$DOCKER_OPTIONS" | jq -R -s '@text' )
+      , "requiredUnits": $(echo -n "$REQUIRED_UNITS" | jq -R -s '@text' )
       }
 HERE
     else

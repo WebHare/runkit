@@ -27,13 +27,14 @@ local settings are stored in `$WHRUNKIT_DATADIR/_settings/`
   - `startup.sh` - if present and executable, this will be setup as the WEBHARE_POSTSTARTSCRIPT
   - `container.image` - image to use for the WebHare server. if set, will be started using podman
 - `_settings/`
-  - getborgsettings.sh - a script to override how borg-related scripts lookup containers
-  - containerchange.sh - if it exists, a script that is invoked whenever a container is started or stopped
+  - `getborgsettings.sh` - a script to override how borg-related scripts lookup containers
+  - `containerchange.sh` - if it exists, a script that is invoked whenever a container is started or stopped
   - `sourceroot` - contains default source checkout
   - `forgeroot` - overrides location of WebHare open source projects
   - `registryroot` - overrides location of registry locations (defaults to `docker.io/webhare`)
   - `letsencryptemail` - email address for automatic letsencrypt accounts (and future eg. chtatplane proxy use?)
-  - `publichostname` - used as WEBHAREPROXY_ADMINHOSTNAME, hosts a control interface for the proxy (and future eg. chtatplane proxy use? or usable by webhare to tell where its being hosted?)
+  - `publichostname` - used as WEBHAREPROXY_ADMINHOSTNAME, hosts a control interface for the proxy (and future eg. chtatplane proxy use? or usable by webhare to
+  - `upload-state-urls` - URLs to upload runkit state to every 5 minutes
 - `_proxy/`
   - `container.image` - image to use for the proxy server
 

@@ -1,0 +1,2 @@
+# disable 'useless use of cat' - but I like it for readability
+disable=SC2002

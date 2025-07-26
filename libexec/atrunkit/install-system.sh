@@ -53,6 +53,38 @@ OnCalendar=*-*-* 03:00:00
 WantedBy=multi-user.target
 HERE
 
+######### Runkit state reporting
+cat > /etc/systemd/system/runkit-state-reporting.service << HERE
+[Unit]
+Description=runkit state reporting
+Wants=runkit-state-reporting.timer
+
+[Service]
+Type=oneshot
+
+# prefixing with /bin/bash prevents SELinux from complaining about running code from eg. /root/projects/
+ExecStart=/bin/bash "$WHRUNKIT_ROOT"/bin/runkit __state-report
+
+[Install]
+WantedBy=multi-user.target
+HERE
+
+cat > /etc/systemd/system/runkit-state-reporting.timer << HERE
+[Unit]
+Description=runkit state reporting
+Requires=runkit-state-reporting.service
+
+[Timer]
+Unit=runkit-state-reporting.service
+OnCalendar=*-*-* *:0/5:30
+RandomizedDelaySec=30
+FixedRandomDelay=true
+
+[Install]
+WantedBy=multi-user.target
+HERE
+
+
 ######### Load reporting
 cat > /etc/systemd/system/runkit-load-report.service << HERE
 [Unit]
@@ -85,6 +117,7 @@ HERE
 systemctl daemon-reload
 systemctl enable --now runkit-system-setup.service
 systemctl enable --now runkit-daily-maintenance.timer
+systemctl enable --now runkit-state-reporting.timer
 systemctl enable --now runkit-load-report.timer
 
 mkdir -p "$WHRUNKIT_DATADIR/_log"

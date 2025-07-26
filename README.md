@@ -14,7 +14,7 @@ it directly when invoking it. All examples below assume that `runkit` will invok
 We recommend adding `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your `~/.profile` or similar bash startup script
 
 Runkit will store its data in `$HOME/whrunkit/` or `/opt/runkit-data/` by default. You can override this directory by setting
-the `WHRUNKIT_DATADIR` environment varaible.
+the `WHRUNKIT_DATADIR` environment variable.
 
 ## Building WebHare from source
 ```bash
@@ -60,7 +60,7 @@ Image references used in `runkit upgrade` (and in `runkit create-server`) are us
 
 Note that you *must* use `run-webhare` to apply the update - if you simply restart the unit or the server it will still use the last started image.
 
-### Manging the proxy server
+### Managing the proxy server
 ```bash
 # Install a tagged version
 runkit run-proxy --as-service --set-image 3.4.1
