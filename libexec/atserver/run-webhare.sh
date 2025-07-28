@@ -72,7 +72,7 @@ CMDLINE=()
 if [ -n "$ASSERVICE" ]; then
   while read -r unit; do
     REQUIREUNITS+=("$unit")
-  done < <(grep '^[a-z0-9_-:.]+$' "$WHRUNKIT_TARGETDIR"/required-units 2>/dev/null || true)
+  done < <(grep -E '^[-a-z0-9_:.]+$' "$WHRUNKIT_TARGETDIR"/required-units 2>/dev/null || true)
 
   for UNIT in "${REQUIREUNITS[@]}"; do
     if [ -n "$SHOWUNITFILE" ]; then
