@@ -1,31 +1,56 @@
 # WebHare Runkit
-Tools for running WebHare on desktops and servers and testing backup/restore procedures
+The runkit is a collection of tools for running WebHare on desktops and servers and testing backup/restore procedures.
 
-Download this repository using either of
+To get started immediately:
+```bash
+curl https://gitlab.com/webhare/runkit/-/raw/main/install.sh | bash
+```
+
+Which will clone the repository *and* install the `runkit` command in your bash shell. (If you're a different shell, run `bash` to get
+runkit shell integration to work)
+
+You can also clone the repository using either of:
 - `git clone git@gitlab.com:webhare/runkit.git webhare-runkit`
 - `git clone https://gitlab.com/webhare/runkit.git webhare-runkit`
 
-Or install it on your target machine by running `curl https://gitlab.com/webhare/runkit/-/raw/main/install.sh | bash` as root
+You can then add `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your shell to get bash integration, invoke `webhare-runkit/bin/runkit` manually
+or add it to your path. All examples below assume that `runkit` will invoke `bin/runkit` from this project.
 
-To ease runkit use add `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your shell. You can then use `runkit-reload`
-to reload the aliases without having to close your current session. You can also place just `runkit` in your path or invoke
-it directly when invoking it. All examples below assume that `runkit` will invoke `bin/runkit` from this project.
-
-We recommend adding `eval $(~/webhare-runkit/bin/runkit setupmyshell)` to your `~/.profile` or similar bash startup script
-
-Runkit will store its data in `$HOME/whrunkit/` or `/opt/runkit-data/` by default. You can override this directory by setting
+Runkit will store its data in `$HOME/whrunkit/` or `/opt/runkit-data/` (if invoked as root) by default. You can override this directory by setting
 the `WHRUNKIT_DATADIR` environment variable.
 
 ## Building WebHare from source
+There are currently two supported methods to build WebHare from source:
+- Building on a Mac
+- Building a container (Docker) image
+
+### Building WebHare on a Mac
+You need to install [Homebrew](https://brew.sh/) first. If you're seeing errors such as 'brew: command not found' or 'exec: node: not found'
+make sure Homebrew is properly installed and you've added `eval "$(/opt/homebrew/bin/brew shellenv)"` to your profile (or invoked manually)
+
+```bash
+
+### Building WebHare itself
+
 ```bash
 runkit download-webhare-source
 runkit create-server --default mywebhare
-runkit wh make
+runkit wh make install
 ```
 
-If you want to develop modules in WebHare you should install the `dev` module next.
+(`wh make` currently require a default server to exist - even if you don't plan on using it)
 
 If you want to modify WebHare itself or develop on the supporting code (eg the VSCode module, proxy or langauge extensions) see [Developing WebHare](doc/webhare-dev.md)
+
+After completing the above, try `runkit wh console`
+
+### Building a container image
+```bash
+runkit download-webhare-source
+runkit create-server --default mywebhare
+runkit wh buildcontainer
+```
+
 
 ## Managing WebHare installations
 Before you can use runkit, you need to set up a new installation or add your existing installation:
