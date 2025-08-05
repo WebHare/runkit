@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# short: Update this runkit from git
+# short: Update this runkit from the official runkit git repository
 
 exit_syntax()
 {
@@ -31,6 +31,15 @@ done
 
 cd "$WHRUNKIT_ROOT" || exit 1
 
+HTTPSORIGIN="https://gitlab.com/webhare/runkit.git"
+
+if [ "$(git remote get-url https-origin 2>/dev/null)" != "$HTTPSORIGIN" ]; then
+  echo Fix https-origin
+  git remote remove https-origin 2>/dev/null
+  git remote add https-origin $HTTPSORIGIN
+fi
+
+
 if [ -n "$(git status --porcelain)" ]; then
   if [ "$FORCE" == "1" ]; then
     git stash push --include-untracked --message "runkit update"
@@ -41,8 +50,9 @@ if [ -n "$(git status --porcelain)" ]; then
   fi
 fi
 
+git -c credential.helper= fetch https-origin
 
-if ! git -C "$WHRUNKIT_ROOT" pull --quiet --ff-only --rebase ; then
+if ! git -c credential.helper= pull --quiet --ff-only --rebase https-origin main ; then
   echo "Update failed"
   exit 1
 fi
