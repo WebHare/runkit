@@ -42,7 +42,8 @@ if ! hash borg 2>/dev/null ; then
   echo Need to install borg
   # Enable EPEL
   if grep -qE "^ID_LIKE=.*\brhel\b" /etc/os-release || grep -qE "^ID=rhel$" /etc/os-release ; then
-    dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+    MAJOR_VERSION="$(grep -E "^VERSION_ID=" /etc/os-release | cut -d'"' -f2 | cut -d'.' -f1)"
+    dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-$MAJOR_VERSION.noarch.rpm
   fi
   addpackage borgbackup
 fi
