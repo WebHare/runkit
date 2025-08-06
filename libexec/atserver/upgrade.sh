@@ -16,6 +16,7 @@ function exit_syntax
 
 ENABLECONTAINER=
 QUIET=
+NOPULL=
 
 while true; do
   if [ "$1" == "--help" ]; then
@@ -25,6 +26,9 @@ while true; do
     shift
   elif [ "$1" == "--quiet" ]; then
     QUIET=1
+    shift
+  elif [ "$1" == "--nopull" ]; then
+    NOPULL=1
     shift
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
@@ -50,7 +54,7 @@ if [ -z "$IMAGE" ]; then #We have no clue what image to set!
 fi
 
 configure_runkit_podman
-set_webhare_image "$IMAGE"
+set_webhare_image "$IMAGE" "$NOPULL"
 
 # TODO If converting from non-container to container, we should probably stop the server first
 if [ -z "$QUIET" ]; then

@@ -54,12 +54,13 @@ function configure_runkit_podman()
   fi
 }
 
-function set_container_image() # out: resolvedimage, basename, setimage
+function set_container_image() # out: resolvedimage, basename, setimage, nopull
 {
   local OUT_RESOLVEDIMAGE="$1"
   local BASENAME="$2"
   local SETIMAGE="$3"
-  local retval FINALIMAGE _RESOLVEDIMAGE
+  local NOPULL="$4" #If set, don't pull the image, just resolve it
+  local retval FINALIMAGE _RESOLVEDIMAGE POLICY
 
   if [[ $SETIMAGE =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     #x.y.z tags map directly to images
@@ -78,8 +79,14 @@ function set_container_image() # out: resolvedimage, basename, setimage
     FINALIMAGE="$SETIMAGE"
   fi
 
+  if  [ -z "$NOPULL" ]; then
+    POLICY="always"
+  else
+    POLICY="missing"
+  fi
+
   retval=0
-  _RESOLVEDIMAGE="$(podman pull "$FINALIMAGE")" || retval=$?
+  _RESOLVEDIMAGE="$(podman pull --policy POLICY "$FINALIMAGE")" || retval=$?
 
   if [ "$retval" != "0" ]; then
     if [ "$FINALIMAGE" != "$SETIMAGE" ]; then
@@ -95,9 +102,10 @@ function set_container_image() # out: resolvedimage, basename, setimage
   return 0
 }
 
-function set_webhare_image() # setimage
+function set_webhare_image() # setimage, nopull
 {
   local SETIMAGE="$1"
+  local NOPULL="$2"
   local RESOLVEDIMAGE
 
   if [ "$1" == "master" ]; then # this is never considered a good idea - you'll auto-upgrade to the next major branch once released
@@ -105,7 +113,7 @@ function set_webhare_image() # setimage
     exit 1
   fi
 
-  set_container_image "RESOLVEDIMAGE" "platform" "$SETIMAGE"
+  set_container_image "RESOLVEDIMAGE" "platform" "$SETIMAGE" "$NOPULL"
 
   COMMITREF="$(podman image inspect "$RESOLVEDIMAGE" | jq -r '.[0].Labels["com.webhare.webhare.git-commit-ref"]')"
   [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare image"
