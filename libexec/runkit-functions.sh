@@ -60,7 +60,7 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
   local BASENAME="$2"
   local SETIMAGE="$3"
   local NOPULL="$4" #If set, don't pull the image, just resolve it
-  local retval FINALIMAGE _RESOLVEDIMAGE POLICY
+  local retval FINALIMAGE _RESOLVEDIMAGE
 
   if [[ $SETIMAGE =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     #x.y.z tags map directly to images
@@ -80,22 +80,27 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
   fi
 
   if  [ -z "$NOPULL" ]; then
-    POLICY="always"
-  else
-    POLICY="missing"
-  fi
+    retval=0
+    _RESOLVEDIMAGE="$(podman pull "$FINALIMAGE")" || retval=$?
+    if [ "$retval" != "0" ]; then
+      if [ "$FINALIMAGE" != "$SETIMAGE" ]; then
+        echo "Failed to pull $SETIMAGE (resolved to $FINALIMAGE) - errorcode $retval"
+      else
+        echo "Failed to pull $SETIMAGE - errorcode $retval"
+      fi
 
-  retval=0
-  _RESOLVEDIMAGE="$(podman pull --policy POLICY "$FINALIMAGE")" || retval=$?
-
-  if [ "$retval" != "0" ]; then
-    if [ "$FINALIMAGE" != "$SETIMAGE" ]; then
-      echo "Failed to pull $SETIMAGE (resolved to $FINALIMAGE) - errorcode $retval"
-    else
-      echo "Failed to pull $SETIMAGE - errorcode $retval"
+      exit 1
     fi
-
-    exit 1
+  else
+    _RESOLVEDIMAGE="$(podman image ls --format '{{.Id}}' "$FINALIMAGE")"
+    if [ -z "$_RESOLVEDIMAGE" ]; then
+      if [ "$FINALIMAGE" != "$SETIMAGE" ]; then
+        echo "Image $SETIMAGE (resolved to $FINALIMAGE) not found, please pull it first"
+      else
+        echo "Image $SETIMAGE not found, please pull it first"
+      fi
+      exit 1
+    fi
   fi
 
   eval "$OUT_RESOLVEDIMAGE=\$_RESOLVEDIMAGE"
