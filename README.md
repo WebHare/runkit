@@ -40,7 +40,7 @@ runkit wh make install
 
 (`wh make` currently require a default server to exist - even if you don't plan on using it)
 
-If you want to modify WebHare itself or develop on the supporting code (eg the VSCode module, proxy or langauge extensions) see [Developing WebHare](doc/webhare-dev.md)
+If you want to modify WebHare itself or develop on the supporting code (eg the VSCode module, proxy or language extensions) see [Developing WebHare](doc/webhare-dev.md)
 
 After completing the above, try `runkit wh console`
 
@@ -81,7 +81,7 @@ runkit @<servername> upgrade [image]
 runkit @<servername> run-webhare --as-service
 ```
 
-Image references used in `runkit upgrade` (and in `runkit create-server`) are usually a release branch, eg `release/5.6` to get the most recent 5.6.x releaes. It can also be a full container image reference (eg: `docker.io/webhare/platform:release-5-6`) or an explicit version (eg `5.6.7`). If upgrade is invoked without an image reference it will upgrade inside the last selected branch.
+Image references used in `runkit upgrade` (and in `runkit create-server`) are usually a release branch, eg `release/5.6` to get the most recent 5.6.x release. It can also be a full container image reference (eg: `docker.io/webhare/platform:release-5-6`) or an explicit version (eg `5.6.7`). If upgrade is invoked without an image reference it will upgrade inside the last selected branch.
 
 Note that you *must* use `run-webhare` to apply the update - if you simply restart the unit or the server it will still use the last started image.
 
@@ -89,7 +89,7 @@ Note that you *must* use `run-webhare` to apply the update - if you simply resta
 ```bash
 # Install a tagged version
 runkit run-proxy --as-service --set-image 3.4.1
-# Install the most recent development verison
+# Install the most recent development version
 runkit run-proxy --as-service --set-image master
 ```
 
@@ -145,7 +145,7 @@ Things you can do inside the container
 ```bash
 # Get your bearings, verify WEBHARE_ISRESTORED is set
 wh dirs
-# Add a backened interface by IP. Look up the right IP address first. In chrome, bypass certwarning by typing "thisisunsafe"
+# Add a backend interface by IP. Look up the right IP address first. In chrome, bypass certwarning by typing "thisisunsafe"
 wh webserver --addbackend https://159.223.25.195/
 # Get an override token to use with the backend - keep in mind that you need to append the override token to an URL such as above
 wh cli getoverride "Verifying restored server"
