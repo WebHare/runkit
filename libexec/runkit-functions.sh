@@ -63,9 +63,14 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
   local retval FINALIMAGE _RESOLVEDIMAGE
 
   if [[ $SETIMAGE =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    #x.y.z tags map directly to images
+    #A ##.##.## tag maps directly to images
     FINALIMAGE="$WHRUNKIT_REGISTRYROOT/$BASENAME:$SETIMAGE"
-  elif [[ $SETIMAGE =~ ^custom- ]] || [[ $SETIMAGE =~ ^edge- ]]|| [[ $SETIMAGE =~ ^feature- ]] || [ "$SETIMAGE" == "master" ]; then
+  elif [[ $SETIMAGE =~ ^[0-9]+\.[0-9]+$ ]]; then
+    #A #.# tag is mapped to a release branch release-#-#
+    FINALIMAGE="$(echo "$SETIMAGE" | tr -- "." "-")"
+    FINALIMAGE="$WHRUNKIT_REGISTRYROOT/$BASENAME:release-$FINALIMAGE"
+    echo $FINALIMAGE
+  elif [[ $SETIMAGE =~ ^custom- ]] || [[ $SETIMAGE =~ ^edge- ]]|| [[ $SETIMAGE =~ ^feature- ]]; then
     #branch names map directly to images
     FINALIMAGE="$WHRUNKIT_REGISTRYROOT/$BASENAME:$SETIMAGE"
   elif [[ $SETIMAGE =~ ^release/ ]]; then
@@ -75,6 +80,12 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
   elif [[ $SETIMAGE =~ ^webhare/$BASENAME: ]]; then
     #prefix docker.io
     FINALIMAGE="docker.io/$SETIMAGE"
+  elif [ "$SETIMAGE" == "main" ] || [ "$SETIMAGE" == "beta" ] || [ "$SETIMAGE" == "stable" ]; then
+    FINALIMAGE="$(curl https://www.webhare.dev/meta/buildimage/$SETIMAGE)"
+    if [ -z "$FINALIMAGE" ]; then
+      echo "Unable to map branch '$SETIMAGE' to an image"
+      exit 1
+    fi
   else
     FINALIMAGE="$SETIMAGE"
   fi
@@ -112,11 +123,6 @@ function set_webhare_image() # setimage, nopull
   local SETIMAGE="$1"
   local NOPULL="$2"
   local RESOLVEDIMAGE
-
-  if [ "$1" == "master" ]; then # this is never considered a good idea - you'll auto-upgrade to the next major branch once released
-    echo "Directly selecting the master branch is not supported. Please use a release/x.yy tag instead" >&2
-    exit 1
-  fi
 
   set_container_image "RESOLVEDIMAGE" "platform" "$SETIMAGE" "$NOPULL"
 

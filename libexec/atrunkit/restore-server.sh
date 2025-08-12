@@ -10,7 +10,7 @@ exit_syntax()
 Syntax: runkit restore-server [options] <servername>
         --archive arc          Archive to restore (defaults to latest)
         --nocontainer          Do not use a container to do the actualy restore
-        --image <image>        Container image to use for restore
+        --image <image>        Container image to use for restore. You MUST set this to 4.35 if you need to restore a 'dbserver' container
         --fast                 Restore only essential data (modules and database, but eg. no output or logs)
         --skipdownload         Do not redownload the backup, go straight to the database restore step
 HERE
@@ -74,9 +74,9 @@ if [ -z "$NOCONTAINER" ] && [ -z "$SETIMAGE" ]; then
       echo "--nocontainer/--image not set - restoring using $WHRUNKIT_WHCOMMAND"
       NOCONTAINER=1
     else
-      # TODO use the last STABLE branch, not master! Or allow/require caller to specify
+      # TODO use the last STABLE branch, not main! Or allow/require caller to specify
       echo "--nocontainer/--image not set - selecting an image"
-      SETIMAGE=master
+      SETIMAGE=main
     fi
   fi
 fi
@@ -161,12 +161,6 @@ if [ -n "$NOCONTAINER" ]; then
   echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
   exit 0
 else
-  if [[ "$WHRUNKIT_CONTAINERIMAGE" =~ master$ ]] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
-    WHRUNKIT_CONTAINERIMAGE=$WHRUNKIT_REGISTRYROOT/webhare/platform:release-4-35
-    echo "Using image $WHRUNKIT_CONTAINERIMAGE because this is a dbserver backup"
-  fi
-  echo "$WHRUNKIT_CONTAINERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
-
   # Mark restored volume as unshared
   podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata":Z "$WHRUNKIT_CONTAINERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
 
