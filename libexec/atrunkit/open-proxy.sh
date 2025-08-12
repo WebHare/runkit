@@ -1,19 +1,11 @@
 #!/bin/bash
 
-if ! podman inspect runkit-proxy >/dev/null 2>&1; then
-  # Test if a softlink exists
-  if [ -L "$WHRUNKIT_DATADIR/_settings/projectlinks/proxy" ]; then
-    PROXYPROJECT="$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/proxy")"
-    ADMINKEY="$(cat "$PROXYPROJECT/localdata/etc/secret.key")"
-    if [ -z "$ADMINKEY" ]; then
-      echo "Cannot find the admin key in the proxy project"
-      exit 1
-    fi
-    echo $ADMINKEY
-    open "http://webhare:${ADMINKEY}@127.0.0.1:5080/"
-    exit 0
-  fi
-
-  echo "The proxy (runkit-proxy container) is not running!"
+PROXYKEYPATH="$WHRUNKIT_DATADIR/_proxy/data/etc/secret.key"
+if [ ! -e "$PROXYKEYPATH" ]; then
+  echo "Admin key $PROXYKEYPATH not present" 1>&2
   exit 1
 fi
+
+ADMINKEY="$(cat "$PROXYKEYPATH")"
+open "http://webhare:${ADMINKEY}@127.0.0.1:5080/"
+exit 0
