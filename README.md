@@ -100,6 +100,18 @@ runkit can be used to manage a podman-based server.
 runkit run-proxy --as-service
 ```
 
+### Installing the proxy project for development
+Most users will simply install the proxy container from the Docker registry. If you want to develop on the proxy itself you can run it outside a container.
+
+```bash
+# Ensure the proxy project is installed and linked into runkit:
+runkit list-projects
+# If proxy is missing:
+runkit link-proxy ~/projects/proxy
+# Use run-proxy to run it. It will use $WHRUNKIT_DATADIR/_proxy/data as its data dir
+runkit run-proxy --nocontainer
+```
+
 ## Setting up a discardable WebHare for CI tests
 
 A useful option in development is to set up a local CI WebHare server. This allows you to locally test your CI process on a “fresh” WebHare installation.
