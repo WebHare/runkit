@@ -138,8 +138,7 @@ Signature: 8a477f597d28d172789f06886806bc55
 HERE
 }
 
-function applyborgsettings()
-{
+function applyborgsettings() {
   ensurecommands borg
 
   #TODO how risky is accept-new (in practice) ?
@@ -183,8 +182,7 @@ function applyborgsettings()
   mkdir -p "$WHRUNKIT_TARGETDIR"
 }
 
-function settargetdir
-{
+function settargetdir() {
   if [ -z "$WHRUNKIT_TARGETSERVER" ]; then
     echo "WHRUNKIT_TARGETSERVER must be set!"
     exit 1
@@ -222,8 +220,7 @@ function trysetsourcerootfromglobal
   export WEBHARE_CHECKEDOUT_TO WEBHARE_DIR
 }
 
-function loadtargetsettings
-{
+function loadtargetsettings() {
   settargetdir
 
   export WEBHARE_INITIALDB=postgresql #will soon be obsolete, if not already

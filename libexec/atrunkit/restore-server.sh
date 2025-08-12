@@ -20,7 +20,8 @@ HERE
 
 SKIPDOWNLOAD=""
 NOCONTAINER=""
-CONTAINERIMAGE=""
+CONTAINER=""
+SETIMAGE=""
 FAST=""
 RESTOREARCHIVE=""
 BORGOPTIONS=(--progress)
@@ -36,6 +37,9 @@ while true; do
   elif [ "$1" == "--nodocker" ] || [ "$1" == "--nocontainer" ]; then #do not use a container to restore webhare
     NOCONTAINER="1"
     shift
+  elif [ "$1" == "--container" ]; then #use a container but figure out image ourselves
+    CONTAINER="1"
+    shift
   elif [ "$1" == "--fast" ]; then
     FAST="1"
     shift
@@ -45,7 +49,7 @@ while true; do
     shift
   elif [ "$1" == "--image" ]; then
     shift
-    CONTAINERIMAGE="$1"
+    SETIMAGE="$1"
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
@@ -61,28 +65,31 @@ CONTAINER="$1"
 [ -z "$CONTAINER" ] && exit_syntax
 
 resolve_whrunkit_command
-applyborgsettings "$CONTAINER"
+applyborgsettings "$CONTAINER" #Implies validate_servername, loadtargetsettings, settargetdir
 
 # Figure out whether to use a container or the local runkit installation
-if [ -z "$NOCONTAINER" ] && [ -z "$CONTAINERIMAGE" ]; then
-  if [ -f $WHRUNKIT_TARGETDIR/container.image ]; then
-    CONTAINERIMAGE="$(cat $WHRUNKIT_TARGETDIR/container.image)"
-    echo "Using configured container image $CONTAINERIMAGE"
-  elif [ -x "$WHRUNKIT_WHCOMMAND" ]; then
-    echo "--nocontainer/--image not set - restoring using $WHRUNKIT_WHCOMMAND"
-    NOCONTAINER=1
-  else
-    # TODO use the last STABLE branch, not master!
-    CONTAINERIMAGE="docker.io/webhare/platform:master"
-    echo "--nocontainer/--image not set - using container image $CONTAINERIMAGE"
+if [ -z "$NOCONTAINER" ] && [ -z "$SETIMAGE" ]; then
+  if [ ! -f "$WHRUNKIT_TARGETDIR/container.image" ]; then # No image ever selected
+    if [ -z "$CONTAINER" ] && [ -x "$WHRUNKIT_WHCOMMAND" ]; then
+      echo "--nocontainer/--image not set - restoring using $WHRUNKIT_WHCOMMAND"
+      NOCONTAINER=1
+    else
+      # TODO use the last STABLE branch, not master! Or allow/require caller to specify
+      echo "--nocontainer/--image not set - selecting an image"
+      SETIMAGE=master
+    fi
   fi
 fi
 
-[ -z "$NOCONTAINER" ] && ensurecommands podman
+if [ -z "$NOCONTAINER" ]; then
+  if [ -n "$SETIMAGE" ]; then
+    configure_runkit_podman
+    set_webhare_image "$SETIMAGE"
+  fi
+fi
 
 # applyborgsettings also sets WHRUNKIT_TARGETSERVER and WHRUNKIT_TARGETDIR
 
-validate_servername "$WHRUNKIT_TARGETSERVER"
 [ -n "$NOCONTAINER" ] && ensure_server_baseport
 loadtargetsettings
 
@@ -141,7 +148,7 @@ fi
 mkdir -p "$WEBHARE_DATAROOT"
 [ -f "$WEBHARE_DATAROOT"/webhare.restoredone ] && rm "$WEBHARE_DATAROOT"/webhare.restoredone #remove 'done' marker
 # download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
-echo "Restoring container $WHRUNKIT_TARGETSERVER database to $WHEBARE_DATAROOT" > "$WEBHARE_DATAROOT"/webhare.restoremode
+echo "Restoring container $WHRUNKIT_TARGETSERVER database to $WEBHARE_DATAROOT" > "$WEBHARE_DATAROOT"/webhare.restoremode
 echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKIT_TARGETDIR/restore.borgrepo")" > "$WEBHARE_DATAROOT"/webhare.restoremode
 
 if [ -n "$NOCONTAINER" ]; then
@@ -154,14 +161,14 @@ if [ -n "$NOCONTAINER" ]; then
   echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
   exit 0
 else
-  if [ "$CONTAINERIMAGE" == "docker.io/webhare/platform:master" ] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
-    CONTAINERIMAGE=docker.io/webhare/platform:release-4-35
-    echo "Using image $CONTAINERIMAGE because this is a dbserver backup"
+  if [[ "$WHRUNKIT_CONTAINERIMAGE" =~ master$ ]] && [ -f "$WHRUNKIT_TARGETDIR/whdata/preparedbackup/backup/backup.bk000" ]; then # dbserver backup
+    WHRUNKIT_CONTAINERIMAGE=$WHRUNKIT_REGISTRYROOT/webhare/platform:release-4-35
+    echo "Using image $WHRUNKIT_CONTAINERIMAGE because this is a dbserver backup"
   fi
-  echo "$CONTAINERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
+  echo "$WHRUNKIT_CONTAINERIMAGE" > "$WHRUNKIT_TARGETDIR/container.image"
 
   # Mark restored volume as unshared
-  podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata":Z "$CONTAINERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
+  podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata":Z "$WHRUNKIT_CONTAINERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
 
   date > "$WEBHARE_DATAROOT"/webhare.restoredone
   echo "Container appears succesfully restored"

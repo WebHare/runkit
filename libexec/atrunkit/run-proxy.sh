@@ -52,7 +52,7 @@ done
 mkdir -p "$WHRUNKIT_DATADIR/_proxy" # Ensure our datadir is there
 
 if [ -z "$SETIMAGE" ] && [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ]; then
-  SETIMAGE="docker.io/webhare/proxy:master" # TODO last stable version ? but we lack a branch for that
+  SETIMAGE="$WHRUNKIT_REGISTRYROOT/webhare/proxy:master" # TODO last stable version ? but we lack a branch for that
 fi
 
 if [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] && [ -z "$SETIMAGE" ]; then
@@ -60,8 +60,6 @@ if [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] && [ -z "$SETIMAGE" ]; th
 fi
 
 if [ -n "$SETIMAGE" ]; then
-  configure_runkit_podman
-
   set_container_image "RESOLVEDIMAGE" "proxy" "$SETIMAGE"
 
   COMMITREF="$(podman image inspect "$RESOLVEDIMAGE" | jq -r '.[0].Labels["dev.webhare.proxy.git-commit-ref"]')"
