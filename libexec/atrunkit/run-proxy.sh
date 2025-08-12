@@ -14,12 +14,16 @@ CONTAINEROPTIONS=()
 ASSERVICE=
 PREPARE=""
 SETIMAGE=""
+NOCONTAINER=1
 
 while true; do
   if [ "$1" == "--help" ]; then
     exit_syntax
   elif [ "$1" == "--detach" ]; then
     DETACH="1"
+    shift
+  elif [ "$1" == "--nocontainer" ]; then
+    NOCONTAINER="1"
     shift
   elif [ "$1" == "--sh" ]; then
     TORUN=("/bin/bash")
@@ -51,41 +55,51 @@ done
 
 mkdir -p "$WHRUNKIT_DATADIR/_proxy" # Ensure our datadir is there
 
-if [ -z "$SETIMAGE" ] && [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ]; then
-  SETIMAGE="$WHRUNKIT_REGISTRYROOT/webhare/proxy:master" # TODO last stable version ? but we lack a branch for that
+if [ -n "$NOCONTAINER" ]; then
+  WEBHAREPROXY_CODEROOT="$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/proxy")"
+  [ -n "$WEBHAREPROXY_CODEROOT" ] || die "Cannot find proxy project. Make sure runkit list-projects is showing the proxy"
+  # Ensure it ends in a slash
+  [ "${WEBHAREPROXY_CODEROOT: -1}" == "/" ] || WEBHAREPROXY_CODEROOT="${WEBHAREPROXY_CODEROOT}/"
+  [ -x "$WEBHAREPROXY_CODEROOT"/proxy.sh ] || die "$WEBHAREPROXY_CODEROOT does not appear to be a proper proxy proejct"
+else
+  if [ -z "$SETIMAGE" ] && [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ]; then
+    SETIMAGE="$WHRUNKIT_REGISTRYROOT/webhare/proxy:master" # TODO last stable version ? but we lack a branch for that
+  fi
+
+  if [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] && [ -z "$SETIMAGE" ]; then
+    SETIMAGE="main"
+  fi
+
+  if [ -n "$SETIMAGE" ]; then
+    set_container_image "RESOLVEDIMAGE" "proxy" "$SETIMAGE"
+
+    COMMITREF="$(podman image inspect "$RESOLVEDIMAGE" | jq -r '.[0].Labels["dev.webhare.proxy.git-commit-ref"]')"
+    [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare proxy"
+
+    echo "$SETIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.requestedimage"
+    echo "$RESOLVEDIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.image"
+  fi
+  RUNIMAGE="$( cat "$WHRUNKIT_DATADIR/_proxy/container.image" )"
 fi
 
-if [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] && [ -z "$SETIMAGE" ]; then
-  SETIMAGE="master"
-fi
-
-if [ -n "$SETIMAGE" ]; then
-  set_container_image "RESOLVEDIMAGE" "proxy" "$SETIMAGE"
-
-  COMMITREF="$(podman image inspect "$RESOLVEDIMAGE" | jq -r '.[0].Labels["dev.webhare.proxy.git-commit-ref"]')"
-  [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare proxy"
-
-  echo "$SETIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.requestedimage"
-  echo "$RESOLVEDIMAGE" > "$WHRUNKIT_DATADIR/_proxy/container.image"
-fi
-
-[ -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] || echo docker.io/webhare/proxy:master > "$WHRUNKIT_DATADIR/_proxy/container.image"
-
-CONTAINERSTORAGE="$(cat "$WHRUNKIT_DATADIR/_proxy/dataroot" 2>/dev/null || true)"
-if [ -z "$CONTAINERSTORAGE" ]; then # not explicitly set
-  if [[ $(uname) == "Darwin" ]]; then
-    CONTAINERSTORAGE="runkit-proxy-data" # Use a volume so the container can do its chown things and we can test those. proxy container contents are rarely interesting to access on the Mac host
+WEBHAREPROXY_DATAROOT="$(cat "$WHRUNKIT_DATADIR/_proxy/dataroot" 2>/dev/null || true)"
+if [ -z "$WEBHAREPROXY_DATAROOT" ]; then # not explicitly set
+  if [[ "$(uname)" == "Darwin" ]] && [ -z "$NOCONTAINER" ]; then
+    WEBHAREPROXY_DATAROOT="runkit-proxy-data" # Use a volume so the container can do its chown things and we can test those. proxy container contents are rarely interesting to access on the Mac host
   else
-    CONTAINERSTORAGE="$WHRUNKIT_DATADIR/_proxy/data"
+    WEBHAREPROXY_DATAROOT="$WHRUNKIT_DATADIR/_proxy/data"
   fi
 fi
+
+# Ensure DATAROOT ends in a slash too
+[ "${WEBHAREPROXY_DATAROOT: -1}" == "/" ] || WEBHAREPROXY_DATAROOT="${WEBHAREPROXY_DATAROOT}/"
 
 CONTAINERBASENAME="proxy"
 CONTAINERNAME="runkit-$CONTAINERBASENAME"
 
-mkdir -p "$CONTAINERSTORAGE"
-RUNIMAGE="$( cat "$WHRUNKIT_DATADIR/_proxy/container.image" )"
+mkdir -p "$WEBHAREPROXY_DATAROOT"
 
+# TODO pass these to localproxy too ? But I doubt we haec any use for it now
 if [ -f "$WHRUNKIT_DATADIR/_settings/letsencryptemail" ]; then
   CONTAINEROPTIONS+=(-e WEBHAREPROXY_LETSENCRYPTEMAIL="$(cat "$WHRUNKIT_DATADIR/_settings/letsencryptemail")")
 fi
@@ -121,7 +135,7 @@ else
   CONTAINEROPTIONS+=(--rm)
 fi
 
-CONTAINEROPTIONS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
+CONTAINEROPTIONS+=(--volume "$WEBHAREPROXY_DATAROOT:/opt/webhare-proxy-data:Z"
               -e TZ=Europe/Amsterdam
               --name "$CONTAINERNAME"
               --label runkittype=proxy
@@ -133,7 +147,7 @@ CONTAINEROPTIONS+=(--volume "$CONTAINERSTORAGE:/opt/webhare-proxy-data:Z"
              )
 
 # Wrap into function to prevent updates from affecting running scripts
-main()
+main_in_container()
 {
   echo "- Stopping any existing container"
   podman stop "$CONTAINERNAME" || true 2>/dev/null
@@ -188,4 +202,10 @@ HERE
   exit 0
 fi
 
-main "$@"
+
+if [ -n "$NOCONTAINER" ]; then
+  export WEBHAREPROXY_CODEROOT WEBHAREPROXY_DATAROOT
+  "$WEBHAREPROXY_CODEROOT"/proxy.sh runlocal
+else
+  main_in_container "$@"
+fi
