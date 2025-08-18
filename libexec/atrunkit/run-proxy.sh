@@ -14,7 +14,7 @@ CONTAINEROPTIONS=()
 ASSERVICE=
 PREPARE=""
 SETIMAGE=""
-NOCONTAINER=1
+NOCONTAINER=""
 
 while true; do
   if [ "$1" == "--help" ]; then
@@ -84,11 +84,11 @@ fi
 
 WEBHAREPROXY_DATAROOT="$(cat "$WHRUNKIT_DATADIR/_proxy/dataroot" 2>/dev/null || true)"
 if [ -z "$WEBHAREPROXY_DATAROOT" ]; then # not explicitly set
-  if [[ "$(uname)" == "Darwin" ]] && [ -z "$NOCONTAINER" ]; then
-    WEBHAREPROXY_DATAROOT="runkit-proxy-data" # Use a volume so the container can do its chown things and we can test those. proxy container contents are rarely interesting to access on the Mac host
-  else
+  # if [[ "$(uname)" == "Darwin" ]] && [ -z "$NOCONTAINER" ]; then
+  #  WEBHAREPROXY_DATAROOT="runkit-proxy-data" # Use a volume so the container can do its chown things and we can test those. proxy container contents are rarely interesting to access on the Mac host
+  # else
     WEBHAREPROXY_DATAROOT="$WHRUNKIT_DATADIR/_proxy/data"
-  fi
+  #fi
 fi
 
 # Ensure DATAROOT ends in a slash too
@@ -201,7 +201,6 @@ HERE
   echo "Proxy initialized as unit"
   exit 0
 fi
-
 
 if [ -n "$NOCONTAINER" ]; then
   export WEBHAREPROXY_CODEROOT WEBHAREPROXY_DATAROOT

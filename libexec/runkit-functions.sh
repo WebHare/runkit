@@ -90,7 +90,11 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
     FINALIMAGE="$SETIMAGE"
   fi
 
-  if  [ -z "$NOPULL" ]; then
+  if [[ $FINALIMAGE =~ :devbuild$ ]]; then
+    NOPULL="1" # A :devbuild is always local
+  fi
+
+  if  [ -z "$NOPULL" ]; then #
     retval=0
     _RESOLVEDIMAGE="$(podman pull "$FINALIMAGE")" || retval=$?
     if [ "$retval" != "0" ]; then
