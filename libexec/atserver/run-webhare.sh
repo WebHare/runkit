@@ -165,6 +165,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
                --label runkittype=webhare
                --log-opt max-size=50m
                --log-opt max-file=5
+              --shm-size 1gb
                --no-hosts
                --name "$WHRUNKIT_CONTAINERNAME"
                "${CONTAINEROPTIONS[@]}"
