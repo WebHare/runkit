@@ -114,7 +114,8 @@ fi
 # - setting DNS: "--dns=192.168.198.128" "--dns=8.8.8.8" "--dns=8.8.4.4"
 
 if [ "$(uname)" == "Darwin" ]; then
-  CONTAINEROPTIONS+=(--publish 10080:80/tcp --publish 10443:443/tcp)
+  #CONTAINEROPTIONS+=(--publish 10080:80/tcp --publish 10443:443/tcp)
+  CONTAINEROPTIONS+=(--publish 80:80/tcp --publish 443:443/tcp)
 else
   CONTAINEROPTIONS+=(--network host)
 
