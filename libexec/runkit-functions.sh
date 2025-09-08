@@ -69,7 +69,6 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
     #A #.# tag is mapped to a release branch release-#-#
     FINALIMAGE="$(echo "$SETIMAGE" | tr -- "." "-")"
     FINALIMAGE="$WHRUNKIT_REGISTRYROOT/$BASENAME:release-$FINALIMAGE"
-    echo $FINALIMAGE
   elif [[ $SETIMAGE =~ ^custom- ]] || [[ $SETIMAGE =~ ^edge- ]]|| [[ $SETIMAGE =~ ^feature- ]]; then
     #branch names map directly to images
     FINALIMAGE="$WHRUNKIT_REGISTRYROOT/$BASENAME:$SETIMAGE"
@@ -107,7 +106,7 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
       exit 1
     fi
   else
-    _RESOLVEDIMAGE="$(podman image ls --format '{{.Id}}' "$FINALIMAGE")"
+    _RESOLVEDIMAGE="$(podman image ls --format '{{.Id}}' "$FINALIMAGE" | head -n1)" # podman will return a hash for every image matching the tag
     if [ -z "$_RESOLVEDIMAGE" ]; then
       if [ "$FINALIMAGE" != "$SETIMAGE" ]; then
         echo "Image $SETIMAGE (resolved to $FINALIMAGE) not found, please pull it first"

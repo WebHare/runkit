@@ -15,7 +15,7 @@ You can build your own images or use the ones we built:
 ```bash
 # Build WebHare
 wh buildcontainer
-podman image tag webhare/webhare-extern:localbuild unilynx/pihare-platform:latest
+podman image tag localhost/webhare/platform:devbuild unilynx/pihare-platform:latest
 podman login docker.io
 podman push unilynx/pihare-platform:latest
 

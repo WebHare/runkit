@@ -70,10 +70,10 @@ applyborgsettings "$CONTAINER" #Implies validate_servername, loadtargetsettings,
 # Figure out whether to use a container or the local runkit installation
 if [ -z "$NOCONTAINER" ] && [ -z "$SETIMAGE" ]; then
   if [ ! -f "$WHRUNKIT_TARGETDIR/container.image" ]; then # No image ever selected
-    if [ -z "$CONTAINER" ] && [ -x "$WHRUNKIT_WHCOMMAND" ]; then
+    if [ -x "$WHRUNKIT_WHCOMMAND" ]; then # WEBHARE_DIR is set and points to a working installation - that one should be usable for a restore then
       echo "--nocontainer/--image not set - restoring using $WHRUNKIT_WHCOMMAND"
       NOCONTAINER=1
-    else
+    else # webhare source not found, go for a WH container
       # TODO use the last STABLE branch, not main! Or allow/require caller to specify
       echo "--nocontainer/--image not set - selecting an image"
       SETIMAGE=main
@@ -148,7 +148,7 @@ fi
 mkdir -p "$WEBHARE_DATAROOT"
 [ -f "$WEBHARE_DATAROOT"/webhare.restoredone ] && rm "$WEBHARE_DATAROOT"/webhare.restoredone #remove 'done' marker
 # download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
-echo "Restoring container $WHRUNKIT_TARGETSERVER database to $WEBHARE_DATAROOT" > "$WEBHARE_DATAROOT"/webhare.restoremode
+echo "Restoring container $WHRUNKIT_TARGETSERVER database to $WEBHARE_DATAROOT"
 echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKIT_TARGETDIR/restore.borgrepo")" > "$WEBHARE_DATAROOT"/webhare.restoremode
 
 if [ -n "$NOCONTAINER" ]; then
