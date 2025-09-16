@@ -117,24 +117,20 @@ RESTOREFROMDIR="$WEBHARE_DATAROOT/preparedbackup"
 rmdir "$RESTOREFROMDIR" 2>/dev/null || true   #remove when WHs before 5.7 are irrelevant
 
 if [ ! -d "$RESTOREFROMDIR" ]; then # Check if we didn't already move it into place..
-  WHDATAFOLDER="$(find "$DOWNLOADTO" -name whdata -print -quit)"
-  [ -z "$WHDATAFOLDER" ] && WHDATAFOLDER="$(find "$DOWNLOADTO" -name opt-whdata -print -quit)"
-  if [ -z "$WHDATAFOLDER" ] || ! [ -d "$WHDATAFOLDER/preparedbackup" ]; then
+  WHDATA_TO_RESTORE="$(find "$DOWNLOADTO" -name whdata -print -quit)"
+  [ -z "$WHDATA_TO_RESTORE" ] && WHDATA_TO_RESTORE="$(find "$DOWNLOADTO" -name opt-whdata -print -quit)"
+  if [ -z "$WHDATA_TO_RESTORE" ] || ! [ -d "$WHDATA_TO_RESTORE/preparedbackup" ]; then
     die "Cannot find the 'whdata' folder inside the backup $DOWNLOADTO, cannot continue the restore"
   fi
 
-  if [ -e "$WHDATAFOLDER/incomingbackup" ]; then
+  if [ -e "$DOWNLOADTO" ]; then
     # This is a restore of an earlier restored server, and it still had a incomingbackup folder in its whdata
     # That will collide with the incomingbackup folder we just created, so rename it
-    mv "$WHDATAFOLDER/incomingbackup" "$WHDATAFOLDER/incomingbackup.$(date "+%Y-%m-%dT%H:%M:%S")"
+    mv "$DOWNLOADTO" "$DOWNLOADTO.$(date "+%Y-%m-%dT%H:%M:%S")"
   fi
 
-  # if [ -d "$WHDATAFOLDER/local" ]; then #FIXME document what exactly uses this - who stores into local/ ? is it documented?
-  #   mv "$WHDATAFOLDER/local" "$WHDATAFOLDER/local.bak.$(date +%Y%m%d-%H%M%S)"
-  # fi
-
-  # NOTE this way we rely on whdata not containing dot files that need restoring!.. fix it a bt without moving .. etc
-  mv "$WHDATAFOLDER"/* "$WEBHARE_DATAROOT/"
+  # Move the restored whdata/ contents into place. find ensures we also pick up dot files
+  find "$WHDATA_TO_RESTORE" -depth 1 -exec mv {} "$WEBHARE_DATAROOT/" \;
 
   # Exclude the data of a restored server from backups - TODO we can only do this if the user confirmed this is a temp backup! Not on remote servers! reevaluate criteria...
   # createCacheDirTagFile "$WEBHARE_DATAROOT"
