@@ -182,7 +182,6 @@ else
 fi
 
 if [ -n "$ASSERVICE" ]; then
-
   configure_runkit_podman
 
   if ! hash systemctl 2>/dev/null ; then

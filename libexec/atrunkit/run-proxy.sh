@@ -62,10 +62,6 @@ if [ -n "$NOCONTAINER" ]; then
   [ "${WEBHAREPROXY_CODEROOT: -1}" == "/" ] || WEBHAREPROXY_CODEROOT="${WEBHAREPROXY_CODEROOT}/"
   [ -x "$WEBHAREPROXY_CODEROOT"/proxy.sh ] || die "$WEBHAREPROXY_CODEROOT does not appear to be a proper proxy proejct"
 else
-  if [ -z "$SETIMAGE" ] && [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ]; then
-    SETIMAGE="$WHRUNKIT_REGISTRYROOT/webhare/proxy:master" # TODO last stable version ? but we lack a branch for that
-  fi
-
   if [ ! -f "$WHRUNKIT_DATADIR/_proxy/container.image" ] && [ -z "$SETIMAGE" ]; then
     SETIMAGE="main"
   fi
@@ -120,7 +116,8 @@ else
   CONTAINEROPTIONS+=(--network host)
 
   if [ -z "$ASSERVICE" ] && [ "$(systemctl is-active $CONTAINERNAME)" == "active" ]; then
-    echo "You need to 'systemctl stop $CONTAINERNAME' before attemping to start us in the foreground"
+    echo "The proxy is already running as a service."
+    echo "You need to 'systemctl stop $CONTAINERNAME' before attemping to start us in the foreground or use --as-service if you want to keep the proxy running as a service" 1>&2
     exit 1
   fi
 fi

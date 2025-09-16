@@ -42,15 +42,19 @@ function configure_runkit_podman()
     WHRUNKIT_REGISTRYROOT=$( cat "$WHRUNKIT_DATADIR/_settings/registryroot" 2>/dev/null || echo "docker.io/webhare" )
   fi
 
-  local NETWORKPREFIX
-  get_runkit_var NETWORKPREFIX networkprefix
-  # This gives us an IP range to use:
-  ensurecommands podman jq
-  [ -f "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh ] && source "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh
+  if [ -z "$DID_CONFIGURE_RUNKIT_PODMAN" ]; then
+    local NETWORKPREFIX
+    get_runkit_var NETWORKPREFIX networkprefix
+    # This gives us an IP range to use:
+    ensurecommands podman jq
+    [ -f "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh ] && source "$WHRUNKIT_DATADIR"/_settings/configure-podman.sh
 
-  if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
-    echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
-    podman network create $WHRUNKIT_NETWORKNAME --subnet=${NETWORKPREFIX}.0/24
+    if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
+      echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
+      podman network create $WHRUNKIT_NETWORKNAME --subnet=${NETWORKPREFIX}.0/24
+    fi
+
+    DID_CONFIGURE_RUNKIT_PODMAN=1
   fi
 }
 
@@ -61,6 +65,8 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
   local SETIMAGE="$3"
   local NOPULL="$4" #If set, don't pull the image, just resolve it
   local retval FINALIMAGE _RESOLVEDIMAGE
+
+  configure_runkit_podman # Ensures WHRUNKIT_REGISTRYROOT is known
 
   if [[ $SETIMAGE =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     #A ##.##.## tag maps directly to images
@@ -79,8 +85,14 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
   elif [[ $SETIMAGE =~ ^webhare/$BASENAME: ]]; then
     #prefix docker.io
     FINALIMAGE="docker.io/$SETIMAGE"
-  elif [ "$SETIMAGE" == "main" ] || [ "$SETIMAGE" == "beta" ] || [ "$SETIMAGE" == "stable" ]; then
+  elif [ "$BASENAME" == "platform" ] && { [ "$SETIMAGE" == "main" ] || [ "$SETIMAGE" == "beta" ] || [ "$SETIMAGE" == "stable" ]; }; then #'well known' names
     FINALIMAGE="$(curl https://www.webhare.dev/meta/buildimage/$SETIMAGE)"
+    if [ -z "$FINALIMAGE" ]; then
+      echo "Unable to map branch '$SETIMAGE' to an image"
+      exit 1
+    fi
+  elif [ "$BASENAME" == "proxy" ] && { [ "$SETIMAGE" == "main" ]; }; then
+    FINALIMAGE="$WHRUNKIT_REGISTRYROOT/proxy:master" # TODO needs a dynamic URL too?
     if [ -z "$FINALIMAGE" ]; then
       echo "Unable to map branch '$SETIMAGE' to an image"
       exit 1
