@@ -30,7 +30,7 @@ whcd() {
     DEST="\$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}")/";
     [ "\${1%%/*}" != "\$1" ] && DEST="\${DEST}/\${1#*/}" ;
   else
-    DEST="\$(wh run mod::system/scripts/internal/cli/getdir.whscr "\$1")";
+    DEST="\$(wh tofspath "mod::\$1")";
   fi ;
   [ -n "\$DEST" ] && cd "\$DEST";
 } ;
@@ -54,7 +54,7 @@ wh-$SERVER() { WEBHARE_WHCOMMAND="wh-$SERVER" "$WHRUNKIT_ORIGCOMMAND" "@$SERVER"
 export -f wh-$SERVER ;
 whcd-$SERVER() {
 local DEST;
-DEST="\`wh-$SERVER run mod::system/scripts/internal/cli/getdir.whscr "\$@"\`";
+DEST="\`wh-$SERVER tofspath "mod::\$@"\`";
 [ -n "\$DEST" ] && cd "\$DEST";
 } ;
 export -f whcd-$SERVER ;
