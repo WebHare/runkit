@@ -30,7 +30,7 @@ whcd() {
     DEST="\$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}")/";
     [ "\${1%%/*}" != "\$1" ] && DEST="\${DEST}/\${1#*/}" ;
   elif [ -z "\$1" ]; then
-    DEST="\$(wh getdatadir)";
+    DEST="\$(wh getrootdir)";
   else
     DEST="\$(wh tofspath "mod::\$1")";
   fi ;
