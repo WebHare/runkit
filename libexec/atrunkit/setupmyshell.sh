@@ -60,7 +60,7 @@ if [ -z "\$1" ]; then
   DEST="\$(wh-$SERVER getdatadir)";
 else
   DEST="\`wh-$SERVER tofspath "mod::\$@"\`";
-fi
+fi ;
 [ -n "\$DEST" ] && cd "\$DEST";
 } ;
 export -f whcd-$SERVER ;
