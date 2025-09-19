@@ -29,6 +29,8 @@ whcd() {
   if [ -n "\$1" ] && [ -d "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}" ]; then
     DEST="\$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/\${1%%/*}")/";
     [ "\${1%%/*}" != "\$1" ] && DEST="\${DEST}/\${1#*/}" ;
+  elif [ -z "\$1" ]; then
+    DEST="\$(wh getdatadir)";
   else
     DEST="\$(wh tofspath "mod::\$1")";
   fi ;
@@ -54,7 +56,11 @@ wh-$SERVER() { WEBHARE_WHCOMMAND="wh-$SERVER" "$WHRUNKIT_ORIGCOMMAND" "@$SERVER"
 export -f wh-$SERVER ;
 whcd-$SERVER() {
 local DEST;
-DEST="\`wh-$SERVER tofspath "mod::\$@"\`";
+if [ -z "\$1" ]; then
+  DEST="\$(wh-$SERVER getdatadir)";
+else
+  DEST="\`wh-$SERVER tofspath "mod::\$@"\`";
+fi
 [ -n "\$DEST" ] && cd "\$DEST";
 } ;
 export -f whcd-$SERVER ;
