@@ -123,14 +123,14 @@ if [ ! -d "$RESTOREFROMDIR" ]; then # Check if we didn't already move it into pl
     die "Cannot find the 'whdata' folder inside the backup $DOWNLOADTO, cannot continue the restore"
   fi
 
-  if [ -e "$DOWNLOADTO" ]; then
+  if [ -e "$WHDATA_TO_RESTORE/incomingbackup" ]; then
     # This is a restore of an earlier restored server, and it still had a incomingbackup folder in its whdata
     # That will collide with the incomingbackup folder we just created, so rename it
-    mv "$DOWNLOADTO" "$DOWNLOADTO.$(date "+%Y-%m-%dT%H:%M:%S")"
+    mv "$WHDATA_TO_RESTORE/incomingbackup" "$WHDATA_TO_RESTORE/incomingbackup.$(date "+%Y-%m-%dT%H:%M:%S")"
   fi
 
   # Move the restored whdata/ contents into place. find ensures we also pick up dot files
-  find "$WHDATA_TO_RESTORE" -depth 1 -exec mv {} "$WEBHARE_DATAROOT/" \;
+  find "$WHDATA_TO_RESTORE" -mindepth 1 -maxdepth 1 -exec mv {} "$WEBHARE_DATAROOT/" \;
 
   # Exclude the data of a restored server from backups - TODO we can only do this if the user confirmed this is a temp backup! Not on remote servers! reevaluate criteria...
   # createCacheDirTagFile "$WEBHARE_DATAROOT"
