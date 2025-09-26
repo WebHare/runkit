@@ -144,7 +144,7 @@ fi
 mkdir -p "$WEBHARE_DATAROOT"
 [ -f "$WEBHARE_DATAROOT"/webhare.restoredone ] && rm "$WEBHARE_DATAROOT"/webhare.restoredone #remove 'done' marker
 # download_backup also creates $WHRUNKIT_TARGETDIR/restore.archive and $WHRUNKIT_TARGETDIR/restore.archive
-echo "Restoring container $WHRUNKIT_TARGETSERVER database to $WEBHARE_DATAROOT"
+logWithTime "Restoring container $WHRUNKIT_TARGETSERVER database to $WEBHARE_DATAROOT"
 echo "Restored $(cat "$WHRUNKIT_TARGETDIR/restore.archive") from $(cat "$WHRUNKIT_TARGETDIR/restore.borgrepo")" > "$WEBHARE_DATAROOT"/webhare.restoremode
 
 if [ -n "$NOCONTAINER" ]; then
@@ -153,13 +153,13 @@ if [ -n "$NOCONTAINER" ]; then
 
   "$WHRUNKIT_WHCOMMAND" restore "$RESTOREFROMDIR"
   date > "$WEBHARE_DATAROOT"/webhare.restoredone
-  echo ""
-  echo "Container appears succesfully restored - launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console"
+  logWithTime "Container restored"
+  ehco "** Launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console" >&2
   exit 0
 else
   # Mark restored volume as unshared
   podman run --rm -i -v "$WEBHARE_DATAROOT:/opt/whdata":Z "$WHRUNKIT_CONTAINERIMAGE" wh restore --hardlink /opt/whdata/preparedbackup
 
   date > "$WEBHARE_DATAROOT"/webhare.restoredone
-  echo "Container appears succesfully restored"
+  logWithTime "Container restored"
 fi

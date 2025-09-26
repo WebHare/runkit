@@ -15,6 +15,17 @@ function die()
   exit 1
 }
 
+function logWithTime() {
+  local now
+  if [[ "$OSTYPE" == "darwin"* ]]; then  #mac doesn't support .%3N
+    now=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+  else
+    now=$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')
+  fi
+
+  echo "[$now]" "$@" 1>&2
+}
+
 function ensurecommands()
 {
   if ! hash "$@" >/dev/null 2>&1 ; then
@@ -294,7 +305,7 @@ function download_backup()
   echo "$BORG_REPO" > "$WHRUNKIT_TARGETDIR/restore.borgrepo"
 
   # remove any existing restore directory
-  echo "Downloading archive $RESTOREARCHIVE to $RESTORETO"
+  logWithTime "Downloading archive $RESTOREARCHIVE to $RESTORETO"
 
   [ -d "$RESTORETO" ] && rm -rf "$RESTORETO"
   mkdir -p "$RESTORETO"
