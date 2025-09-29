@@ -351,7 +351,7 @@ function resolve_whrunkit_command()
       echo "runkit had to fall back to hardcoded $WHRUNKIT_PROJECTS/webhare/whtree path" >&2
       echo "Please create a file with the full path to your WebHare installation in $WHRUNKIT_DATADIR/_settings/sourceroot" >&2
       echo "\$ echo $WHRUNKIT_PROJECTS/webhare > $WHRUNKIT_DATADIR/_settings/sourceroot" >&2
-      sleep 2
+      exit 1
       WEBHARE_DIR="$WHRUNKIT_PROJECTS/webhare/whtree"
     fi
   fi
