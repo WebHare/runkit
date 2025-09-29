@@ -25,7 +25,7 @@ while true; do
   elif [ "$1" == "--nocontainer" ]; then
     NOCONTAINER="1"
     shift
-  elif [ "$1" == "--sh" ]; then
+  elif [ "$1" == "--sh" ]; then #TODO see run-webhare, just map --rescue to /bin/bash depending on foreground/background
     TORUN=("/bin/bash")
     CONTAINEROPTIONS+=("-t" "-i")
     shift

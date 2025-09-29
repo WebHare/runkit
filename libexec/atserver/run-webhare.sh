@@ -19,14 +19,14 @@ ASSERVICE=""
 REQUIREUNITS=()
 NOSTART=""
 SHOWUNITFILE=""
+RESCUEMODE=""
 
 while true; do
   if [ "$1" == "--detach" ]; then
     DETACH="1"
     shift
   elif [ "$1" == "--rescue" ]; then
-    CONTAINER_CMDLINE+=("/bin/bash")
-    CONTAINEROPTIONS+=(-ti)
+    RESCUEMODE="1"
     shift
   elif [ "$1" == "--dockeropt" ] || [ "$1" == "--containeroption" ]; then
     shift
@@ -66,6 +66,15 @@ while true; do
 done
 
 [ -n "$1" ] && exit_syntax
+
+if [ "$RESCUEMODE" == "1" ]; then #configure container for rescue
+  if [ -n "$DETACH" ] || [ -n "$ASSERVICE" ]; then
+    CONTAINER_CMDLINE+=(/bin/sleep 604800)
+  else # we can only run /bin/bash in foreground mode as it would cause container shutdowns when running in the background due to bash autologout
+    CONTAINER_CMDLINE+=(/bin/bash)
+    CONTAINEROPTIONS+=(-ti)
+  fi
+fi
 
 CMDLINE=()
 
