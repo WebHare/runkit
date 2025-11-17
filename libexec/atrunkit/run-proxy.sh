@@ -53,6 +53,13 @@ done
 [ -n "$1" ] && exit_syntax
 
 
+if [ -f "$WHRUNKIT_DATADIR/_settings/letsencryptemail" ]; then
+  WEBHAREPROXY_LETSENCRYPTEMAIL="$(cat "$WHRUNKIT_DATADIR/_settings/letsencryptemail")"
+fi
+if [ -f "$WHRUNKIT_DATADIR/_settings/publichostname" ]; then
+  WEBHAREPROXY_ADMINHOSTNAME="$(cat "$WHRUNKIT_DATADIR/_settings/publichostname")"
+fi
+
 mkdir -p "$WHRUNKIT_DATADIR/_proxy" # Ensure our datadir is there
 
 if [ -n "$NOCONTAINER" ]; then
@@ -95,13 +102,8 @@ CONTAINERNAME="runkit-$CONTAINERBASENAME"
 
 mkdir -p "$WEBHAREPROXY_DATAROOT"
 
-# TODO pass these to localproxy too ? But I doubt we haec any use for it now
-if [ -f "$WHRUNKIT_DATADIR/_settings/letsencryptemail" ]; then
-  CONTAINEROPTIONS+=(-e WEBHAREPROXY_LETSENCRYPTEMAIL="$(cat "$WHRUNKIT_DATADIR/_settings/letsencryptemail")")
-fi
-if [ -f "$WHRUNKIT_DATADIR/_settings/publichostname" ]; then
-  CONTAINEROPTIONS+=(-e WEBHAREPROXY_ADMINHOSTNAME="$(cat "$WHRUNKIT_DATADIR/_settings/publichostname")")
-fi
+CONTAINEROPTIONS+=(-e WEBHAREPROXY_LETSENCRYPTEMAIL="$WEBHAREPROXY_LETSENCRYPTEMAIL")
+CONTAINEROPTIONS+=(-e WEBHAREPROXY_ADMINHOSTNAME="$WEBHAREPROXY_ADMINHOSTNAME")
 
 # TODO support options eg
 # - setting a recognizable hostname for the LB?  (eg  "-h" "lb-fra1-19.docker")
@@ -201,7 +203,7 @@ HERE
 fi
 
 if [ -n "$NOCONTAINER" ]; then
-  export WEBHAREPROXY_CODEROOT WEBHAREPROXY_DATAROOT
+  export WEBHAREPROXY_CODEROOT WEBHAREPROXY_DATAROOT WEBHAREPROXY_LETSENCRYPTEMAIL WEBHAREPROXY_ADMINHOSTNAME
   "$WEBHAREPROXY_CODEROOT"/proxy.sh runlocal
 else
   main_in_container "$@"

@@ -6,6 +6,13 @@ if [ ! -e "$PROXYKEYPATH" ]; then
   exit 1
 fi
 
+# TODO can we set an explcit nam
 ADMINKEY="$(cat "$PROXYKEYPATH")"
-open "http://webhare:${ADMINKEY}@127.0.0.1:5080/"
+WEBHAREPROXY_ADMINHOSTNAME="localhost"
+
+if [ -f "$WHRUNKIT_DATADIR/_settings/publichostname" ]; then
+  WEBHAREPROXY_ADMINHOSTNAME="$(cat "$WHRUNKIT_DATADIR/_settings/publichostname")"
+fi
+
+open "http://webhare:${ADMINKEY}@${WEBHAREPROXY_ADMINHOSTNAME}/admin"
 exit 0
