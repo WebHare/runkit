@@ -16,13 +16,14 @@ PREPARE=""
 SETIMAGE=""
 NOCONTAINER=""
 
+
 while true; do
   if [ "$1" == "--help" ]; then
     exit_syntax
   elif [ "$1" == "--detach" ]; then
     DETACH="1"
     shift
-  elif [ "$1" == "--nocontainer" ]; then
+  elif [ "$1" == "--nocontainer" ] || [ "$1" == "--no-container" ] ; then
     NOCONTAINER="1"
     shift
   elif [ "$1" == "--sh" ]; then #TODO see run-webhare, just map --rescue to /bin/bash depending on foreground/background
