@@ -64,7 +64,7 @@ fi
 mkdir -p "$WHRUNKIT_DATADIR/_proxy" # Ensure our datadir is there
 
 if [ -n "$NOCONTAINER" ]; then
-  WEBHAREPROXY_CODEROOT="$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/proxy")"
+  WEBHAREPROXY_CODEROOT="$(readlink "$WHRUNKIT_DATADIR/_settings/projectlinks/proxy" || true)"
   [ -n "$WEBHAREPROXY_CODEROOT" ] || die "Cannot find proxy project. Make sure runkit list-projects is showing the proxy"
   # Ensure it ends in a slash
   [ "${WEBHAREPROXY_CODEROOT: -1}" == "/" ] || WEBHAREPROXY_CODEROOT="${WEBHAREPROXY_CODEROOT}/"
