@@ -205,7 +205,13 @@ fi
 
 if [ -n "$NOCONTAINER" ]; then
   export WEBHAREPROXY_CODEROOT WEBHAREPROXY_DATAROOT WEBHAREPROXY_LETSENCRYPTEMAIL WEBHAREPROXY_ADMINHOSTNAME
-  "$WEBHAREPROXY_CODEROOT"/proxy.sh runlocal
+  "$WEBHAREPROXY_CODEROOT"/proxy.sh runlocal &
+  PID="$!"
+  echo "$PID" > "$WHRUNKIT_DATADIR/_proxy/nocontainer.pid"
+  trap 'rm -f "$WHRUNKIT_DATADIR/_proxy/nocontainer.pid"' EXIT
+  trap 'kill $PID; wait $PID; rm -f "$WHRUNKIT_DATADIR/_proxy/nocontainer.pid"' INT TERM
+  wait "$PID"
 else
+  rm -f "$WHRUNKIT_DATADIR/_proxy/nocontainer.pid"
   main_in_container "$@"
 fi

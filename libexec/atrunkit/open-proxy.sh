@@ -1,18 +1,19 @@
 #!/bin/bash
 
-PROXYKEYPATH="$WHRUNKIT_DATADIR/_proxy/data/etc/secret.key"
-if [ ! -e "$PROXYKEYPATH" ]; then
-  echo "Admin key $PROXYKEYPATH not present" 1>&2
+# TODO can we set an explcit nam
+ADMINKEY="$(runkit get-proxy-key || true)"
+WEBHAREPROXY_ADMINHOSTNAME="localhost:5080"
+WEBHAREPROXY_ADMINPATH="/"
+
+if [ -z "$ADMINKEY" ]; then
+  echo "Proxy admin key not set" 1>&2
   exit 1
 fi
 
-# TODO can we set an explcit nam
-ADMINKEY="$(cat "$PROXYKEYPATH")"
-WEBHAREPROXY_ADMINHOSTNAME="localhost"
-
 if [ -f "$WHRUNKIT_DATADIR/_settings/publichostname" ]; then
   WEBHAREPROXY_ADMINHOSTNAME="$(cat "$WHRUNKIT_DATADIR/_settings/publichostname")"
+  WEBHAREPROXY_ADMINPATH="/admin"
 fi
 
-open "http://webhare:${ADMINKEY}@${WEBHAREPROXY_ADMINHOSTNAME}/admin"
+open "http://webhare:${ADMINKEY}@${WEBHAREPROXY_ADMINHOSTNAME}${WEBHAREPROXY_ADMINPATH}"
 exit 0
