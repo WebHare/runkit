@@ -29,5 +29,5 @@ source $SETTINGSFILE
 [ -n "$BORG_PRIVATEKEY" ] || die "Invalid or incomplete settings received"
 
 mkdir -p "$WHRUNKIT_TARGETDIR"
-mv "$SETTINGSFILE" "$WHRUNKIT_TARGETDIR"/borgsettings
+mv "$SETTINGSFILE" "$WHRUNKIT_TARGETDIR"/borgsettings.restore
 exit 0
