@@ -173,6 +173,11 @@ HERE
 function applyborgsettings() {
   ensurecommands borg
 
+  #TODO how risky is accept-new (in practice) ?
+  export BORG_PRIVATEKEY=
+  export BORG_REPO=
+  export BORG_PASSPHRASE=
+
   WHRUNKIT_TARGETSERVER="$1"
 
   if [ -f "$WHRUNKIT_DATADIR/_settings/getborgsettings.sh" ]; then
@@ -185,21 +190,14 @@ function applyborgsettings() {
   loadtargetsettings
 
   if [ -z "$BORG_REPO" ]; then
-    #TODO how risky is accept-new (in practice) ?
-    export BORG_PRIVATEKEY=
-    export BORG_REPO=
-    export BORG_PASSPHRASE=
-
-    if [ -z "$BORG_REPO" ]; then
-      BORGSETTINGSFILE="$WHRUNKIT_TARGETDIR/borgsettings.restore"
-      if [ ! -f "$BORGSETTINGSFILE" ]; then
-        echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
-        [ -n "$WHRUNKIT_ONMISSINGSETTINGS" ] && echo "$WHRUNKIT_ONMISSINGSETTINGS"
-        exit 1
-      fi
-      # shellcheck disable=SC1090
-      source "$BORGSETTINGSFILE"
+    BORGSETTINGSFILE="$WHRUNKIT_TARGETDIR/borgsettings.restore"
+    if [ ! -f "$BORGSETTINGSFILE" ]; then
+      echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
+      [ -n "$WHRUNKIT_ONMISSINGSETTINGS" ] && echo "$WHRUNKIT_ONMISSINGSETTINGS"
+      exit 1
     fi
+    # shellcheck disable=SC1090
+    source "$BORGSETTINGSFILE"
   else
     logWithTime "Using borg settings from environment"
   fi
