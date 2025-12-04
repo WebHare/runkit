@@ -154,7 +154,7 @@ if [ -n "$NOCONTAINER" ]; then
   "$WHRUNKIT_WHCOMMAND" restore "$RESTOREFROMDIR"
   date > "$WEBHARE_DATAROOT"/webhare.restoredone
   logWithTime "Container restored"
-  ehco "** Launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console" >&2
+  echo "** Launch it directly using: runkit @$WHRUNKIT_TARGETSERVER wh console" >&2
   exit 0
 else
   # Mark restored volume as unshared
