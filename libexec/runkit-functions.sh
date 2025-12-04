@@ -173,11 +173,6 @@ HERE
 function applyborgsettings() {
   ensurecommands borg
 
-  #TODO how risky is accept-new (in practice) ?
-  export BORG_PRIVATEKEY=
-  export BORG_REPO=
-  export BORG_PASSPHRASE=
-
   WHRUNKIT_TARGETSERVER="$1"
 
   if [ -f "$WHRUNKIT_DATADIR/_settings/getborgsettings.sh" ]; then
@@ -190,6 +185,9 @@ function applyborgsettings() {
   loadtargetsettings
 
   if [ -z "$BORG_REPO" ]; then
+    BORG_PRIVATEKEY=
+    BORG_PASSPHRASE=
+
     BORGSETTINGSFILE="$WHRUNKIT_TARGETDIR/borgsettings.restore"
     if [ ! -f "$BORGSETTINGSFILE" ]; then
       echo Cannot locate expected settings file at "$BORGSETTINGSFILE"
@@ -206,6 +204,11 @@ function applyborgsettings() {
   [ -n "$BORG_PRIVATEKEY" ] || die "Missing BORG_PRIVATEKEY"
   [ -n "$BORG_PASSPHRASE" ] || die "Missing BORG_PASSPHRASE"
 
+  # Ensure BORG env vars are exported to borg subprocesses
+  export BORG_PRIVATEKEY
+  export BORG_REPO
+  export BORG_PASSPHRASE
+
   # TODO is there a way to not persist the privatesshkey ? and avoiding ssh-agent which comes with its own persisting process problems ?
   SAVEUMASK=$(umask)
   WEBHARE_RUNKIT_KEYFILE="$(mktemp)"
@@ -213,6 +216,7 @@ function applyborgsettings() {
   echo "$BORG_PRIVATEKEY" > "$WEBHARE_RUNKIT_KEYFILE"
   umask "$SAVEUMASK"
 
+  #TODO how risky is accept-new (in practice) ?
   # -S none is needed to be able to connect to rsync.net - we need to avoid muxing or we'll get "Repository path not allowed" when an earlier connection with different ssh key is already up
   export BORG_RSH="ssh -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes -S none -i $WEBHARE_RUNKIT_KEYFILE"
   mkdir -p "$WHRUNKIT_TARGETDIR"
