@@ -29,5 +29,5 @@ systemctl disable "$WHRUNKIT_CONTAINERNAME"
 systemctl daemon-reload
 
 rm -f /etc/systemd/system/${WHRUNKIT_CONTAINERNAME}.service
-rm -f "$WHRUNKIT_TARGETDIR"/{baseport,container.image,container.ipv4,dataroot}
+find "$WHRUNKIT_TARGETDIR" -maxdepth 1 -mindepth 1 ! -name whdata -delete
 rmdir "$WHRUNKIT_TARGETDIR" || true
