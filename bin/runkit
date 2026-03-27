@@ -50,7 +50,9 @@ if [ ! -f "$WHRUNKIT_TARGETDIR/container.image" ]; then #additional checks unles
   [ -n "$WEBHARE_BASEPORT" ] || die "Baseport ($WHRUNKIT_TARGETDIR/baseport) not set"
 
   ensure_whrunkit_command
-  [ -f "$WHRUNKIT_TARGETDIR/opensearch-bindhost" ] && export WEBHARE_OPENSEARCH_BINDHOST="$(cat "$WHRUNKIT_TARGETDIR/opensearch-bindhost")"
+  if [ -z "$WEBHARE_OPENSEARCH_BINDHOST" ] && [ -f "$WHRUNKIT_TARGETDIR/opensearch-bindhost" ]; then
+    export WEBHARE_OPENSEARCH_BINDHOST="$(cat "$WHRUNKIT_TARGETDIR/opensearch-bindhost")"
+  fi
 
   if [ "$WEBHARE_BASEPORT" != "13679" ] && [ ! -f "$WHRUNKIT_TARGETDIR/allowinstallationinfo" ]; then # NOT  the default
     export WEBHARE_NOINSTALLATIONINFO=1 # perhaps not for the default install?
