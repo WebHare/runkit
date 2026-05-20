@@ -8,6 +8,7 @@ function exit_syntax
   echo "  --default  sets the baseport to 13679 and binds the server to the 'wh' alias"
   echo "  --source   override WebHare source tree to use"
   echo "  --image    install container using specified image"
+  echo "  --whdata   set data dir"
   echo "  <server>   short name for the server, used as wh-<server> alias"
   exit 1
 }

@@ -6,7 +6,7 @@ cd tests || exit 1
 for P in ./test-*.sh ; do
   if ! $P ; then
     echo ""
-    echo "** Test failed!"
+    echo "** Test $P failed!"
     exit 1
   fi
 done

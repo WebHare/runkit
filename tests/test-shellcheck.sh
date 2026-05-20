@@ -10,6 +10,6 @@ if [ -z "$WHRUNKIT_DATADIR" ]; then
 fi
 
 cd "$ROOTDIR"
-SCRIPTS=(./*.sh bin/*.sh libexec/*.sh libexec/*/*.sh)
+SCRIPTS=(./*.sh bin/runkit libexec/*.sh libexec/*/*.sh)
 # invoke twice, the second version will set an exit code if shellcheck finds error. TODO lower to warning or even lower!
 ./node_modules/.bin/shellcheck "${SCRIPTS[@]}" || ./node_modules/.bin/shellcheck -f quiet -S error "${SCRIPTS[@]}"

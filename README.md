@@ -181,14 +181,3 @@ CONTAINER=demo
 runkit restore-server $CONTAINER
 runkit @$CONTAINER console
 ```
-
-### Troubleshooting
-If borg gives you such as `argument REPOSITORY_OR_ARCHIVE: Invalid location format: ""`
-you need to `open-backup.sh` on the server first. This sets some environment
-variables that tell borg how to access the backup data.
-
-To watch the logs for a running WebHare: `~/webhare-runkit/bin/watch-webhare.sh $CONTAINER`
-
-Keep in mind that if you run all this on a mac, WebHare's database will be running
-over a Docker volume mount and eg. index reconstruction after the restore can take
-quite some time, especially if this installation isn't using postgres yet.
