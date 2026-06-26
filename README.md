@@ -112,6 +112,8 @@ runkit link-proxy ~/projects/proxy
 runkit run-proxy --nocontainer
 ```
 
+See the [proxy's DEVELOPERS.md](https://github.com/WebHare/proxy/blob/master/DEVELOPERS.md)  for more information
+
 ## Setting up a discardable WebHare for CI tests
 
 A useful option in development is to set up a local CI WebHare server. This allows you to locally test your CI process on a “fresh” WebHare installation.
