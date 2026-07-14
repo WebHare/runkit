@@ -10,6 +10,7 @@ date > "$WHRUNKIT_DATADIR/_log/.last-daily-maintenance"
 
 # Prune old containers
 if hash podman >/dev/null 2>/dev/null ; then
+  # Cleans all shutdown containers created more than 48 hours ago.
   podman container prune --force --filter until="48h"
 
   # List currently prepared images
@@ -20,7 +21,9 @@ if hash podman >/dev/null 2>/dev/null ; then
 
   # limiting created images older than 7 days to prevent too early removal of build artifacts. note that this looks at image creation time, not download time so it's not protecting pulled images
   # "Id" gives us the full image ID, "ID" gives us a truncated one
-  for IMAGE in $(podman images --filter until="168h" --filter dangling=true --format "{{.Id}}"); do
+  # dangling=true are truly unconnected untagged aimges
+  # container=false are images currently unused by a container
+  for IMAGE in $(podman images --filter until="168h" --filter dangling=true --format "{{.Id}}") $(podman images --filter until="168h" --filter container=false --format "{{.Id}}"); do
     PRUNE_IMAGE=1
     # filter out images referenced by container.image files but not yet started
     for IMG in "${REFERREDIMAGES[@]}"; do
@@ -31,10 +34,9 @@ if hash podman >/dev/null 2>/dev/null ; then
     done
 
     if [[ $PRUNE_IMAGE -eq 1 ]]; then
-      echo podman image rm "$IMAGE"
+      podman image rm "$IMAGE"
     fi
   done
 
-  podman builder prune --force --filter until="168h"
   podman volume prune --force
 fi

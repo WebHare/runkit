@@ -35,9 +35,6 @@ Type=oneshot
 
 # prefixing with /bin/bash prevents SELinux from complaining about running code from eg. /root/projects/
 ExecStart=/bin/bash "$WHRUNKIT_ROOT"/bin/runkit __daily-maintenance
-
-[Install]
-WantedBy=multi-user.target
 HERE
 
 cat > /etc/systemd/system/runkit-daily-maintenance.timer << HERE
@@ -48,6 +45,8 @@ Requires=runkit-daily-maintenance.service
 [Timer]
 Unit=runkit-daily-maintenance.service
 OnCalendar=*-*-* 03:00:00
+# Prevents the job from triggering immediately if the server was shut down when it was supposed to run (e.g., at 3:00 AM)
+Persistent=false
 
 [Install]
 WantedBy=multi-user.target
