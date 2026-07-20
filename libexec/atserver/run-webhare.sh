@@ -158,11 +158,15 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
 
   if [ -f "$WHRUNKIT_TARGETDIR/container-options" ]; then
     while IFS= read -r line; do
-      CONTAINEROPTIONS+=("$(printf '%q' "$line")")
+      if [ -n "$line" ]; then
+        CONTAINEROPTIONS+=("$(printf '%q' "$line")")
+      fi
     done < "$WHRUNKIT_TARGETDIR/container-options"
   elif [ -f "$WHRUNKIT_TARGETDIR/docker-options" ]; then #fallback to old name
     while IFS= read -r line; do
-      CONTAINEROPTIONS+=("$(printf '%q' "$line")")
+      if [ -n "$line" ]; then
+        CONTAINEROPTIONS+=("$(printf '%q' "$line")")
+      fi
     done < "$WHRUNKIT_TARGETDIR/docker-options"
   fi
 
