@@ -62,7 +62,7 @@ function configure_runkit_podman()
 
     if ! podman network inspect "$WHRUNKIT_NETWORKNAME" > /dev/null 2>&1 ; then
       echo -n "Creating $WHRUNKIT_NETWORKNAME network: "
-      podman network create $WHRUNKIT_NETWORKNAME --subnet=${NETWORKPREFIX}.0/24
+      podman network create $WHRUNKIT_NETWORKNAME --opt isolate=false --subnet=${NETWORKPREFIX}.0/24
     fi
 
     DID_CONFIGURE_RUNKIT_PODMAN=1
