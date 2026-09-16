@@ -12,6 +12,11 @@ fi
 export WHRUNKIT_ORIGCOMMAND="$0"
 source "${WHRUNKIT_ROOT}/libexec/runkit-functions.sh"
 
+if [ "$1" == "-x" ]; then
+  shift
+  set -x
+fi
+
 if [ "${1:0:1}" == "@" ]; then #WebHare server directed command
   export WHRUNKIT_TARGETSERVER="${1:1}"
   shift
