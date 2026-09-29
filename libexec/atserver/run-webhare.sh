@@ -8,7 +8,7 @@ set -eo pipefail
 
 exit_syntax()
 {
-  echo "Syntax: runkit @server run-webhare [--detach] [--rescue] [--showunitfile]"
+  echo "Syntax: runkit @server run-webhare [--detach] [--rescue] [--showunitfile] [ -- <container-cmdline> ]"
   exit 1
 }
 
@@ -20,6 +20,8 @@ REQUIREUNITS=()
 NOSTART=""
 SHOWUNITFILE=""
 RESCUEMODE=""
+HAVE_CMDLINE=""
+CMDLINE=()
 
 while true; do
   if [ "$1" == "--detach" ]; then
@@ -57,6 +59,14 @@ while true; do
     shift
   elif [ "$1" == "--help" ]; then
     exit_syntax
+  elif [ "$1" == "--" ]; then
+    HAVE_CMDLINE="1"
+    shift
+    CONTAINER_CMDLINE=("$@")
+    while [ $# -gt 0 ]; do
+      shift
+    done
+    break
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
     exit 1
@@ -69,9 +79,9 @@ done
 
 if [ "$RESCUEMODE" == "1" ]; then #configure container for rescue
   if [ -n "$DETACH" ] || [ -n "$ASSERVICE" ]; then
-    CONTAINER_CMDLINE+=(/bin/sleep 604800)
+    CONTAINER_CMDLINE+=(bash -c "/bin/sleep 604800") # pid 1 is not killable, this makes the sleep killable
   else # we can only run /bin/bash in foreground mode as it would cause container shutdowns when running in the background due to bash autologout
-    CONTAINER_CMDLINE+=(/bin/bash)
+    CONTAINER_CMDLINE+=(wh shell)
     CONTAINEROPTIONS+=(-ti)
   fi
 fi
@@ -92,7 +102,10 @@ if [ -n "$ASSERVICE" ]; then
   done
 fi
 
-mkdir -p "$WEBHARE_DATAROOT" #Ensure the dataroot is there
+# If the dataroot starts with 'runkit-volume-', it is a volume, otherwise it is assumed to be a local directory
+if [[ "$WEBHARE_DATAROOT" != runkit-volume-* ]]; then
+  mkdir -p "$WEBHARE_DATAROOT" #Ensure the dataroot is there
+fi
 
 if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
   configure_runkit_podman
@@ -138,6 +151,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
 #    # Allocate a free IP address under
 
   MOUNTFLAGS=""
+  CONTAINEROPTIONS+=(--security-opt label=disable)
   if [[ "$OSTYPE" != "darwin"* ]]; then
     # MOUNTFLAGS=":Z" #on darwin this triggers lsetxattr error, see https://github.com/containers/podman-compose/issues/509#issuecomment-1162988103
     CONTAINEROPTIONS+=(--security-opt label=disable)
@@ -156,6 +170,27 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
     CONTAINEROPTIONS+=(--env-file "$WHRUNKIT_TARGETDIR/environment")
   fi
 
+  if [ -f "$WHRUNKIT_TARGETDIR/sourceroot" ]; then
+    CONTAINEROPTIONS+=(-v "$(cat "$WHRUNKIT_TARGETDIR/sourceroot"):/opt/wh/")
+  fi
+  if [ -d "$WHRUNKIT_TARGETDIR/whbuild" ]; then
+    CONTAINEROPTIONS+=(-v "$WHRUNKIT_TARGETDIR/whbuild:/opt/whbuild")
+  fi
+  if [ -d "$WHRUNKIT_TARGETDIR/whbuildroot" ]; then
+    CONTAINEROPTIONS+=(-v "$WHRUNKIT_TARGETDIR/whbuildroot:/opt/whbuildroot")
+  elif [ -f "$WHRUNKIT_TARGETDIR/whbuildroot" ]; then
+    CONTAINEROPTIONS+=(-v "$(cat "$WHRUNKIT_TARGETDIR/whbuildroot"):/opt/whbuildroot")
+  fi
+  if [ -z "$HAVE_CMDLINE" ] && [ -f "$WHRUNKIT_TARGETDIR/cmdline" ] && [ "$RESCUEMODE" != "1" ]; then
+    CONTAINER_CMDLINE=(bash -c)
+    CONTAINER_CMDLINE+=("$(cat "$WHRUNKIT_TARGETDIR/cmdline")")
+    CONTAINEROPTIONS+=(-ti)
+  fi
+  if [ -f "$WHRUNKIT_TARGETDIR/tmpfs" ]; then
+    while IFS= read -r line; do
+      CONTAINEROPTIONS+=(--tmpfs "$line")
+    done < "$WHRUNKIT_TARGETDIR/tmpfs"
+  fi
   if [ -f "$WHRUNKIT_TARGETDIR/container-options" ]; then
     while IFS= read -r line; do
       if [ -n "$line" ]; then

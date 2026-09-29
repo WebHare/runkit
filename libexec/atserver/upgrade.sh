@@ -4,7 +4,7 @@
 
 function exit_syntax
 {
-  echo "Syntax: runkit @server upgrade [image]"
+  echo "Syntax: runkit @server upgrade [--quiet] [--nopull] [--enablecontainer] [image]"
   echo "  image can be either:"
   echo "  - the full image path, eg: docker.io/webhare/platform:release-5-6"
   echo "  - a short name, eg: release/5.6, following the most recent 5.6.x version"

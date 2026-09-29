@@ -4,7 +4,7 @@
 
 set -e #fail on any uncaught error
 
-BRANCH="master"
+BRANCH="main"
 
 get_runkit_var WHRUNKIT_FORGEROOT forgeroot
 REPOSITORY="${WHRUNKIT_FORGEROOT}platform.git"

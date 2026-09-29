@@ -112,8 +112,8 @@ function set_container_image() # out: resolvedimage, basename, setimage, nopull
     FINALIMAGE="$SETIMAGE"
   fi
 
-  if [[ $FINALIMAGE =~ :devbuild$ ]]; then
-    NOPULL="1" # A :devbuild is always local
+  if [[ $FINALIMAGE =~ :devbuild$ ]] || [[ $FINALIMAGE =~ ^localhost/ ]]; then
+    NOPULL="1" # A :devbuild or localhost/* image is always local
   fi
 
   if  [ -z "$NOPULL" ]; then #
