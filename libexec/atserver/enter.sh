@@ -15,7 +15,7 @@ PS1="[$RUNKIT_TARGET_SLUG \W]\$ "
 export PS1
 export RUNKIT_TARGET_SLUG
 
-if [[ "$OSTYPE" != "darwin"* ]]; then
+if [[ "$OSTYPE" != "darwin"* ]] && [ "$(id -u)" = 0 ]; then
   # Note: future versions of nsenter will learn '--env' which will remove the need for this (it was added nov 2023)
   # Import the target environment. You shouldn't target untrusted containers with this code!
   while IFS= read -r LINE
@@ -31,8 +31,8 @@ if [[ "$OSTYPE" != "darwin"* ]]; then
   fi
 else
   if [ "$1" != "" ]; then
-    podman exec --env PS1 --env RUNKIT_TARGET_SLUG -it "$WHRUNKIT_CONTAINERNAME" "$@"
+    exec podman exec --env PS1 --env RUNKIT_TARGET_SLUG -it "$WHRUNKIT_CONTAINERNAME" "$@"
   else
-    podman exec --env PS1 --env RUNKIT_TARGET_SLUG -it "$WHRUNKIT_CONTAINERNAME" wh shell
+    exec podman exec --env PS1 --env RUNKIT_TARGET_SLUG -it "$WHRUNKIT_CONTAINERNAME" wh shell
   fi
 fi

@@ -121,7 +121,7 @@ else
 fi
 
 if [ -n "$DEVCONTAINER" ]; then
-  IMAGE=localhost/webhare/platform:developcontainer
+  IMAGE=localhost/webhare/platform:devcontainer
   if [ -z "$SOURCEROOT" ]; then
     if ! [ -d "$WHRUNKIT_TARGETDIR/webhare" ]; then
       echo "No source tree specified, downloading WebHare source..."
@@ -137,11 +137,20 @@ if [ -n "$DEVCONTAINER" ]; then
     fi
     SOURCEROOT="$WHRUNKIT_TARGETDIR/webhare"
   fi
-  mkdir "$WHRUNKIT_TARGETDIR/whbuild"
+  if ! podman image exists "$IMAGE"; then
+    echo "Devcontainer does not exist yet, building it"
+    if ! "$SOURCEROOT/addons/docker-build/build-devcontainer.sh"; then
+      echo "Failed to build devcontainer"
+      exit 1
+    fi
+  fi
+  mkdir -p "$WHRUNKIT_TARGETDIR/whbuild"
   mkdir -p "$WHRUNKIT_DATADIR/_settings/shared-dev-buildroot"
   echo "$WHRUNKIT_DATADIR/_settings/shared-dev-buildroot" > "$WHRUNKIT_TARGETDIR/whbuildroot"
   echo "wh shell" > "$WHRUNKIT_TARGETDIR/cmdline"
   echo "/tmp" > "$WHRUNKIT_TARGETDIR/tmpfs"
+  echo "--publish=${BASEPORT}:13679" > "$WHRUNKIT_TARGETDIR/container-options"
+  echo "WEBHARE_RESCUEPORT_BINDIP=0.0.0.0" > "$WHRUNKIT_TARGETDIR/environment"
 fi
 
 if [ -n "$IMAGE" ]; then # For create-server, not setting an image has no direct effect (unlike upgrade which reapplies the current tag)

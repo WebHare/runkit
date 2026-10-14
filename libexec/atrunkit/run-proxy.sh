@@ -15,6 +15,7 @@ ASSERVICE=
 PREPARE=""
 SETIMAGE=""
 NOCONTAINER=""
+NOPULL=""
 
 
 while true; do
@@ -43,6 +44,10 @@ while true; do
     shift
     SETIMAGE="$1"
     shift
+  elif [ "$1" == "--nopull" ]; then
+    shift
+    CONTAINEROPTIONS+=("--pull=never")
+    NOPULL="1"
   elif [[ "$1" =~ ^-.* ]]; then
     echo "Invalid switch '$1'"
     exit 1
@@ -75,7 +80,7 @@ else
   fi
 
   if [ -n "$SETIMAGE" ]; then
-    set_container_image "RESOLVEDIMAGE" "proxy" "$SETIMAGE"
+    set_container_image "RESOLVEDIMAGE" "proxy" "$SETIMAGE" "$NOPULL"
 
     COMMITREF="$(podman image inspect "$RESOLVEDIMAGE" | jq -r '.[0].Labels["dev.webhare.proxy.git-commit-ref"]')"
     [ -z "$COMMITREF" ] && [ -z "$__WHRUNKIT_DISABLE_IMAGE_CHECK" ] && die "Image does not appear to be a WebHare proxy"
@@ -112,9 +117,12 @@ CONTAINEROPTIONS+=(-e WEBHAREPROXY_ADMINHOSTNAME="$WEBHAREPROXY_ADMINHOSTNAME")
 # - setting WEBHAREPROXY_LETSENCRYPTEMAIL=webhare-servermgmt+letsencypt@webhare.nl
 # - setting DNS: "--dns=192.168.198.128" "--dns=8.8.8.8" "--dns=8.8.4.4"
 
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" == "Darwin" ] || [ "$(id -u)" != 0 ]; then
   #CONTAINEROPTIONS+=(--publish 10080:80/tcp --publish 10443:443/tcp)
-  CONTAINEROPTIONS+=(--publish 80:80/tcp --publish 443:443/tcp)
+  # need to make sure the proxy runs in the same network as WebHares, and uses IP address "$NETWORKPREFIX.1". `runkit reconfigure-proxy`
+  # explicitly connects to "$NETWORKPREFIX.1:5443", need to ensure that port is open too
+  get_runkit_var NETWORKPREFIX networkprefix
+  CONTAINEROPTIONS+=(--publish 80:80/tcp --publish 443:443/tcp --publish 5443:5443/tcp --network "$WHRUNKIT_NETWORKNAME" --ip "$NETWORKPREFIX.1")
 else
   CONTAINEROPTIONS+=(--network host)
 
