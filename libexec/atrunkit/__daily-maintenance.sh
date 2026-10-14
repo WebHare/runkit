@@ -22,8 +22,8 @@ if hash podman >/dev/null 2>/dev/null ; then
   # limiting created images older than 7 days to prevent too early removal of build artifacts. note that this looks at image creation time, not download time so it's not protecting pulled images
   # "Id" gives us the full image ID, "ID" gives us a truncated one
   # dangling=true are truly unconnected untagged aimges
-  # container=false are images currently unused by a container
-  for IMAGE in $(podman images --filter until="168h" --filter dangling=true --format "{{.Id}}") $(podman images --filter until="168h" --filter container=false --format "{{.Id}}"); do
+  # containers=false are images currently unused by a container
+  for IMAGE in $(podman images --filter until="168h" --filter dangling=true --format "{{.Id}}") $(podman images --filter until="168h" --filter containers=false --format "{{.Id}}"); do
     PRUNE_IMAGE=1
     # filter out images referenced by container.image files but not yet started
     for IMG in "${REFERREDIMAGES[@]}"; do
