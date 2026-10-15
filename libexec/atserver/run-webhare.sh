@@ -191,6 +191,9 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
       CONTAINEROPTIONS+=(--tmpfs "$line")
     done < "$WHRUNKIT_TARGETDIR/tmpfs"
   fi
+  if [ -f "$WHRUNKIT_TARGETDIR/mount-etc-hosts" ]; then
+    CONTAINEROPTIONS+=(-v "/etc/hosts:/etc/hosts:ro")
+  fi
   if [ -f "$WHRUNKIT_TARGETDIR/container-options" ]; then
     while IFS= read -r line; do
       if [ -n "$line" ]; then

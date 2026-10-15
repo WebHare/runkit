@@ -149,6 +149,7 @@ if [ -n "$DEVCONTAINER" ]; then
   echo "$WHRUNKIT_DATADIR/_settings/shared-dev-buildroot" > "$WHRUNKIT_TARGETDIR/whbuildroot"
   echo "wh shell" > "$WHRUNKIT_TARGETDIR/cmdline"
   echo "/tmp" > "$WHRUNKIT_TARGETDIR/tmpfs"
+  echo 1 > "$WHRUNKIT_TARGETDIR/mount-etc-hosts"
   echo "--publish=${BASEPORT}:13679" > "$WHRUNKIT_TARGETDIR/container-options"
   echo "WEBHARE_RESCUEPORT_BINDIP=0.0.0.0" > "$WHRUNKIT_TARGETDIR/environment"
 fi
