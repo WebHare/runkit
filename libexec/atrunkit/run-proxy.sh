@@ -121,8 +121,7 @@ if [ "$(uname)" == "Darwin" ] || [ "$(id -u)" != 0 ]; then
   #CONTAINEROPTIONS+=(--publish 10080:80/tcp --publish 10443:443/tcp)
   # need to make sure the proxy runs in the same network as WebHares, and uses IP address "$NETWORKPREFIX.1". `runkit reconfigure-proxy`
   # explicitly connects to "$NETWORKPREFIX.1:5443", need to ensure that port is open too
-  get_runkit_var NETWORKPREFIX networkprefix
-  CONTAINEROPTIONS+=(--publish 80:80/tcp --publish 443:443/tcp --publish 5443:5443/tcp --network "$WHRUNKIT_NETWORKNAME" --ip "$NETWORKPREFIX.1")
+  CONTAINEROPTIONS+=(--publish 80:80/tcp --publish 443:443/tcp --publish 5443:5443/tcp --network "$WHRUNKIT_NETWORKNAME")
 else
   CONTAINEROPTIONS+=(--network host)
 

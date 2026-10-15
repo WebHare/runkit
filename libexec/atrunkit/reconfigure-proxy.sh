@@ -43,12 +43,19 @@ fi
 
 get_runkit_var NETWORKPREFIX networkprefix
 
+PROXY_IP="${NETWORKPREFIX}.1"
+if [ "$(id -u)" != 0 ]; then
+  # In rootless mode the proxy runs in the podman network instead of in the host network
+  PROXY_IP="$(podman inspect runkit-proxy |jq -r '.[0].NetworkSettings.Networks["webhare-runkit"].IPAddress')"
+fi
+
 for ID in $WEBHARE_CONTAINERS ; do
   # TODO webhare needs to offer an atomic update so we don't risk downtime
   # although webserver reset might be sufficiently safe?
   podman exec "$ID" wh webserver reset --force
-  WEBHARE_IP="$(podman inspect "$ID" |jq -r '.[0].NetworkSettings.Networks["webhare-runkit"].IPAddress')"
+  WEBHARE_IP="$(podman inspect "$ID" | Rjq -r '.[0].NetworkSettings.Networks["webhare-runkit"].IPAddress')"
+
   #use the dedicated admin port because /admin/ may not be available (to make it available we have to deal with giving the proxy a proper hostname, and eventually letsencrypt)
   #TOOD to not have to deal with ignoring certificates, why can't the proxy open up its http-port using a command line option?
-  podman exec "$ID" wh cli addproxy https://${NETWORKPREFIX}.1:5443/ "$PROXY_PASSWORD" "http://$WEBHARE_IP:13684/"
+  podman exec "$ID" wh cli addproxy https://${PROXY_IP}:5443/ "$PROXY_PASSWORD" "http://$WEBHARE_IP:13684/"
 done
