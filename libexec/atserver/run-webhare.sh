@@ -122,30 +122,7 @@ if [ -n "$WHRUNKIT_CONTAINERNAME" ]; then
     CONTAINEROPTIONS+=(--rm)
   fi
 
-  get_runkit_var NETWORKPREFIX networkprefix
-  USEIP="$(cat "$WHRUNKIT_TARGETDIR"/container.ipv4 2>/dev/null || true)"
-  if [ -z "$USEIP" ]; then
-    (
-      [ "$(uname)" == "Darwin" ] || flock 200 # No flock on macOS, but we'll take our chances as macOS is not server-production-ready anyway
-      # Find a free IP address
-      for LASTOCTET in $(seq 2 253) ; do
-        ISINUSE=0
-        USEIP="${NETWORKPREFIX}.${LASTOCTET}"
-        for IP in $(cat "$WHRUNKIT_DATADIR"/*/container.ipv4 2>/dev/null || true); do
-          if [ "$IP" == "$USEIP" ]; then
-            ISINUSE=1
-            break;
-          fi
-        done
-        if [ "$ISINUSE" == "0" ]; then
-          break;
-        fi
-      done
-      [ "$ISINUSE" == "0" ] || die "Unable to find a free IP address"
-      echo "$USEIP" > "$WHRUNKIT_TARGETDIR"/container.ipv4
-    ) 200>"$WHRUNKIT_DATADIR"/.lock
-    USEIP="$(cat "$WHRUNKIT_TARGETDIR"/container.ipv4 2>/dev/null || true)"
-  fi
+  USEIP="$(allocate_container_ipv4)"
 
  # if [ -z "$WHRUNKIT_TARGETDIR"/container.ipv4 ]; then
 #    # Allocate a free IP address under

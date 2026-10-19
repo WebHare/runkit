@@ -32,6 +32,7 @@ else # Either runkit command or @default
   CMD="$1"
   shift
   if [ -f "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" ]; then
+    # shellcheck source=/dev/null
     source "$WHRUNKIT_ROOT/libexec/atrunkit/$CMD.sh" "$@"
     exit 0 # ensure exitcode 0 on succesful run
   fi
