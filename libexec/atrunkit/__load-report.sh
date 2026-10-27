@@ -5,7 +5,7 @@ LOGFILE=$LOGDIR/$(date +%H.%M.%S)
 
 ( date ;
   echo ;
-  w ;
+  echo "Load: $(cat /proc/loadavg)" ;
   echo ;
   free ;
   echo ;
